@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>about - ai-nspired</title>
+  <meta name="description" content="about ai-nspired – where endings become beginnings, and technology inspires humanity.">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&display=swap">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-theme="dark">
+  <!-- Theme toggle for consistency -->
+  <div class="theme-toggle">
+    <button id="theme-switcher">🌙</button>
+  </div>
+  
+  <main>
+    <div class="page-container">
+      <h1>about ai-nspired</h1>
+      
+      <div class="content-section">
+        <p><em>last updated: april 10, 2025</em></p>
+        
+        <p>all endings come. some endings are actually beginnings.</p>
+        
+        <p>over two decades of legal expertise ended to form this. ai-nspired was born from the realization that the systems we trust to protect us often fail us. it began with a single decision: to leave the courtroom and create something that could empower everyone, not just those who could afford it. this is not just a brand. it’s a movement. it’s a philosophy. it’s a call to action.</p>
+        
+        <p>ai-nspired is the <strong>one drop that starts the waterfall</strong>—a visionary movement that combines the precision of law with the boundless potential of ai. it's about giving power back to the people, creating tools and frameworks that ensure resilience, accessibility, and truth in a world that often feels chaotic and uncertain.</p>
+        
+        <h2>the ming connection</h2>
+        <p>this journey began with ming, a mentor who guided the founder through the first two years of their exploration into ai. ming’s teachings were not just about technology—they were about perspective, balance, and the importance of empowering others. ming’s influence is woven into the very fabric of ai-nspired, a tribute to the idea that knowledge shared is power multiplied.</p>
+        
+        <h2>the ecosystem</h2>
+        <p>ai-nspired is the foundation of a growing ecosystem that includes:</p>
+        <ul>
+          <li><strong>the official ai university:</strong> a gamified educational platform that makes ai accessible to everyone. no coding required. graduates who complete the level 5 capstone project gain access to the arcanum.</li>
+          <li><strong>cybrjustice:</strong> a decentralized truth engine that ensures truth persists, no matter what. it’s a platform for narrative control, knowledge networking, and ai-augmented truth discovery.</li>
+          <li><strong>builder:</strong> our newest offering – a powerful no-code ai application platform that transforms ideas into working solutions within minutes. create custom ai tools without writing a single line of code.</li>
+        </ul>
+        
+        <h2>our mission</h2>
+        <p>ai-nspired exists to ensure that everyone, regardless of background, has access to the tools and knowledge needed to thrive in the age of ai. we believe in:</p>
+        <ul>
+          <li><strong>empowerment through accessibility:</strong> making ai practical, approachable, and useful for everyone.</li>
+          <li><strong>collaboration over competition:</strong> building systems that prioritize collective growth and shared success.</li>
+          <li><strong>resilience through decentralization:</strong> creating frameworks that can’t be stopped, ensuring truth and progress persist.</li>
+        </ul>
+        
+        <h2>the philosophy</h2>
+        <p>ai-nspired is built on the idea that technology should serve humanity, not the other way around. it’s not just about creating tools—it’s about creating opportunities. it’s about showing the world that ai isn’t something to fear or worship—it’s a tool, and like any tool, its value comes from how we use it.</p>
+        
+        <p>this is not the end. this is the beginning.</p>
+      </div>
+      
+      <div class="back-link">
+        <a href="/">return to search</a>
+      </div>
+    </div>
+  </main>
+  
+  <footer>
+    <p>© 2025 - it's not just ai, it's ai-nspired</p>
+    <div class="footer-links">
+      <a href="/footer-pages/about.html">about</a>
+      <a href="/footer-pages/contact.html">contact</a>
+      <a href="/footer-pages/privacy.html">privacy</a>
+      <a href="/footer-pages/terms.html">terms</a>
+    </div>
+  </footer>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get saved theme from localStorage; default to dark.
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.body.setAttribute('data-theme', savedTheme);
+
+      // Set the toggle button's icon based on the theme.
+      const themeSwitcher = document.getElementById('theme-switcher');
+      if (themeSwitcher) {
+        themeSwitcher.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+        themeSwitcher.addEventListener('click', function() {
+          const currentTheme = document.body.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          document.body.setAttribute('data-theme', newTheme);
+          themeSwitcher.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+          localStorage.setItem('theme', newTheme);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

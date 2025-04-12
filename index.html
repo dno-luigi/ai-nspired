@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ai-nspired</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  
+  <script>
+    // Define essential utility functions
+    window.A = window.A || {};
+    
+    // Define the A.log function
+    window.A.log = function() {
+      if (console && console.log) {
+        console.log.apply(console, ['[A]'].concat(Array.from(arguments)));
+      }
+    };
+    
+    // Define minimal events system directly in HTML
+    window.A.events = {
+      _events: {},
+      _registered: [],
+      
+      // Register function
+      register: function(eventName) {
+        console.log('[Events] Registering:', eventName);
+        if (!this._registered.includes(eventName)) {
+          this._registered.push(eventName);
+        }
+        if (!this._events[eventName]) {
+          this._events[eventName] = [];
+        }
+        return true;
+      },
+      
+      // On function
+      on: function(eventName, callback) {
+        if (!this._events[eventName]) {
+          this.register(eventName);
+        }
+        this._events[eventName].push(callback);
+        return true;
+      },
+      
+      // Off function
+      off: function(eventName, callback) {
+        if (!this._events[eventName]) return false;
+        if (callback) {
+          this._events[eventName] = this._events[eventName].filter(f => f !== callback);
+        } else {
+          this._events[eventName] = [];
+        }
+        return true;
+      },
+      
+      // Emit function
+      emit: function(eventName, data) {
+        if (!this._events[eventName]) {
+          this.register(eventName);
+        }
+        for (let fn of this._events[eventName]) {
+          try {
+            fn(data);
+          } catch(e) {
+            console.error('[Events] Error in handler:', e);
+          }
+        }
+        return true;
+      },
+      
+      // Get registered events
+      getRegisteredEvents: function() {
+        return this._registered;
+      }
+    };
+    
+    // Register system events
+    window.A.events.register('system:ready');
+    window.A.events.register('system:error');
+  </script>
+
+  <!-- Core system scripts - ORDER MATTERS -->
+  <script src="core/events.js"></script>
+  <script src="core/loader.js"></script>
+  <script src="core/registry.js"></script>
+  <script src="config.js"></script>
+  <script src="secure-config.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await A.loader.init();
+      A.log('System initialized');
+    });
+  </script>
+  
+  <script>
+    // Add this right after your core scripts load but before modules
+    document.addEventListener('DOMContentLoaded', function() {
+      // Test events system
+      console.log('VERIFICATION: Testing events system...');
+      console.log('VERIFICATION: A.events exists?', !!A.events);
+      console.log('VERIFICATION: A.events.register exists?', typeof A.events.register === 'function');
+      
+      if (typeof A.events.register !== 'function') {
+        console.error('CRITICAL ERROR: A.events.register is not a function! System will not work properly!');
+        return;
+      }
+      
+      // Test registration
+      A.events.register('test:event');
+      console.log('VERIFICATION: Registered events:', A.events.getRegisteredEvents());
+      
+      // Test listener
+      A.events.on('test:event', function(data) {
+        console.log('VERIFICATION: Event listener called with data:', data);
+      });
+      
+      // Test emit
+      A.events.emit('test:event', {success: true});
+      
+      console.log('VERIFICATION: Events system test complete');
+    });
+  </script>
+</head>
+<body>
+  <main>
+    <div class="search-container">
+      <h1 class="mobile-friendly-logo"><span>ai-nspired</span></h1>
+      <form id="search-form">
+        <input type="text" id="search-input" placeholder="pragmatic personal private">
+        <div class="search-controls">
+          <button type="button" id="voice-button" class="voice-button">
+            <span class="mic-icon">🔊</span>
+          </button>
+          <button type="button" id="settings-button" class="settings-button">
+            <span class="settings-icon">🔧</span>
+          </button>
+        </div>
+      </form>
+      <div id="results-container" class="results-container"></div>
+    </div>
+    <div id="read-aloud-indicator" class="read-aloud-indicator" style="display: none;">
+      <span class="read-aloud-icon">🗣️</span>
+      <span class="read-aloud-text">Reading aloud...</span>
+    </div>
+
+    <div id="playback-controls" class="playback-controls" style="display: none;">
+      <!-- Buttons will be dynamically added here -->
+    </div>
+  </main>
+  
+  <!-- Voice settings modal -->
+  <div id="voice-settings-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Settings</h2>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-group">
+          <h3>Voice Recognition</h3>
+          <div class="setting-option">
+            <label class="toggle-switch">
+              <input type="checkbox" id="auto-stop-recognition" checked>
+              <span class="slider"></span>
+            </label>
+            <label for="auto-stop-recognition">Stop listening after speech detected</label>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <h3>Text-to-Speech</h3>
+          <div class="setting-row">
+            <label for="tts-voice">Voice:</label>
+            <select id="tts-voice">
+              <option value="alloy">Alloy (Balanced)</option>
+              <option value="echo">Echo (Clear)</option>
+              <option value="fable">Fable (Expressive)</option>
+              <option value="nova">Nova (Professional)</option>
+              <option value="shimmer">Shimmer (Gentle)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Model Selection Section -->
+        <div class="setting-group">
+          <h3>AI Personality</h3>
+          <div id="model-selection-options" class="setting-option">
+            <!-- Model options will be dynamically added here -->
+          </div>
+        </div>
+        
+        <!-- Theme toggle section -->
+        <div class="setting-group">
+          <h3>Theme</h3>
+          <div class="setting-option">
+            <button id="theme-toggle" class="button">🌙 Dark Mode</button>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <h3>Response Display</h3>
+          <div class="setting-option">
+            <label class="toggle-switch">
+              <input type="checkbox" id="typewriter-toggle" checked>
+              <span class="slider"></span>
+            </label>
+            <label for="typewriter-toggle">Typewriter effect</label>
+          </div>
+          
+          <div class="setting-row">
+            <label for="typing-speed">Typing speed:</label>
+            <select id="typing-speed">
+              <option value="slow">Slow</option>
+              <option value="medium" selected>Medium</option>
+              <option value="fast">Fast</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="save-settings" class="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio Player Modal -->
+  <div id="audio-player-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Audio Playback</h3>
+        <audio id="audio-player" controls style="width: 100%;">
+            Your browser does not support the audio element.
+        </audio>
+        <button id="close-modal" class="button">Close</button>
+    </div>
+  </div>
+
+  <!-- Example footer section -->
+  <footer>
+    <div class="footer-links">
+      <a href="/footer-pages/about.html">about</a>
+      <a href="/footer-pages/contact.html">contact</a>
+      <a href="/footer-pages/privacy.html">privacy</a>
+      <a href="/footer-pages/terms.html">terms</a>
+    </div>
+    <p>© 2025 ai-nspired</p>
+  </footer>
+
+  <!-- SINGLE CLEAN THEME TOGGLE SCRIPT -->
+  <script>
+    // Get the theme toggle button
+    const themeToggle = document.getElementById('theme-toggle');
+
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('[UI] Setting up theme toggle...');
+      if (!themeToggle) {
+          console.error('[UI] Theme toggle button not found!');
+          return;
+      }
+      
+      // First apply saved theme
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+          document.body.classList.add('dark-mode');
+          document.body.classList.remove('light-mode');
+          themeToggle.textContent = '☀️ Light Mode';
+      } else {
+          document.body.classList.add('light-mode');
+          document.body.classList.remove('dark-mode');
+          themeToggle.textContent = '🌙 Dark Mode';
+      }
+      
+      // Add direct click handler
+      themeToggle.addEventListener('click', function() {
+          console.log('[UI] Theme toggle clicked');
+          
+          if (document.body.classList.contains('dark-mode')) {
+              document.body.classList.remove('dark-mode');
+              document.body.classList.add('light-mode');
+              localStorage.setItem('theme', 'light');
+              themeToggle.textContent = '🌙 Dark Mode';
+              console.log('[UI] Switched to light mode');
+          } else {
+              document.body.classList.remove('light-mode');
+              document.body.classList.add('dark-mode');
+              localStorage.setItem('theme', 'dark');
+              themeToggle.textContent = '☀️ Light Mode';
+              console.log('[UI] Switched to dark mode');
+          }
+      });
+    });
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Function to populate model selection options
+      function populateModelSelectionOptions() {
+        const modelSelectionOptions = document.getElementById('model-selection-options');
+        if (!modelSelectionOptions) {
+          console.error('[UI] Model selection options container not found!');
+          return;
+        }
+
+        // Get the inference configurations from A.registry
+        const ai = A.registry.getModule('ai/inference'); // Get the module
+        if (!ai) {
+          console.error('[UI] ai/inference module not found!');
+          return;
+        }
+
+        // Check if inferenceConfigs is available
+        if (!ai.inferenceConfigs) {
+          console.error('[UI] inferenceConfigs not found in ai/inference module!');
+          return;
+        }
+
+        const inferenceConfigs = ai.inferenceConfigs; // Access inferenceConfigs
+
+        // Loop through the inference configurations and create radio buttons
+        modelSelectionOptions.innerHTML = ''; // Clear existing options
+        inferenceConfigs.forEach(config => {
+          const label = document.createElement('label');
+          label.innerHTML = `
+            <input type="radio" name="model-selection" value="${config.name}" ${config.name === 'Wildcard' ? 'checked' : ''}>
+            ${config.name}
+          `;
+          modelSelectionOptions.appendChild(label);
+        });
+      }
+
+      // Listen for the ai:ready event
+      A.events.on('ai:ready', function() {
+        console.log('[UI] ai:ready event received, populating model selection options');
+        populateModelSelectionOptions();
+      });
+    });
+  </script>
+</body>
+</html>
