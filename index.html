@@ -1,177 +1,436 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI-Nspired TruthEngine</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- Add Marked.js -->
-    <style>
-      body {
-        font-family: 'Roboto', sans-serif;
-        background-color: #ffffff;
-        color: #333333;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI-N • Visionary Tech, Poetic Code</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* === SCALED UP TYPOGRAPHY === */
+    :root {
+      font-size: 20px;
+      --purple-DNO: #5E2BFF;
+      --electric-MING: #00F5D4;
+      --void: #0A0A12;
+      --text-primary: #F8F5F2;
+      --text-secondary: rgba(248, 245, 242, 0.7);
+      --line-height: 1.8;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: var(--void);
+      color: var(--text-primary);
+      line-height: var(--line-height);
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    h1 {
+      font-size: 3.5rem;
+      line-height: 1.2;
+      margin-bottom: 2rem;
+      background: linear-gradient(90deg, var(--electric-MING), var(--text-primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    h2 {
+      font-size: 2.2rem;
+      margin: 3rem 0 1.5rem;
+      color: var(--electric-MING);
+    }
+    
+    h3 {
+      font-size: 1.5rem;
+      margin: 2rem 0 1rem;
+    }
+    
+    p, li {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    /* === HEADER & NAV STYLES === */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid rgba(94, 43, 255, 0.3);
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    
+    .nav-link:hover {
+      color: var(--electric-MING);
+    }
+    
+    /* === MODAL STYLES === */  
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    
+    .modal-overlay.active {
+      display: flex;
+    }
+    
+    .modal-container {
+      background: var(--void);
+      border: 2px solid var(--purple-DNO);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow: auto;
+      padding: 2rem;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .modal-title {
+      font-size: 1.8rem;
+      color: var(--electric-MING);
+    }
+    
+    .close-modal {
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: 2rem;
+      cursor: pointer;
+    }
+    
+    .search-container {
+      margin-bottom: 2rem;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.2rem;
+      border: 2px solid var(--purple-DNO);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-primary);
+    }
+    
+    .search-button {
+      background: var(--purple-DNO);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      cursor: pointer;
+    }
+    
+    /* === RESULTS STYLES === */
+    .result-container {
+      font-size: 1.2rem;
+      line-height: var(--line-height);
+    }
+    
+    .result-container h3 {
+      color: var(--electric-MING);
+      margin-top: 2rem;
+    }
+    
+    .result-container p {
+      margin-bottom: 1.5rem;
+    }
+    
+    .result-container ul {
+      padding-left: 1.5rem;
+    }
+    
+    .result-container a {
+      color: var(--electric-MING);
+      text-decoration: none;
+      border-bottom: 1px solid;
+    }
+    
+    .result-container a:hover {
+      border-bottom-color: transparent;
+    }
+    
+    /* === INTERACTIVE ELEMENTS === */
+    [data-search] {
+      cursor: pointer;
+      color: var(--electric-MING);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: all 0.2s ease;
+    }
+    
+    [data-search]:hover {
+      color: var(--purple-DNO);
+    }
+    
+    /* === FEATURE CARDS === */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin: 3rem 0;
+    }
+    
+    .feature-card {
+      background: rgba(26,26,46,0.5);
+      border-radius: 12px;
+      padding: 2rem;
+      border: 1px solid var(--purple-DNO);
+    }
+    
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--electric-MING);
+    }
+    
+    /* === RESPONSIVE STYLES === */
+    @media (max-width: 768px) {
+      :root {
+        font-size: 18px;
       }
-
+      
       h1 {
-        font-size: 3rem;
-        color: #5a2d82;
-        margin-bottom: 10px;
-        text-align: center;
+        font-size: 2.5rem;
       }
+      
+      .container {
+        padding: 1.5rem;
+      }
+      
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>AI-NSPIRED</h1>
+      <nav class="nav-links">
+        <a href="#" data-search="about ai-nspired" class="nav-link">About</a>
+        <a href="#" data-search="projects" class="nav-link">Projects</a>
+        <a href="#" data-search="resources" class="nav-link">Resources</a>
+        <a href="#" data-search="contact" class="nav-link">Contact</a>
+      </nav>
+    </header>
 
-      h2 {
-        font-size: 1.2rem;
-        color: #666666;
-        margin-bottom: 20px;
-        text-align: center;
-        font-weight: 300;
-      }
+    <main>
+      <button class="search-button" style="margin-bottom: 3rem;" onclick="openModal()">
+        Query Truth Engine
+      </button>
 
-      .search-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        max-width: 600px;
-      }
+      <section>
+        <h2>🧠 what is ai-nspired?</h2>
+        <p>ai-nspired is the umbrella. the launchpad. the lab.</p>
+        <p>it's where intelligence meets intention.</p>
+        <p>we teach, build, and deploy ethical AI systems that empower people—not replace them.</p>
+        <p>if you're not integrating AI, you're getting left behind.</p>
+        <p>but here, you're not alone. we'll show you how to lead.</p>
+        
+        <p style="font-style: italic; border-left: 3px solid var(--purple-DNO); padding-left: 1.5rem;">
+          this is where the next era starts—equal parts education, innovation, and soul.
+        </p>
+      </section>
 
-      input[type="text"] {
-        width: 100%;
-        padding: 15px;
-        border: 1px solid #cccccc;
-        border-radius: 25px;
-        margin-bottom: 15px;
-        font-size: 16px;
-        text-align: center;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
+      <section>
+        <h2>🌐 projects we power:</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">⚖️</div>
+            <h3><span data-search="cybrjustice project details">cybrjustice</span></h3>
+            <p>Justice tech built for liberation, not litigation.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🧠</div>
+            <h3><span data-search="truth engine specifications">truth engine</span></h3>
+            <p>Your life. Your voice. Your receipts. Recorded in stone.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎓</div>
+            <h3><span data-search="ai university curriculum">the official ai university</span></h3>
+            <p>Train with us. Prompt like a prophet. Build like a founder.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">✨</div>
+            <h3><span data-search="arcana astrology framework">arcana astrology</span></h3>
+            <p>AI + divination = clarity for the cosmic era.</p>
+          </div>
+        </div>
+      </section>
 
-      button {
-        padding: 10px 20px;
-        background-color: #5a2d82;
-        color: #ffffff;
-        border: none;
-        border-radius: 25px;
-        cursor: pointer;
-        font-size: 16px;
-        transition: background-color 0.3s ease;
-      }
+      <section>
+        <h2>📬 stay in the loop</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">✉️</div>
+            <h3><span data-search="newsletter signup">newsletter</span></h3>
+            <p>Tech drops, toolkits, and event invites</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📜</div>
+            <h3><span data-search="ai-nspired manifesto">manifesto</span></h3>
+            <p>Our core principles and vision</p>
+          </div>
+        </div>
+      </section>
+    </main>
 
-      button:hover {
-        background-color: #3e1f5a;
-      }
-
-      .result {
-        margin-top: 20px;
-        width: 100%;
-        max-height: 400px; /* Limit the height of the result container */
-        overflow-y: auto; /* Enable vertical scrolling */
-        text-align: left;
-        background-color: #f9f9f9;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        font-size: 1rem;
-        line-height: 1.5;
-        color: #333333;
-      }
-
-      footer {
-        margin-top: 20px;
-        font-size: 0.9rem;
-        color: #666666;
-        text-align: center;
-      }
-
-      footer a {
-        color: #5a2d82;
-        text-decoration: none;
-      }
-
-      footer a:hover {
-        text-decoration: underline;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>ai-nspired</h1>
-    <h2>pragmatic personal private</h2>
-    <div class="search-container">
-      <input
-        type="text"
-        id="queryInput"
-        placeholder="Enter your question..."
-      />
-      <button id="searchButton">Search</button>
-    </div>
-    <div class="result" id="resultContainer"></div>
-    <footer>
-      <p>
-        <a href="#">about</a> | <a href="#">contact</a> | <a href="#">privacy</a> | <a href="#">terms</a>
-      </p>
-      <p>© 2025 ai-nspired</p>
+    <footer style="text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--purple-DNO);">
+      <p>© 2025 AI-Nspired | Root Protocols</p>
     </footer>
+  </div>
 
-    <script>
-      const API_BASE = 'https://justice.ai-n.workers.dev';
+  <!-- Truth Engine Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">AI-N Truth Engine</h2>
+        <button class="close-modal" id="close-modal">×</button>
+      </div>
+      <div class="search-container">
+        <input type="text" class="search-input" id="queryInput" placeholder="Enter your query about justice, AI, or systems...">
+        <button class="search-button" id="searchButton">Search</button>
+      </div>
+      <div class="result-container" id="resultContainer"></div>
+    </div>
+  </div>
 
-      // Function to perform the truth query
-      async function performTruthQuery() {
-        const query = document.getElementById('queryInput').value.trim();
-        const resultContainer = document.getElementById('resultContainer');
-        resultContainer.innerHTML = ''; // Clear previous results
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    // CybrJustice-style Truth Engine implementation
+    const API_URL = 'https://justice.ai-n.workers.dev/api/ai/truth';
+    const modalOverlay = document.getElementById('modal-overlay');
+    const closeModal = document.getElementById('close-modal');
+    const queryInput = document.getElementById('queryInput');
+    const searchButton = document.getElementById('searchButton');
+    const resultContainer = document.getElementById('resultContainer');
 
-        if (!query) {
-          resultContainer.innerHTML = '<p>Please enter a question.</p>';
-          return;
-        }
+    // Configure marked.js
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+      highlight: function(code) {
+        return hljs.highlightAuto(code).value;
+      }
+    });
 
-        resultContainer.innerHTML = '<p>Searching...</p>';
+    // Modal Control Functions
+    function openModal(initialQuery = '') {
+      modalOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      if (initialQuery) {
+        queryInput.value = initialQuery;
+        performTruthQuery();
+      } else {
+        queryInput.focus();
+      }
+    }
 
-        try {
-          const response = await fetch(`${API_BASE}/api/ai/truth`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query }),
-          });
+    function closeModalHandler() {
+      modalOverlay.classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
 
-          const data = await response.json();
+    // Truth Engine Query Function
+    async function performTruthQuery() {
+      const query = queryInput.value.trim();
+      resultContainer.innerHTML = '';
 
-          if (data.answer) {
-            let resultHTML = `<p><strong>Answer:</strong></p>`;
-            resultHTML += `<div>${marked.parse(data.answer)}</div>`; // Render Markdown
-            if (data.citations && Array.isArray(data.citations)) {
-              resultHTML += '<p><strong>Sources:</strong></p><ul>';
-              data.citations.forEach((citation) => {
-                resultHTML += `<li><a href="${citation.url}" target="_blank">${citation.title}</a></li>`;
-              });
-              resultHTML += '</ul>';
-            }
-            resultContainer.innerHTML = resultHTML;
-          } else {
-            resultContainer.innerHTML = '<p>No answer found. Please try again.</p>';
-          }
-        } catch (error) {
-          resultContainer.innerHTML = `<p>Error: ${error.message}</p>`;
-        }
+      if (!query) {
+        resultContainer.innerHTML = '<p>Please enter a question to search.</p>';
+        return;
       }
 
-      // Add event listener for the search button
-      document.getElementById('searchButton').addEventListener('click', performTruthQuery);
+      resultContainer.innerHTML = '<p>Searching justice databases...</p>';
 
-      // Add event listener for the Enter key
-      document.getElementById('queryInput').addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-          performTruthQuery();
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query }),
+        });
+
+        const data = await response.json();
+
+        if (data.answer) {
+          let resultHTML = `<h3>${query}</h3>`;
+          resultHTML += marked.parse(data.answer); // Use marked.js to render markdown
+          
+          if (data.citations?.length) {
+            resultHTML += '<h3>Sources & References</h3><ul>';
+            data.citations.forEach((citation) => {
+              resultHTML += `<li><a href="${citation.url}" target="_blank">${citation.title}</a></li>`;
+            });
+            resultHTML += '</ul>';
+          }
+          
+          resultContainer.innerHTML = resultHTML;
+        } else {
+          resultContainer.innerHTML = '<p>No definitive answer found. Refine your query.</p>';
         }
+      } catch (error) {
+        resultContainer.innerHTML = `<p>Error: ${error.message}</p>`;
+      }
+    }
+
+    // Event Listeners
+    closeModal.addEventListener('click', closeModalHandler);
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModalHandler();
+    });
+
+    searchButton.addEventListener('click', performTruthQuery);
+    queryInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') performTruthQuery();
+    });
+
+    // Link Query Handlers
+    document.querySelectorAll('[data-search]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        openModal(el.getAttribute('data-search'));
       });
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>
