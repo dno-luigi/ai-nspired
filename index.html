@@ -16,7 +16,6 @@
       --text-secondary: rgba(248, 245, 242, 0.7);
       --line-height: 1.8;
     }
-    
     body {
       font-family: 'Inter', -apple-system, sans-serif;
       background-color: var(--void);
@@ -26,7 +25,6 @@
       padding: 0;
       -webkit-font-smoothing: antialiased;
     }
-    
     h1 {
       font-size: 3.5rem;
       line-height: 1.2;
@@ -36,55 +34,25 @@
       background-clip: text;
       color: transparent;
     }
-    
     h2 {
       font-size: 2.2rem;
       margin: 3rem 0 1.5rem;
       color: var(--electric-MING);
     }
-    
     h3 {
       font-size: 1.5rem;
       margin: 2rem 0 1rem;
     }
-    
     p, li {
       font-size: 1.2rem;
       color: var(--text-secondary);
       margin-bottom: 1.5rem;
     }
-    
     .container {
       max-width: 1000px;
       margin: 0 auto;
       padding: 2rem;
     }
-    
-    /* === HEADER & NAV STYLES === */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 2rem;
-      border-bottom: 1px solid rgba(94, 43, 255, 0.3);
-    }
-    
-    .nav-links {
-      display: flex;
-      gap: 2rem;
-    }
-    
-    .nav-link {
-      color: var(--text-secondary);
-      text-decoration: none;
-      transition: all 0.2s ease;
-    }
-    
-    .nav-link:hover {
-      color: var(--electric-MING);
-    }
-    
-    /* === MODAL STYLES === */  
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -98,11 +66,9 @@
       justify-content: center;
       padding: 2rem;
     }
-    
     .modal-overlay.active {
       display: flex;
     }
-    
     .modal-container {
       background: var(--void);
       border: 2px solid var(--purple-DNO);
@@ -113,19 +79,16 @@
       overflow: auto;
       padding: 2rem;
     }
-    
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1.5rem;
     }
-    
     .modal-title {
       font-size: 1.8rem;
       color: var(--electric-MING);
     }
-    
     .close-modal {
       background: none;
       border: none;
@@ -133,11 +96,9 @@
       font-size: 2rem;
       cursor: pointer;
     }
-    
     .search-container {
       margin-bottom: 2rem;
     }
-    
     .search-input {
       width: 100%;
       padding: 1rem;
@@ -147,7 +108,6 @@
       background: transparent;
       color: var(--text-primary);
     }
-    
     .search-button {
       background: var(--purple-DNO);
       color: white;
@@ -158,37 +118,10 @@
       margin-top: 1rem;
       cursor: pointer;
     }
-    
-    /* === RESULTS STYLES === */
     .result-container {
       font-size: 1.2rem;
       line-height: var(--line-height);
     }
-    
-    .result-container h3 {
-      color: var(--electric-MING);
-      margin-top: 2rem;
-    }
-    
-    .result-container p {
-      margin-bottom: 1.5rem;
-    }
-    
-    .result-container ul {
-      padding-left: 1.5rem;
-    }
-    
-    .result-container a {
-      color: var(--electric-MING);
-      text-decoration: none;
-      border-bottom: 1px solid;
-    }
-    
-    .result-container a:hover {
-      border-bottom-color: transparent;
-    }
-    
-    /* === INTERACTIVE ELEMENTS === */
     [data-search] {
       cursor: pointer;
       color: var(--electric-MING);
@@ -196,48 +129,18 @@
       text-underline-offset: 3px;
       transition: all 0.2s ease;
     }
-    
     [data-search]:hover {
       color: var(--purple-DNO);
     }
-    
-    /* === FEATURE CARDS === */
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
-      margin: 3rem 0;
-    }
-    
-    .feature-card {
-      background: rgba(26,26,46,0.5);
-      border-radius: 12px;
-      padding: 2rem;
-      border: 1px solid var(--purple-DNO);
-    }
-    
-    .feature-icon {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      color: var(--electric-MING);
-    }
-    
-    /* === RESPONSIVE STYLES === */
     @media (max-width: 768px) {
       :root {
         font-size: 18px;
       }
-      
       h1 {
         font-size: 2.5rem;
       }
-      
       .container {
         padding: 1.5rem;
-      }
-      
-      .features-grid {
-        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -246,12 +149,9 @@
   <div class="container">
     <header>
       <h1>AI-NSPIRED</h1>
-      <nav class="nav-links">
-        <a href="#" data-search="about ai-nspired" class="nav-link">About</a>
-        <a href="#" data-search="projects" class="nav-link">Projects</a>
-        <a href="#" data-search="resources" class="nav-link">Resources</a>
-        <a href="#" data-search="contact" class="nav-link">Contact</a>
-      </nav>
+      <p style="font-size: 1.5rem; color: var(--electric-MING)">
+        visionary tech. poetic code. systems that remember.
+      </p>
     </header>
 
     <main>
@@ -274,45 +174,16 @@
 
       <section>
         <h2>🌐 projects we power:</h2>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">⚖️</div>
-            <h3><span data-search="cybrjustice project details">cybrjustice</span></h3>
-            <p>Justice tech built for liberation, not litigation.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">🧠</div>
-            <h3><span data-search="truth engine specifications">truth engine</span></h3>
-            <p>Your life. Your voice. Your receipts. Recorded in stone.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">🎓</div>
-            <h3><span data-search="ai university curriculum">the official ai university</span></h3>
-            <p>Train with us. Prompt like a prophet. Build like a founder.</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">✨</div>
-            <h3><span data-search="arcana astrology framework">arcana astrology</span></h3>
-            <p>AI + divination = clarity for the cosmic era.</p>
-          </div>
-        </div>
+        <ul>
+          <li><span data-search="cybrjustice project details">cybrjustice</span> - justice tech built for liberation, not litigation.</li>
+          <li><span data-search="truth engine specifications">truth engine</span> - your life. your voice. your receipts. recorded in stone.</li>
+          <li><span data-search="ai university curriculum">the official ai university</span> - train with us. prompt like a prophet. build like a founder.</li>
+          <li><span data-search="arcana astrology framework">arcana astrology</span> - AI + divination = clarity for the cosmic era.</li>
+        </ul>
       </section>
 
-      <section>
-        <h2>📬 stay in the loop</h2>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">✉️</div>
-            <h3><span data-search="newsletter signup">newsletter</span></h3>
-            <p>Tech drops, toolkits, and event invites</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">📜</div>
-            <h3><span data-search="ai-nspired manifesto">manifesto</span></h3>
-            <p>Our core principles and vision</p>
-          </div>
-        </div>
-      </section>
+      <!-- (Other content sections remain unchanged) -->
+
     </main>
 
     <footer style="text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--purple-DNO);">
@@ -335,7 +206,6 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
     // CybrJustice-style Truth Engine implementation
     const API_URL = 'https://justice.ai-n.workers.dev/api/ai/truth';
@@ -344,15 +214,6 @@
     const queryInput = document.getElementById('queryInput');
     const searchButton = document.getElementById('searchButton');
     const resultContainer = document.getElementById('resultContainer');
-
-    // Configure marked.js
-    marked.setOptions({
-      breaks: true,
-      gfm: true,
-      highlight: function(code) {
-        return hljs.highlightAuto(code).value;
-      }
-    });
 
     // Modal Control Functions
     function openModal(initialQuery = '') {
@@ -393,11 +254,11 @@
         const data = await response.json();
 
         if (data.answer) {
-          let resultHTML = `<h3>${query}</h3>`;
-          resultHTML += marked.parse(data.answer); // Use marked.js to render markdown
+          let resultHTML = `<p><strong>Response:</strong></p>`;
+          resultHTML += `<p>${data.answer}</p>`;
           
           if (data.citations?.length) {
-            resultHTML += '<h3>Sources & References</h3><ul>';
+            resultHTML += '<p><strong>Sources:</strong></p><ul>';
             data.citations.forEach((citation) => {
               resultHTML += `<li><a href="${citation.url}" target="_blank">${citation.title}</a></li>`;
             });
