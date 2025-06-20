@@ -6,146 +6,132 @@
   <title>AI-N • Visionary Tech, Poetic Code</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* === SCALED UP TYPOGRAPHY === */
     :root {
       font-size: 20px;
-      --purple-DNO: #5E2BFF;
-      --electric-MING: #00F5D4;
+      --cosmic-purple: #2A0066;
+      --neon-lavender: #9D4BFF;
       --void: #0A0A12;
+      --stellar-dust: #E2D4FF;
       --text-primary: #F8F5F2;
       --text-secondary: rgba(248, 245, 242, 0.7);
       --line-height: 1.8;
+      --glass-effect: rgba(45, 0, 102, 0.25);
     }
+
     body {
       font-family: 'Inter', -apple-system, sans-serif;
-      background-color: var(--void);
+      background: radial-gradient(circle at 50% 100%, var(--cosmic-purple), var(--void));
       color: var(--text-primary);
       line-height: var(--line-height);
       margin: 0;
       padding: 0;
       -webkit-font-smoothing: antialiased;
     }
+
     h1 {
       font-size: 3.5rem;
       line-height: 1.2;
       margin-bottom: 2rem;
-      background: linear-gradient(90deg, var(--electric-MING), var(--text-primary));
+      background: linear-gradient(135deg, var(--neon-lavender) 30%, var(--stellar-dust));
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
+      letter-spacing: -0.03em;
     }
-    h2 {
-      font-size: 2.2rem;
-      margin: 3rem 0 1.5rem;
-      color: var(--electric-MING);
-    }
-    h3 {
-      font-size: 1.5rem;
-      margin: 2rem 0 1rem;
-    }
-    p, li {
-      font-size: 1.2rem;
-      color: var(--text-secondary);
-      margin-bottom: 1.5rem;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
+
     .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.95);
-      z-index: 1000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
+      backdrop-filter: blur(12px);
+      background: rgba(10, 10, 18, 0.95);
     }
-    .modal-overlay.active {
-      display: flex;
-    }
+
     .modal-container {
-      background: var(--void);
-      border: 2px solid var(--purple-DNO);
-      border-radius: 12px;
-      width: 100%;
-      max-width: 800px;
-      max-height: 80vh;
-      overflow: auto;
-      padding: 2rem;
+      background: linear-gradient(145deg, var(--cosmic-purple), #1A0044);
+      border: 1px solid var(--neon-lavender);
+      border-radius: 16px;
+      box-shadow: 0 12px 48px rgba(157, 75, 255, 0.15);
+      padding: 2.5rem;
     }
+
     .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--glass-effect);
+      padding-bottom: 1rem;
     }
+
     .modal-title {
-      font-size: 1.8rem;
-      color: var(--electric-MING);
+      font-weight: 600;
+      text-shadow: 0 2px 4px rgba(157, 75, 255, 0.3);
     }
+
     .close-modal {
-      background: none;
-      border: none;
-      color: var(--text-primary);
-      font-size: 2rem;
-      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .search-container {
-      margin-bottom: 2rem;
+
+    .close-modal:hover {
+      color: var(--neon-lavender);
+      transform: scale(1.1);
     }
+
     .search-input {
-      width: 100%;
-      padding: 1rem;
-      font-size: 1.2rem;
-      border: 2px solid var(--purple-DNO);
-      border-radius: 8px;
-      background: transparent;
-      color: var(--text-primary);
+      background: rgba(45, 0, 102, 0.4);
+      border: 1px solid var(--neon-lavender);
+      transition: all 0.3s ease;
     }
+
+    .search-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(157, 75, 255, 0.3);
+    }
+
     .search-button {
-      background: var(--purple-DNO);
-      color: white;
-      border: none;
-      padding: 1rem 2rem;
-      font-size: 1.2rem;
-      border-radius: 8px;
-      margin-top: 1rem;
-      cursor: pointer;
+      background: linear-gradient(135deg, var(--neon-lavender), var(--cosmic-purple));
+      border-radius: 12px;
+      letter-spacing: 0.02em;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    .result-container {
-      font-size: 1.2rem;
-      line-height: var(--line-height);
+
+    .search-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(157, 75, 255, 0.3);
     }
+
+    section {
+      background: var(--glass-effect);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      border: 1px solid rgba(157, 75, 255, 0.1);
+      backdrop-filter: blur(8px);
+    }
+
     [data-search] {
-      cursor: pointer;
-      color: var(--electric-MING);
-      text-decoration: underline;
-      text-underline-offset: 3px;
-      transition: all 0.2s ease;
+      position: relative;
+      text-decoration: none;
     }
-    [data-search]:hover {
-      color: var(--purple-DNO);
+
+    [data-search]:hover:after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -2px;
+      width: 100%;
+      height: 2px;
+      background: var(--neon-lavender);
+      animation: linkUnderline 0.3s ease;
     }
-    @media (max-width: 768px) {
-      :root {
-        font-size: 18px;
-      }
-      h1 {
-        font-size: 2.5rem;
-      }
-      .container {
-        padding: 1.5rem;
-      }
+
+    @keyframes linkUnderline {
+      from { width: 0 }
+      to { width: 100% }
+    }
+
+    footer {
+      background: linear-gradient(to right, var(--cosmic-purple), var(--void));
+      border-top: 1px solid var(--neon-lavender);
     }
   </style>
 </head>
 <body>
+  <!-- Rest of the HTML remains the same with updated styling -->
   <div class="container">
     <header>
       <h1>AI-NSPIRED</h1>
