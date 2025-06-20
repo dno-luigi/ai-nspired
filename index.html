@@ -6,6 +6,12 @@
   <title>ai-n • visionary tech</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Critical fix for proper modal function */
+    [x-modal-backdrop] {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -15,7 +21,7 @@
     </header>
 
     <main>
-      <button class="search-button" onclick="openModal()">Access Truth Engine</button>
+      <button class="search-button" id="searchButtonMain">Access Truth Engine</button>
 
       <section>
         <h2>🧠 Core Philosophy</h2>
@@ -47,14 +53,13 @@
                id="queryInput" 
                placeholder="Query about justice, AI, or systems..."
                aria-label="Truth Engine Search">
-        <button class="search-button" id="searchButton">execute query</button>
+        <button class="search-button" id="searchButtonModal">execute query</button>
       </div>
 
       <div class="result-container" id="resultContainer"></div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
