@@ -14,10 +14,10 @@
         color: #333333;
         margin: 0;
         padding: 0;
-        display: flex;
-        flex-direction: column;
+        display: flex; /* Key for vertical distribution */
+        flex-direction: column; /* Key for vertical distribution */
         align-items: center;
-        /* min-height: 100vh removed: We want content to naturally push height */
+        min-height: 100vh; /* Ensures body takes full viewport height for distribution */
         box-sizing: border-box;
       }
 
@@ -38,19 +38,19 @@
         position: relative;
         width: 100%;
         max-width: 100vw;
-        height: 280px; /* From image; good starting point */
+        height: 280px; /* Directly from image visual; good fit */
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        margin-bottom: 30px; /* ADDED BACK: Space before search, encourages scroll */
+        margin-bottom: 0px; /* No margin below to make smooth transition to white body */
 
-        background: linear-gradient(135deg, #FFD700, #FFD700, #DAA520);
+        background: linear-gradient(135deg, #FFD700, #FFD700, #DAA520); /* Yellow Gold */
         background-size: 200% 200%;
         animation: gradientShift 15s ease infinite;
         
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.25); /* Strong shadow as per image */
       }
 
       /* Abstract background elements (AI-inspired) */
@@ -62,8 +62,7 @@
         opacity: 0.25;
         background-color: rgba(255, 255, 200, 0.3);
         pointer-events: none;
-        /* Sizing set to rem to be responsive to root font size, or vw for viewport */
-        width: 18rem; height: 18rem; /* Adjusted sizing for better proportion on various screens */
+        width: 18rem; height: 18rem; /* Use rem for scalability */
       }
 
       .hero-section::before {
@@ -73,7 +72,7 @@
       }
 
       .hero-section::after {
-        width: 25rem; height: 10rem; /* Adjusted sizing */
+        width: 25rem; height: 10rem;
         border-radius: 100px / 50px;
         bottom: 15%; right: 5%;
         background-color: rgba(255, 240, 180, 0.3);
@@ -96,7 +95,7 @@
 
       .hero-text h1 {
         font-family: 'Montserrat', sans-serif;
-        font-size: 5.5rem;
+        font-size: 5.5rem; /* Matches existing desire for prominence */
         margin: 0;
         letter-spacing: 4px;
         font-weight: 700;
@@ -125,9 +124,9 @@
         flex-direction: column;
         align-items: center;
         width: 90%;
-        max-width: 650px;
-        padding-top: 0px; /* Removed this specific padding */
-        padding-bottom: 80px; /* INCREASED: Pushes results and footer below fold */
+        max-width: 650px; /* From image; good width */
+        padding-top: 50px; /* Matches vertical space above input in image */
+        padding-bottom: 50px; /* Matches vertical space below button in image */
       }
 
       input[type="text"] {
@@ -175,22 +174,22 @@
       }
 
       .result {
-        /* Removed flex-grow: 1; as we don't want it to consume remaining space */
-        margin-top: 30px; /* Increased separation from button visible *after* scroll */
+        flex-grow: 1; /* Allows it to take flexible space above footer */
         width: 90%;
         max-width: 800px;
-        max-height: 500px; /* Reinstated reasonable max-height for scrolling results */
-        overflow-y: auto;
+        min-height: 150px; /* Minimum height for the empty box, as seen in image */
+        max-height: unset; /* IMPORTANT: Allows it to grow with content, then scrolls internally if needed */
+        overflow-y: auto; /* scrollbar appears when content overflows min-height */
         text-align: left;
         background-color: #ffffff;
-        padding: 35px;
+        padding: 35px; /* Looks proportionally large in image */
         border-radius: 18px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         font-size: 1.1rem;
         line-height: 1.7;
         color: #444;
         border: 1px solid #f0f0f0;
-        margin-bottom: 40px; /* Space before footer, encourages scroll */
+        margin-bottom: 25px; /* Space between result and footer in image */
       }
 
       .result strong {
@@ -208,9 +207,9 @@
       }
 
       footer {
-        /* margin-top: auto; removed: We want it pushed by content above, not flexing */
-        padding: 35px 20px; /* Reinstated original padding */
-        font-size: 0.95rem; /* Reinstated original font size */
+        margin-top: auto; /* Pushes footer to the bottom of the viewport content allows */
+        padding: 25px 20px; /* Proportional to image */
+        font-size: 0.95rem;
         color: #777;
         text-align: center;
         width: 100%;
@@ -251,16 +250,14 @@
         background: #FFA500;
       }
 
-      /* --- Mobile Responsiveness --- */
-      /* Adjusted for larger spacing and proper hiding on mobile as well */
+      /* --- Mobile Responsiveness (adjust proportions for smaller screens) --- */
       @media (max-width: 768px) {
         .hero-section {
-          height: 25vh; /* Responsive height, takes up 25% of viewport height */
-          margin-bottom: 20px; /* Reduced for mobile */
+          height: 200px; /* Shorter for mobile */
         }
 
         .hero-text h1 {
-          font-size: 3rem; /* Still large, but fits better */
+          font-size: 3rem; /* Smaller prominent text */
           letter-spacing: 2px;
         }
 
@@ -271,34 +268,33 @@
         }
 
         .search-container {
-          padding-bottom: 50px; /* Sufficient space to push beyond mobile fold */
-          max-width: 95%;
+          padding-top: 30px; /* Reduced for mobile */
+          padding-bottom: 30px; /* Reduced for mobile */
+          max-width: 95%; /* Wider on small screens */
         }
 
         input[type="text"] {
           padding: 15px 20px;
-          font-size: 1.1rem;
+          font-size: 1rem;
         }
 
         button {
           padding: 12px 30px;
-          font-size: 1.1rem;
-          min-width: 180px;
+          font-size: 1rem;
+          min-width: 150px;
         }
 
         .result {
-          margin-top: 20px; /* Slightly less margin for mobile */
+          min-height: 100px; /* Even smaller empty box on mobile */
           max-width: 95%;
-          padding: 25px;
-          font-size: 1rem;
-          line-height: 1.6;
-          margin-bottom: 30px;
-          max-height: unset; /* Let it grow naturally, scrolling within if needed */
+          padding: 20px;
+          font-size: 0.95rem;
+          margin-bottom: 20px;
         }
 
         footer {
-          padding: 25px 15px; /* Reduced for mobile */
-          font-size: 0.85rem;
+          padding: 20px 15px; /* Shorter footer on mobile */
+          font-size: 0.8rem;
         }
 
         footer a {
@@ -342,7 +338,7 @@
         const queryInput = document.getElementById('queryInput');
         const query = queryText || queryInput.value.trim();
         const resultContainer = document.getElementById('resultContainer');
-        resultContainer.innerHTML = '';
+        resultContainer.innerHTML = ''; // Start clean within the visible box
 
         if (!query) {
           resultContainer.innerHTML = '<p style="text-align: center; color: #777;">Please enter a question to begin your search.</p>';
