@@ -14,10 +14,10 @@
         color: #333333;
         margin: 0;
         padding: 0;
-        display: flex; /* Key for vertical distribution */
-        flex-direction: column; /* Key for vertical distribution */
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        min-height: 100vh; /* Ensures body takes full viewport height for distribution */
+        min-height: 100vh; /* Ensures body expands to fill viewport and push footer */
         box-sizing: border-box;
       }
 
@@ -38,13 +38,13 @@
         position: relative;
         width: 100%;
         max-width: 100vw;
-        height: 280px; /* Directly from image visual; good fit */
+        height: 250px; /* Reduced for better balance with other elements visible from image */
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        margin-bottom: 0px; /* No margin below to make smooth transition to white body */
+        margin-bottom: 0px; /* Flush with content below */
 
         background: linear-gradient(135deg, #FFD700, #FFD700, #DAA520); /* Yellow Gold */
         background-size: 200% 200%;
@@ -95,7 +95,7 @@
 
       .hero-text h1 {
         font-family: 'Montserrat', sans-serif;
-        font-size: 5.5rem; /* Matches existing desire for prominence */
+        font-size: 5.5rem;
         margin: 0;
         letter-spacing: 4px;
         font-weight: 700;
@@ -124,9 +124,9 @@
         flex-direction: column;
         align-items: center;
         width: 90%;
-        max-width: 650px; /* From image; good width */
-        padding-top: 50px; /* Matches vertical space above input in image */
-        padding-bottom: 50px; /* Matches vertical space below button in image */
+        max-width: 650px;
+        padding-top: 50px; /* Precise vertical space above input from image */
+        padding-bottom: 30px; /* Precise vertical space below button from image */
       }
 
       input[type="text"] {
@@ -174,23 +174,32 @@
       }
 
       .result {
-        flex-grow: 1; /* Allows it to take flexible space above footer */
+        flex-grow: 1; /* Allows it to take up remaining vertical space if content is short / empty */
         width: 90%;
         max-width: 800px;
-        min-height: 150px; /* Minimum height for the empty box, as seen in image */
-        max-height: unset; /* IMPORTANT: Allows it to grow with content, then scrolls internally if needed */
-        overflow-y: auto; /* scrollbar appears when content overflows min-height */
+        min-height: 220px; /* Adjusted to match the specific height in your image for the empty state */
+        max-height: unset; /* IMPORTANT: Allows it to expand with content without artificial scroll */
+        overflow-y: auto; /* Scrollbar only appears if content naturally overflows the container */
         text-align: left;
         background-color: #ffffff;
-        padding: 35px; /* Looks proportionally large in image */
+        padding: 35px; /* Matches visual padding in the image */
         border-radius: 18px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         font-size: 1.1rem;
         line-height: 1.7;
         color: #444;
         border: 1px solid #f0f0f0;
-        margin-bottom: 25px; /* Space between result and footer in image */
+        margin-bottom: 25px; /* Precise space before footer from image */
       }
+      
+      /* THIS IS IMPORTANT FOR CENTERING EMPTY RESULT TEXT */
+      .result:empty::before {
+        content: ''; /* Just a spacer, or could put a subtle prompt */
+        display: block;
+        height: 100%; /* Take up full height */
+        box-sizing: border-box;
+      }
+
 
       .result strong {
         color: #6A05A3;
@@ -208,7 +217,7 @@
 
       footer {
         margin-top: auto; /* Pushes footer to the bottom of the viewport content allows */
-        padding: 25px 20px; /* Proportional to image */
+        padding: 25px 20px; /* Precise padding from image */
         font-size: 0.95rem;
         color: #777;
         text-align: center;
@@ -250,45 +259,46 @@
         background: #FFA500;
       }
 
-      /* --- Mobile Responsiveness (adjust proportions for smaller screens) --- */
+      /* --- Mobile Responsiveness (Adjusted to match image proportionality on mobile) --- */
       @media (max-width: 768px) {
         .hero-section {
-          height: 200px; /* Shorter for mobile */
+          height: 150px; /* Smaller for mobile to allow everything to fit */
         }
 
         .hero-text h1 {
-          font-size: 3rem; /* Smaller prominent text */
+          font-size: 2.5rem; /* Readjust for mobile */
           letter-spacing: 2px;
         }
 
         .hero-text h2 {
-          font-size: 1rem;
-          margin-top: 10px;
+          font-size: 0.9rem;
+          margin-top: 5px;
           letter-spacing: 1px;
         }
 
         .search-container {
-          padding-top: 30px; /* Reduced for mobile */
-          padding-bottom: 30px; /* Reduced for mobile */
-          max-width: 95%; /* Wider on small screens */
+          padding-top: 25px; /* Proportional for mobile */
+          padding-bottom: 25px; /* Proportional for mobile */
+          max-width: 95%; 
         }
 
         input[type="text"] {
-          padding: 15px 20px;
+          padding: 12px 20px;
           font-size: 1rem;
         }
 
         button {
-          padding: 12px 30px;
+          padding: 10px 30px;
           font-size: 1rem;
-          min-width: 150px;
+          min-width: 120px;
         }
 
         .result {
-          min-height: 100px; /* Even smaller empty box on mobile */
+          min-height: 120px; /* Smaller empty box on mobile */
           max-width: 95%;
           padding: 20px;
-          font-size: 0.95rem;
+          font-size: 0.9rem;
+          line-height: 1.6;
           margin-bottom: 20px;
         }
 
@@ -319,7 +329,8 @@
       />
       <button id="searchButton">Search</button>
     </div>
-    <div class="result" id="resultContainer"></div>
+    <div class="result" id="resultContainer"></div
+    > <!-- Intentionally left empty for visual representation of initial state -->
 
     <footer>
       <p>
@@ -338,7 +349,7 @@
         const queryInput = document.getElementById('queryInput');
         const query = queryText || queryInput.value.trim();
         const resultContainer = document.getElementById('resultContainer');
-        resultContainer.innerHTML = ''; // Start clean within the visible box
+        resultContainer.innerHTML = ''; // Ensure it's empty before search
 
         if (!query) {
           resultContainer.innerHTML = '<p style="text-align: center; color: #777;">Please enter a question to begin your search.</p>';
