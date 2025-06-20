@@ -45,11 +45,11 @@
         justify-content: center;
         overflow: hidden;
         margin-bottom: 30px;
-        /* Adjusted gradient for slightly more contrast */
-        background: linear-gradient(135deg, #3a1e50, #5a2d82, #7d49b2); /* Darker purples for better contrast with brighter text */
+        /* NEW: Gold/Amber Gradient Background */
+        background: linear-gradient(135deg, #FFD700, #FFA500, #FFC107); /* Gold, Orange, Amber */
         background-size: 200% 200%;
         animation: gradientShift 15s ease infinite;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Slightly stronger shadow */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
       }
 
       /* Abstract background elements (AI-inspired) */
@@ -59,7 +59,8 @@
         position: absolute;
         filter: blur(80px);
         opacity: 0.3;
-        background-color: rgba(255, 255, 255, 0.25); /* Slightly brighter glow for ambient light */
+        /* NEW: Glow colors adjusted for gold background */
+        background-color: rgba(255, 255, 180, 0.3); /* Pale yellow-white glow */
         pointer-events: none;
       }
 
@@ -74,7 +75,7 @@
         width: 250px; height: 100px;
         border-radius: 100px / 50px;
         bottom: 15%; right: 5%;
-        background-color: rgba(220, 200, 255, 0.25); /* Slightly brighter purple glow */
+        background-color: rgba(255, 220, 150, 0.3); /* Pale orange-yellow glow */
         animation: glowFade 10s ease-in-out infinite reverse;
       }
 
@@ -83,15 +84,17 @@
         position: relative;
         z-index: 2;
         text-align: center;
-        color: #ffffff; /* This is the fallback color if gradient fails */
-        /* Enhanced text-shadow for a stronger lift and subtle glow */
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), /* White inner glow */
-                     0 0 20px rgba(255, 255, 255, 0.5), /* Wider white glow */
-                     0 5px 15px rgba(0, 0, 0, 0.6); /* Stronger dark shadow beneath */
+        /* Default color - this won't be visible for gradient text */
+        color: #000000;
 
-        /* Add filter: drop-shadow for a cleaner outline glow effect */
-        filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8)) /* Intense white glow */
-                drop-shadow(0 0 25px rgba(180, 100, 255, 0.6)); /* Purple outer glow */
+        /* Text shadow adjusted for a brighter pop on gold */
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5), /* Dark inner shadow for depth */
+                     0 0 20px rgba(0, 0, 0, 0.3), /* Wider dark shadow */
+                     0 5px 15px rgba(0, 0, 0, 0.7); /* Deep dark shadow for lift */
+
+        /* Drop shadow adjusted for stronger pop with different colors */
+        filter: drop-shadow(0 0 15px rgba(100, 50, 150, 0.8)) /* Vibrant blue-purple glow */
+                drop-shadow(0 0 25px rgba(130, 80, 180, 0.6)); /* Broader blue-purple glow */
       }
 
       .hero-text h1 {
@@ -104,8 +107,8 @@
       }
 
       .hero-text h1 span {
-          /* Adjusted gradient for maximum brightness */
-          background: linear-gradient(90deg, #F0F8FF 0%, #FFFFFF 50%, #F0F8FF 100%); /* Closer to pure white, slightly off-white ends */
+          /* NEW: Metallic Blue-Purple Gradient for text */
+          background: linear-gradient(90deg, #6A05A3 0%, #A300FF 50%, #6A05A3 100%); /* Deep to vibrant purple */
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           display: block;
@@ -114,13 +117,16 @@
       .hero-text h2 {
         font-family: 'Montserrat', sans-serif;
         font-size: 1.6rem;
-        color: rgba(255, 255, 255, 0.95); /* Slightly brighter subtitle color */
+        /* NEW: Darker color for subtitle given gold background */
+        color: rgba(50, 50, 50, 0.9); /* Dark grey for clarity */
         margin-top: 20px;
         font-weight: 400;
         letter-spacing: 1.8px;
-        /* Add a subtle text shadow to h2 as well for readability on dark background */
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        /* Subtitle shadow for contrast on gold */
+        text-shadow: 0 2px 8px rgba(255, 255, 255, 0.4); /* White shadow helps against gold */
       }
+
+      /* REMAINING STYLES (Search, Result, Footer) - Adjust Brand Colors to Complement Gold */
 
       .search-container {
         display: flex;
@@ -145,13 +151,14 @@
       }
 
       input[type="text"]:focus {
-        border-color: #8a4edb;
-        box-shadow: 0 8px 25px rgba(138, 78, 219, 0.28);
+        border-color: #FFC107; /* Gold focus border */
+        box-shadow: 0 8px 25px rgba(255, 209, 0, 0.28); /* Gold focus shadow */
       }
 
       button {
         padding: 15px 45px;
-        background-color: #6a3a99;
+        /* Adjust button color to deep purple-blue or a complementary gold */
+        background-color: #6A05A3; /* Deep Aetherium Purple */
         color: #ffffff;
         border: none;
         border-radius: 35px;
@@ -165,7 +172,7 @@
       }
 
       button:hover {
-        background-color: #8d5bae;
+        background-color: #A300FF; /* Lighter purple-blue on hover */
         transform: translateY(-4px);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
       }
@@ -194,7 +201,7 @@
       }
 
       .result strong {
-        color: #5a2d82;
+        color: #6A05A3; /* Matching new brand color */
       }
 
       .result code {
@@ -219,14 +226,14 @@
       }
 
       footer a {
-        color: #6a3a99;
+        color: #6A05A3; /* Matching new brand color */
         text-decoration: none;
         margin: 0 12px;
         transition: color 0.3s ease;
       }
 
       footer a:hover {
-        color: #8d5bae;
+        color: #A300FF; /* Lighter on hover */
         text-decoration: underline;
       }
 
@@ -241,13 +248,13 @@
       }
 
       .result::-webkit-scrollbar-thumb {
-        background: #a980cf;
+        background: #FFC107; /* Gold scrollbar thumb */
         border-radius: 10px;
         border: 3px solid #fcfcfc;
       }
 
       .result::-webkit-scrollbar-thumb:hover {
-        background: #8e6cbb;
+        background: #FFA500;
       }
     </style>
   </head>
@@ -289,7 +296,7 @@
           return;
         }
 
-        resultContainer.innerHTML = '<p style="text-align: center; color: #6a3a99;">Searching for answers...</p>';
+        resultContainer.innerHTML = '<p style="text-align: center; color: #6A05A3;">Searching for answers...</p>'; /* Updated color */
 
         try {
           const response = await fetch(`${API_BASE}/api/ai/truth`, {
