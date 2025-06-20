@@ -17,11 +17,11 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        min-height: 100vh;
+        /* min-height: 100vh removed: We want content to naturally push height */
         box-sizing: border-box;
       }
 
-      /* Keyframes for subtle background animation */
+      /* Keyframes remain */
       @keyframes gradientShift {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
@@ -38,18 +38,19 @@
         position: relative;
         width: 100%;
         max-width: 100vw;
-        height: 380px;
+        height: 280px; /* From image; good starting point */
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        margin-bottom: 30px;
-        /* NEW: Yellow/Gold Gradient Background */
-        background: linear-gradient(135deg, #FFFACD, #FFD700, #DAA520); /* Lighter Gold, Standard Gold, Deeper Gold */
+        margin-bottom: 30px; /* ADDED BACK: Space before search, encourages scroll */
+
+        background: linear-gradient(135deg, #FFD700, #FFD700, #DAA520);
         background-size: 200% 200%;
         animation: gradientShift 15s ease infinite;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.25);
       }
 
       /* Abstract background elements (AI-inspired) */
@@ -58,24 +59,24 @@
         content: "";
         position: absolute;
         filter: blur(80px);
-        opacity: 0.3;
-        /* Glow colors adjusted for yellow/gold background */
-        background-color: rgba(255, 255, 200, 0.35); /* Brighter, more yellow glow */
+        opacity: 0.25;
+        background-color: rgba(255, 255, 200, 0.3);
         pointer-events: none;
+        /* Sizing set to rem to be responsive to root font size, or vw for viewport */
+        width: 18rem; height: 18rem; /* Adjusted sizing for better proportion on various screens */
       }
 
       .hero-section::before {
-        width: 180px; height: 180px;
         border-radius: 50%;
         top: 20%; left: 10%;
         animation: glowFade 8s ease-in-out infinite alternate;
       }
 
       .hero-section::after {
-        width: 250px; height: 100px;
+        width: 25rem; height: 10rem; /* Adjusted sizing */
         border-radius: 100px / 50px;
         bottom: 15%; right: 5%;
-        background-color: rgba(255, 240, 180, 0.35); /* Slightly warmer, brighter glow */
+        background-color: rgba(255, 240, 180, 0.3);
         animation: glowFade 10s ease-in-out infinite reverse;
       }
 
@@ -84,15 +85,11 @@
         position: relative;
         z-index: 2;
         text-align: center;
-        color: #000000; /* Fallback */
-
-        /* Sharp Text Shadows - unchanged */
+        color: #000000;
         text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.7),
                      2px 2px 0px rgba(0, 0, 0, 0.5),
                      0 0 5px rgba(255, 255, 255, 0.4),
                      0 0 10px rgba(255, 255, 255, 0.2);
-
-        /* Sharp Drop Shadows - unchanged */
         filter: drop-shadow(0px 0px 5px rgba(106, 5, 163, 0.9))
                 drop-shadow(0px 0px 10px rgba(163, 0, 255, 0.7));
       }
@@ -107,7 +104,6 @@
       }
 
       .hero-text h1 span {
-          /* Metallic Blue-Purple Gradient for text - unchanged */
           background: linear-gradient(90deg, #6A05A3 0%, #A300FF 50%, #6A05A3 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -116,12 +112,12 @@
 
       .hero-text h2 {
         font-family: 'Montserrat', sans-serif;
-        font-size: 1.6rem;
+        font-size: 1.5rem;
         color: rgba(50, 50, 50, 0.9);
-        margin-top: 20px;
+        margin-top: 15px;
         font-weight: 400;
-        letter-spacing: 1.8px;
-        text-shadow: 0 2px 8px rgba(255, 255, 255, 0.4);
+        letter-spacing: 1.5px;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
       }
 
       .search-container {
@@ -130,7 +126,8 @@
         align-items: center;
         width: 90%;
         max-width: 650px;
-        padding-bottom: 25px;
+        padding-top: 0px; /* Removed this specific padding */
+        padding-bottom: 80px; /* INCREASED: Pushes results and footer below fold */
       }
 
       input[type="text"] {
@@ -138,8 +135,8 @@
         padding: 18px 30px;
         border: 1px solid #e0e0e0;
         border-radius: 35px;
-        margin-bottom: 25px;
-        font-size: 1.2rem;
+        margin-bottom: 20px;
+        font-size: 1.15rem;
         text-align: center;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
         outline: none;
@@ -147,19 +144,18 @@
       }
 
       input[type="text"]:focus {
-        /* NEW: Gold focus border/shadow */
-        border-color: #FFD700; /* Standard Gold */
-        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.28); /* Standard Gold shadow */
+        border-color: #FFD700;
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.28);
       }
 
       button {
-        padding: 15px 45px;
+        padding: 14px 40px;
         background-color: #6A05A3;
         color: #ffffff;
         border: none;
         border-radius: 35px;
         cursor: pointer;
-        font-size: 1.2rem;
+        font-size: 1.15rem;
         font-weight: 600;
         transition: all 0.3s ease;
         letter-spacing: 1px;
@@ -169,7 +165,7 @@
 
       button:hover {
         background-color: #A300FF;
-        transform: translateY(-4px);
+        transform: translateY(-3px);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
       }
 
@@ -179,10 +175,11 @@
       }
 
       .result {
-        margin-top: 35px;
+        /* Removed flex-grow: 1; as we don't want it to consume remaining space */
+        margin-top: 30px; /* Increased separation from button visible *after* scroll */
         width: 90%;
         max-width: 800px;
-        max-height: 500px;
+        max-height: 500px; /* Reinstated reasonable max-height for scrolling results */
         overflow-y: auto;
         text-align: left;
         background-color: #ffffff;
@@ -193,7 +190,7 @@
         line-height: 1.7;
         color: #444;
         border: 1px solid #f0f0f0;
-        margin-bottom: 40px;
+        margin-bottom: 40px; /* Space before footer, encourages scroll */
       }
 
       .result strong {
@@ -211,9 +208,9 @@
       }
 
       footer {
-        margin-top: auto;
-        padding: 35px 20px;
-        font-size: 0.95rem;
+        /* margin-top: auto; removed: We want it pushed by content above, not flexing */
+        padding: 35px 20px; /* Reinstated original padding */
+        font-size: 0.95rem; /* Reinstated original font size */
         color: #777;
         text-align: center;
         width: 100%;
@@ -226,7 +223,7 @@
         text-decoration: none;
         margin: 0 12px;
         transition: color 0.3s ease;
-        cursor: pointer; /* Indicate that these are clickable */
+        cursor: pointer;
       }
 
       footer a:hover {
@@ -234,7 +231,7 @@
         text-decoration: underline;
       }
 
-      /* Scrollbar styling for webkit browsers */
+      /* Scrollbar styling for webkit browsers - remain */
       .result::-webkit-scrollbar {
         width: 12px;
       }
@@ -245,15 +242,68 @@
       }
 
       .result::-webkit-scrollbar-thumb {
-        /* NEW: Gold scrollbar thumb */
         background: #FFD700;
         border-radius: 10px;
         border: 3px solid #fcfcfc;
       }
 
       .result::-webkit-scrollbar-thumb:hover {
-        /* NEW: Deeper Gold on hover */
-        background: #DAA520;
+        background: #FFA500;
+      }
+
+      /* --- Mobile Responsiveness --- */
+      /* Adjusted for larger spacing and proper hiding on mobile as well */
+      @media (max-width: 768px) {
+        .hero-section {
+          height: 25vh; /* Responsive height, takes up 25% of viewport height */
+          margin-bottom: 20px; /* Reduced for mobile */
+        }
+
+        .hero-text h1 {
+          font-size: 3rem; /* Still large, but fits better */
+          letter-spacing: 2px;
+        }
+
+        .hero-text h2 {
+          font-size: 1rem;
+          margin-top: 10px;
+          letter-spacing: 1px;
+        }
+
+        .search-container {
+          padding-bottom: 50px; /* Sufficient space to push beyond mobile fold */
+          max-width: 95%;
+        }
+
+        input[type="text"] {
+          padding: 15px 20px;
+          font-size: 1.1rem;
+        }
+
+        button {
+          padding: 12px 30px;
+          font-size: 1.1rem;
+          min-width: 180px;
+        }
+
+        .result {
+          margin-top: 20px; /* Slightly less margin for mobile */
+          max-width: 95%;
+          padding: 25px;
+          font-size: 1rem;
+          line-height: 1.6;
+          margin-bottom: 30px;
+          max-height: unset; /* Let it grow naturally, scrolling within if needed */
+        }
+
+        footer {
+          padding: 25px 15px; /* Reduced for mobile */
+          font-size: 0.85rem;
+        }
+
+        footer a {
+          margin: 0 8px;
+        }
       }
     </style>
   </head>
@@ -288,9 +338,9 @@
     <script>
       const API_BASE = 'https://justice.ai-n.workers.dev';
 
-      async function performTruthQuery(queryText = null) { // Added parameter for pre-set queries
+      async function performTruthQuery(queryText = null) {
         const queryInput = document.getElementById('queryInput');
-        const query = queryText || queryInput.value.trim(); // Use provided query or input field value
+        const query = queryText || queryInput.value.trim();
         const resultContainer = document.getElementById('resultContainer');
         resultContainer.innerHTML = '';
 
@@ -299,7 +349,7 @@
           return;
         }
         
-        queryInput.value = query; // Set input field to the query being searched
+        queryInput.value = query;
 
         resultContainer.innerHTML = '<p style="text-align: center; color: #6A05A3;">Searching for answers...</p>';
 
@@ -338,13 +388,12 @@
         }
       }
 
-      document.getElementById('searchButton').addEventListener('click', () => performTruthQuery()); // Call with no args for input field
+      document.getElementById('searchButton').addEventListener('click', () => performTruthQuery());
       document.getElementById('queryInput').addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
           performTruthQuery();
         }
       });
-
-     </script>
+    </script>
   </body>
 </html>
