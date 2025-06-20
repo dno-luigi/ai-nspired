@@ -5,63 +5,6 @@ const queryInput = document.getElementById('queryInput');
 const searchButton = document.getElementById('searchButton');
 const resultContainer = document.getElementById('resultContainer');
 
-// Format Markdown functions
-function formatMarkdown(text) {
-  // Basic formatting for headers, lists, etc.
-  if (text.includes('## ')) {
-    const headerText = text.split('## ')[1]?.split('\n')[0] || '';
-    text = `<div class="markdown-heading">${headerText}</div>` + '\n' + 
-           text.replace('## ', '<p class="markdown-text">• ');
-  } else if (text.includes('### ')) {
-    const headerText = text.split('### ')[1]?.split('\n')[0] || '';
-    text = `<div class="markdown-heading-2">${headerText}</div>` + '\n' + 
-           text.replace('### ', '<p class="markdown-text">• ');
-  }
-  
-  // Format lists
-  if (text.includes('\n- ') || text.includes('\n• ')) {
-    const listItems = text.split('\n').filter(line => line.trim().startsWith('-') || line.trim().startsWith('•'));
-    const regex = /(^\s*([-•]\s+.+))|([^-\n]+)\n/g;
-    text = text.replace(regex, 
-      (match) => {
-        const cleanText = match.replace(/^[-•]\s+/, '').trim();
-        return `<li class="markdown-list-item">${cleanText}</li>`;
-      }).replace(/\n/g, '');
-    
-    text = `<ul class="markdown-list">${text}</ul>`;
-  }
-  
-  // Basic formatting for links
-  text = text.replace(/\[([^\[]+)\]\(([^\)]+)\)/g, '<a class="markdown-link" href="$2">$1</a>');
-  
-  // Format code
-  if (text.includes('`') {
-    // Very basic code formatting - assumes triple backticks for code blocks
-    if (text.includes('```\n')) {
-      const codeBlocks = text.split('```\n');
-      let formatted = '';
-      for (let i = 0; i < codeBlocks.length; i++) {
-        if (i % 2 === 0) {
-          const codeContent = codeBlocks[i].replace(/`/g, '');
-          formatted += `<pre class="markdown-code">${codeContent.replace(/\n/g, '<br>')}</pre>`;
-        } else {
-          if (i !== codeBlocks.length - 1) {
-            formatted += `<div class="markdown-text">${codeBlocks[i]}</div>`;
-          }
-        }
-      }
-      text = formatted;
-    } else {
-      text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-    }
-  }
-  
-  // Format quoted text (looking for "> ")
-  text = text.replace(/^>\s+(.*)$/gm, '<blockquote class="markdown-quote">» $1</blockquote>');
-  
-  return `<div class="markdown-body">${text}</div>`;
-}
-
 // Modal Controls
 function closeModal() {
   modalOverlay.classList.remove('active');
@@ -114,23 +57,20 @@ async function performTruthQuery() {
     });
 
     const data = await response.json();
-    
     let resultHTML = '';
     
     if (data.answer) {
-      // Format the answer as Markdown
-      const formattedAnswer = formatMarkdown(data.answer);
       resultHTML = `
-        <div class="markdown-section">
-          <div class="markdown-heading">Response Analysis</div>
-          ${formattedAnswer}
+        <div class="content-section">
+          <h3>Response Analysis</h3>
+          <p>${data.answer}</p>
         </div>
       `;
 
-      if (data.citations && Array.isArray(data.citations) && data.citations.length) {
+      if (data.citations?.length) {
         resultHTML += `
           <div class="citation-block">
-            <div class="markdown-heading">Source Verification</div>
+            <h3>Source Verification</h3>
             <ul class="styled-list">
               ${data.citations.map(cite => `
                 <li>
@@ -143,29 +83,18 @@ async function performTruthQuery() {
           </div>
         `;
       }
-    } else if (data.error) {
-      resultHTML = `
-        <div class="error-section">
-          <div class="markdown-heading">Search Engine Error</div>
-          <p>${data.error}</p>
-        </div>
-      `;
     } else {
-      resultHTML = `
-        <div class="search-results">
-          <div class="markdown-heading">Search Results</div>
-          <p>No definitive patterns found in our database. Refine your query parameters for better results.</p>
-        </div>
-      `;
+      resultHTML = '<p class="no-results">No definitive patterns found. Refine query parameters.</p>';
     }
 
     resultContainer.innerHTML = resultHTML;
   } catch (error) {
     resultContainer.innerHTML = `
       <div class="error-section">
-        <div class="markdown-heading">System Error</div>
+        <h3>System Error</h3>
         <p>Query failed: ${error.message}</p>
       </div>
     `;
   }
 }
+ 
