@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI-Nspired - Contact Us</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap');
+
+      body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #fcfcfc;
+        color: #333333;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh; /* Ensures footer sticks to bottom if content is short */
+        box-sizing: border-box;
+      }
+
+      /* Base styles for header gradient - copy from index.html/about.html */
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      @keyframes glowFade {
+          0% { opacity: 0.2; transform: scale(0.9); }
+          50% { opacity: 0.5; transform: scale(1); }
+          100% { opacity: 0.2; transform: scale(0.9); }
+      }
+
+      .hero-section {
+        position: relative;
+        width: 100%;
+        max-width: 100vw;
+        height: 200px; /* Consistent with about.html header */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-bottom: 30px; /* Space before main content */
+
+        background: linear-gradient(135deg, #FFD700, #FFD700, #DAA520);
+        background-size: 200% 200%;
+        animation: gradientShift 15s ease infinite;
+        
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.25);
+      }
+
+      .hero-section::before,
+      .hero-section::after {
+        content: "";
+        position: absolute;
+        filter: blur(80px);
+        opacity: 0.25;
+        background-color: rgba(255, 255, 200, 0.3);
+        pointer-events: none;
+        width: 18rem; height: 18rem;
+      }
+
+      .hero-section::before {
+        border-radius: 50%;
+        top: 20%; left: 10%;
+        animation: glowFade 8s ease-in-out infinite alternate;
+      }
+
+      .hero-section::after {
+        width: 25rem; height: 10rem;
+        border-radius: 100px / 50px;
+        bottom: 15%; right: 5%;
+        background-color: rgba(255, 240, 180, 0.3);
+        animation: glowFade 10s ease-in-out infinite reverse;
+      }
+
+      .hero-text {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: #000000;
+        text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.7),
+                     2px 2px 0px rgba(0, 0, 0, 0.5),
+                     0 0 5px rgba(255, 255, 255, 0.4),
+                     0 0 10px rgba(255, 255, 255, 0.2);
+        filter: drop-shadow(0px 0px 5px rgba(106, 5, 163, 0.9))
+                drop-shadow(0px 0px 10px rgba(163, 0, 255, 0.7));
+      }
+
+      .hero-text h1 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 4rem; /* Consistent with about.html header */
+        margin: 0;
+        letter-spacing: 3px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .hero-text h1 span {
+          background: linear-gradient(90deg, #6A05A3 0%, #A300FF 50%, #6A05A3 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          display: block;
+      }
+
+      .main-content {
+        width: 90%;
+        max-width: 800px;
+        background-color: #ffffff;
+        padding: 40px;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        border: 1px solid #f0f0f0;
+        margin-bottom: 40px; /* Space before footer */
+        flex-grow: 1; /* Allows content to push footer down */
+      }
+
+      .main-content h2 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 2.2rem;
+        color: #6A05A3;
+        margin-bottom: 25px;
+        text-align: center;
+      }
+      
+      /* Style for the email list */
+      .email-list {
+          list-style: none; /* Remove default list bullets */
+          padding: 0;
+          margin: 0 auto; /* Center the list within main-content */
+          max-width: 600px; /* Control max width of list for readability */
+      }
+
+      .email-list li {
+          font-family: 'Roboto', sans-serif;
+          font-size: 1.5rem; /* Consistent 150% scaled text size */
+          line-height: 1.8;
+          color: #444;
+          padding: 15px 0; /* Vertical padding around each email */
+          border-bottom: 1px solid #eee; /* Light gray separator line */
+          text-align: center; /* Center email text */
+      }
+
+      .email-list li:last-child {
+          border-bottom: none; /* No border for the last item */
+      }
+
+      .email-list li a {
+          color: #A300FF; /* Consistent link color */
+          text-decoration: none;
+          transition: color 0.3s ease;
+      }
+
+      .email-list li a:hover {
+          color: #6A05A3;
+          text-decoration: underline;
+      }
+
+      /* General paragraph styling if needed */
+      .main-content p {
+        font-family: 'Roboto', sans-serif;
+        font-size: 1.5rem; 
+        line-height: 1.8;
+        color: #444;
+        margin-bottom: 20px;
+        text-align: center; /* Center general text too */
+      }
+
+      footer {
+        margin-top: auto; /* Keeps footer at the bottom */
+        padding: 25px 20px;
+        font-size: 0.95rem;
+        color: #777;
+        text-align: center;
+        width: 100%;
+        background-color: #f5f5f5;
+        border-top: 1px solid #e5e5e5;
+      }
+
+      footer a {
+        color: #6A05A3;
+        text-decoration: none;
+        margin: 0 12px;
+        transition: color 0.3s ease;
+        cursor: pointer;
+      }
+
+      footer a:hover {
+        color: #A300FF;
+        text-decoration: underline;
+      }
+
+      /* --- Mobile Responsiveness --- */
+      @media (max-width: 768px) {
+        .hero-section {
+          height: 120px;
+          margin-bottom: 20px;
+        }
+        .hero-text h1 {
+          font-size: 2.2rem;
+          letter-spacing: 2px;
+        }
+        .main-content {
+          padding: 25px;
+          margin-bottom: 30px;
+        }
+        .main-content h2 {
+          font-size: 1.8rem;
+          margin-bottom: 20px;
+        }
+        .email-list li {
+            font-size: 1.2rem; /* Adjusted for mobile readability */
+            line-height: 1.6;
+            padding: 10px 0; /* Less padding on mobile */
+        }
+        .main-content p {
+          font-size: 1.2rem;
+          line-height: 1.6;
+        }
+        footer {
+          padding: 20px 15px;
+          font-size: 0.8rem;
+        }
+        footer a {
+          margin: 0 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hero-section">
+      <div class="hero-text">
+        <h1><span>contact us</span></h1> 
+      </div>
+    </div>
+
+    <div class="main-content">
+      <h2>Get In Touch</h2>
+      <p>Have a question, feedback, or a partnership inquiry? Reach out to us via the appropriate email address below. We look forward to hearing from you!</p>
+
+      <ul class="email-list">
+        <li><a href="mailto:feedback@ai-nspired.com">feedback@ai-nspired.com</a></li>
+        <li><a href="mailto:partnerships@ai-nspired.com">partnerships@ai-nspired.com</a></li>
+        <li><a href="mailto:media@ai-nspired.com">media@ai-nspired.com</a></li>
+        <li><a href="mailto:legal@ai-nspired.com">legal@ai-nspired.com</a></li>
+      </ul>
+
+      <p style="margin-top: 30px;">For general inquiries not covered by the above categories, please use the info@ai-nspired.com address.</p>
+    </div>
+
+    <footer>
+      <p>
+        <a href="about.html">About</a> | 
+        <a href="contact.html">Contact</a> | 
+        <a href="privacy.html">Privacy</a> | 
+        <a href="terms.html">Terms</a>
+      </p>
+      <p>© 2025 ai-nspired Inc.</p>
+    </footer>
+  </body>
+</html>
