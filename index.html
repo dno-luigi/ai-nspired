@@ -4,24 +4,282 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ai-n • visionary tech</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
   <style>
-    /* Critical fix for proper modal function */
-    [x-modal-backdrop] {
+    /* CSS Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 50% 100%, #2A0066, #0A0A12);
+      color: #F8F5F2;
+      line-height: 1.8;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Import Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      line-height: 1.2;
+      margin-bottom: 2rem;
+      background: linear-gradient(135deg, #9D4BFF 30%, #E2D4FF);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.03em;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(10, 10, 18, 0.97);
       display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-container {
+      background: linear-gradient(145deg, #2A0066, #1A0044);
+      border: 1px solid #9D4BFF;
+      border-radius: 16px;
+      box-shadow: 0 12px 48px rgba(157, 75, 255, 0.15);
+      padding: 2rem;
+      max-width: 800px;
+      width: 95%;
+      max-height: 90vh;
+      overflow: auto;
+      animation: fadeIn 0.3s ease forwards;
+      opacity: 0;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(45, 0, 102, 0.25);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .modal-title {
+      font-size: 1.8rem;
+      color: #9D4BFF;
+      font-weight: 600;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: 2rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .close-modal:hover {
+      color: #9D4BFF;
+    }
+
+    /* Search and Results */
+    .search-container {
+      margin-bottom: 2rem;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.1rem;
+      background: rgba(45, 0, 102, 0.3);
+      border: 1px solid #9D4BFF;
+      border-radius: 8px;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(157, 75, 255, 0.2);
+    }
+
+    .result-container {
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    /* Button Styles */
+    .search-button {
+      background: linear-gradient(135deg, #9D4BFF, #2A0066);
+      color: var(--text-primary);
+      border: none;
+      padding: 1rem 2.5rem;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      margin: 2rem 0;
+      width: 100%;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(157, 75, 255, 0.2);
+    }
+
+    .search-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(157, 75, 255, 0.3);
+    }
+
+    /* Loading Animation */
+    .loading-spinner {
+      display: none;
+      margin: 1rem auto;
+      width: 50px;
+      height: 50px;
+      text-align: center;
+    }
+
+    .loading-spinner.visible {
+      display: block;
+    }
+
+    .loading-wheel {
+      display: inline-block;
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(157, 75, 255, 0.2);
+      border-radius: 50%;
+      border-top-color: #9D4BFF;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .citation-block {
+      background: rgba(45, 0, 102, 0.15);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.5rem;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+      }
+
+      .modal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .modal-title {
+        width: 100%;
+      }
+    }
+
+    .header-subtitle {
+      font-size: 1.5rem;
+      margin-top: 0.5rem;
+      color: #9D4BFF;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid #9D4BFF;
+    }
+
+    .styled-list {
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0;
+    }
+
+    .styled-list li {
+      position: relative;
+      padding-left: 2rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .styled-list li::before {
+      content: "▹";
+      color: #9D4BFF;
+      position: absolute;
+      left: 0;
+      font-weight: 700;
+    }
+
+    /* Error Message */
+    .system-error {
+      border: 2px solid #FF4D4D;
+      background: rgba(255, 77, 77, 0.1);
+      color: #FF4D4D;
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      font-weight: 600;
+      display: none;
+    }
+
+    .ai-thinking {
+      background: rgba(45, 0, 102, 0.1);
+      border-left: 4px solid #9D4BFF;
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+    }
+
+    .modal-close-button {
+      background: linear-gradient(135deg, #9D4BFF, #2A0066);
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>ai-nspired</h1>
+      <h1 id="main-title">ai-nspired</h1>
       <p class="header-subtitle">visionary tech | poetic code | systems that remember</p>
     </header>
 
     <main>
-      <button class="search-button" id="searchButtonMain">Access Truth Engine</button>
+      <button id="searchButtonMain" class="search-button">Access Truth Engine</button>
 
       <section>
         <h2>🧠 Core Philosophy</h2>
@@ -44,22 +302,284 @@
     <div class="modal-container">
       <div class="modal-header">
         <h2 class="modal-title">ai-N truth-engine</h2>
-        <button class="close-modal" id="close-modal">×</button>
+        <button class="close-modal modal-close-button">×</button>
       </div>
       
       <div class="search-container">
         <input type="text" 
-               class="search-input" 
-               id="queryInput" 
+               class="search-input"
+               id="queryInput"
                placeholder="Query about justice, AI, or systems..."
                aria-label="Truth Engine Search">
-        <button class="search-button" id="searchButtonModal">execute query</button>
+        <button id="searchButtonModal" class="search-button">execute query</button>
       </div>
 
-      <div class="result-container" id="resultContainer"></div>
+      <div class="system-error" id="system-error">
+        🔴 System Error: <span id="error-detail"></span>
+      </div>
+
+      <div class="loading-spinner" id="loading-spinner">
+        <div class="loading-wheel"></div> Scanning truth matrix...
+      </div>
+
+      <div class="result-container" id="resultContainer">
+        <div class="ai-thinking">
+          💡 The Truth Engine is your gateway to cosmic knowledge. Enter a question about justice, AI governance, or system principles to access our knowledge matrix.
+        </div>
+      </div>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+    // Corrected code to run locally
+    document.addEventListener('DOMContentLoaded', function() {
+      // Debugging and console messages
+      console.log("Initializing Truth Engine...");
+      console.log("All resources loaded: CSS and JavaScript in one file");
+      
+      // Reference DOM elements
+      const API_URL = 'https://justice.ai-n.workers.dev/api/ai/truth';
+      const modalOverlay = document.getElementById('modal-overlay');
+      const closeModalBtn = document.querySelector('.close-modal');
+      const queryInput = document.getElementById('queryInput');
+      const searchButtonModal = document.getElementById('searchButtonModal');
+      const searchButtonMain = document.getElementById('searchButtonMain');
+      const resultContainer = document.getElementById('resultContainer');
+      const systemError = document.getElementById('system-error');
+      const errorDetail = document.getElementById('error-detail');
+      const loadingSpinner = document.getElementById('loading-spinner');
+
+      // Functions
+      function closeModal() {
+        console.log("Close button clicked");
+        modalOverlay.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        
+        // Clear input field after closing
+        queryInput.value = '';
+        // Hide error and loading indicators
+        systemError.style.display = 'none';
+        loadingSpinner.classList.remove('visible');
+      }
+
+      function showLoading() {
+        resultContainer.innerHTML = '<div class="loading-spinner"><div class="loading-wheel"></div>Scanning truth matrix... 🔍</div>';
+        loadingSpinner.classList.add('visible');
+        systemError.style.display = 'none';
+      }
+
+      function showError(message) {
+        errorDetail.textContent = message;
+        systemError.style.display = 'block';
+        loadingSpinner.classList.remove('visible');
+        console.error("Query error:", message);
+      }
+
+      function openModal(initialQuery = '') {
+        console.log("Opening modal");
+        // Set input value but let user overwrite it
+        queryInput.value = initialQuery || '';
+        
+        // Request focus only if modal is opening for the first time
+        // Not if there's initialQuery to avoid cursor jumping
+        if (!initialQuery) {
+          setTimeout(() => queryInput.focus(), 50);
+        }
+        
+        // Add the active class to show the modal
+        modalOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+      }
+
+      async function performTruthQuery() {
+        try {
+          const query = queryInput.value.trim();
+          
+          // Clear previous results and show loading state
+          showLoading();
+          resultContainer.scrollTop = resultContainer.scrollHeight;
+          
+          // Validate query
+          if (!query) {
+            showError("Enter a question to initiate search protocol");
+            return;
+          }
+          
+          // Validate query length
+          if (query.length < 5) {
+            showError("Query is too short. Please enter at least 5 characters");
+            return;
+          }
+          
+          // Check API availability
+          try {
+            const pingResponse = await fetch(`${API_URL}heartbeat`, { cache: 'no-store' });
+            if (!pingResponse.ok) {
+              throw new Error("API service is temporarily unavailable");
+            }
+          } catch (pingError) {
+            showError("Network connectivity issue detected. Cannot reach truth matrix");
+            return;
+          }
+          
+          // Show that we received the query
+          loadingSpinner.innerHTML = '<div class="loading-wheel"></div> Processing query tokens...';
+          resultContainer.scrollTop = resultContainer.scrollHeight;
+          
+          setTimeout(async () => {
+            try {
+              // Actually perform the query
+              loadingSpinner.innerHTML = '<div class="loading-wheel"></div> Scanning truth matrix...';
+              resultContainer.scrollTop = resultContainer.scrollHeight;
+
+              const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 
+                  'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ query }),
+              });
+
+              if (!response.ok) {
+                throw new Error(`API responded with status ${response.status}`);
+              }
+
+              const data = await response.json();
+              let resultHTML = '';
+              
+              if (data && data.answer) {
+                // Successfully received a response
+                resultHTML = `
+                  <div class="content-section">
+                    <h3>Response Analysis</h3>
+                    <p>${data.answer}</p>
+                  </div>
+                `;
+
+                if (data.citations && data.citations.length) {
+                  resultHTML += `
+                    <div class="citation-block">
+                      <h3>Source Verification</h3>
+                      <ul class="styled-list">
+                        ${data.citations.map(cite => `
+                          <li>
+                            <a href="${cite.url}" target="_blank" rel="noopener">
+                              ${cite.title}
+                            </a>
+                          </li>
+                        `).join('')}
+                      </ul>
+                    </div>
+                  `;
+                }
+              } else {
+                // No answer but response was okay
+                resultHTML = '<p class="no-results">🤔 No definitive patterns found. Refine your query parameters.</p>';
+              }
+
+              systemError.style.display = 'none';
+              loadingSpinner.classList.remove('visible');
+              resultContainer.innerHTML = resultHTML;
+              
+            } catch (error) {
+              console.error("Query error:", error);
+              showError(error.message || 'Query failed: An unknown error occurred');
+            }
+          }, 1500); // Add a slight delay to show loading state
+        } catch (error) {
+          console.error("System error:", error);
+          showError("Failed to connect to truth matrix: " + error.message);
+        }
+      }
+
+      // Add debug button for testing
+      const debugButton = document.createElement('button');
+      debugButton.textContent = 'DEBUG: Test Query';
+      debugButton.className = 'search-button';
+      debugButton.style.marginTop = '1rem';
+      debugButton.addEventListener('click', () => {
+        queryInput.value = "What are the ethical implications of AI decision-making?";
+        performTruthQuery();
+      });
+      
+      const debugContainer = document.createElement('div');
+      debugContainer.style.marginTop = '2rem';
+      debugContainer.appendChild(debugButton);
+      resultContainer.prepend(debugContainer);
+
+      // Wait for external fonts to load (Inter font for better look)
+      new Promise((resolve) => {
+        const checkFont = () => {
+          const testElement = document.createElement('span');
+          testElement.style.fontFamily = 'Inter, sans-serif';
+          testElement.style.position = 'absolute';
+          testElement.style.top = '-9999px';
+          testElement.style.left = '-9999px';
+          document.body.appendChild(testElement);
+          const originalSize = testElement.offsetWidth;
+          testElement.style.fontFamily = 'Comic Sans MS, sans-serif';
+          const comicSize = testElement.offsetWidth;
+          document.body.removeChild(testElement);
+          
+          if (originalSize > comicSize) {
+            resolve();
+          } else {
+            setTimeout(checkFont, 100);
+          }
+        };
+        checkFont();
+      }).then(() => {
+        console.log('Inter font styles applied');
+      });
+
+      // Divert focus to the new debug button if exists
+      setTimeout(() => {
+        const debugBtn = document.querySelector('#debug-button');
+        if (debugBtn) debugBtn.focus();
+      }, 100);
+
+      // Set focus to the button after it loads
+      setTimeout(() => {
+        searchButtonMain.setAttribute('tabindex', '0');
+        searchButtonMain.setAttribute('autofocus', 'autofocus');
+        document.querySelector('.modal-close-button').setAttribute('tabindex', '0');
+      }, 100);
+
+      // Event Listeners
+      closeModalBtn.addEventListener('click', closeModal);
+      searchButtonModal.addEventListener('click', performTruthQuery);
+      searchButtonMain.addEventListener('click', performTruthQuery);
+      queryInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          performTruthQuery();
+        }
+      });
+
+      // Close modal when clicking outside the content
+      window.addEventListener('click', function(e) {
+        if (e.target === modalOverlay) {
+          closeModal();
+        }
+      }, { passive: true });
+
+      // Check network options and API availability on page load with fallbacks
+      try {
+        const apiCheck = async () => {
+          try {
+            const diagnosticResponse = await fetch(`${API_URL}health`, { cache: 'no-store' });
+            if (diagnosticResponse.ok) {
+              console.log('API is available and responsive');
+            } else {
+              console.warn('API not responding optimally, some features may be limited');
+            }
+          } catch (apiError) {
+            console.warn('API not reachable:', apiError);
+          }
+        };
+        apiCheck();
+      } catch {}
+
+    });
+  </script>
 </body>
 </html>
