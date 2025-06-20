@@ -1,258 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ai-n •visionary tech</title>
+  <title>AI-N • Visionary Tech</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --cosmic-purple: #2A0066;
-      --neon-lavender: #9D4BFF;
-      --void: #0A0A12;
-      --stellar-dust: #E2D4FF;
-      --text-primary: #F8F5F2;
-      --text-secondary: rgba(248, 245, 242, 0.7);
-      --glass-effect: rgba(45, 0, 102, 0.25);
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: radial-gradient(circle at 50% 100%, var(--cosmic-purple), var(--void));
-      color: var(--text-primary);
-      margin: 0;
-      line-height: 1.8;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-
-    h1 {
-      font-size: 3.5rem;
-      line-height: 1.2;
-      margin-bottom: 2rem;
-      background: linear-gradient(135deg, var(--neon-lavender) 30%, var(--stellar-dust));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      letter-spacing: -0.03em;
-    }
-
-    /* Modal Styles */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(10, 10, 18, 0.97);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(12px);
-      z-index: 1000;
-      padding: 1rem;
-    }
-
-    .modal-overlay.active {
-      display: flex;
-    }
-
-    .modal-container {
-      background: linear-gradient(145deg, var(--cosmic-purple), #1A0044);
-      border: 1px solid var(--neon-lavender);
-      border-radius: 16px;
-      box-shadow: 0 12px 48px rgba(157, 75, 255, 0.15);
-      padding: 2rem;
-      max-width: 800px;
-      width: 100%;
-      max-height: 90vh;
-      overflow: auto;
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--glass-effect);
-      padding-bottom: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .modal-title {
-      font-size: 1.8rem;
-      color: var(--neon-lavender);
-      font-weight: 600;
-    }
-
-    .close-modal {
-      background: none;
-      border: none;
-      color: var(--text-primary);
-      font-size: 2rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .close-modal:hover {
-      color: var(--neon-lavender);
-    }
-
-    /* Truth Entry Styling */
-    .truth-entry {
-      font-size: 1.1rem;
-    }
-
-    .metadata-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .metadata-item {
-      background: rgba(45, 0, 102, 0.3);
-      padding: 1.2rem;
-      border-radius: 10px;
-      border: 1px solid var(--neon-lavender);
-    }
-
-    .content-section {
-      margin: 2.5rem 0;
-      padding-left: 1.5rem;
-      border-left: 3px solid var(--neon-lavender);
-    }
-
-    .content-section h3 {
-      font-size: 1.4rem;
-      color: var(--stellar-dust);
-      margin: 0 0 1.5rem -2rem;
-      padding: 0.8rem 1.2rem;
-      background: rgba(45, 0, 102, 0.4);
-      border-radius: 8px;
-      display: inline-block;
-      font-weight: 600;
-    }
-
-    .styled-list {
-      list-style: none;
-      padding: 0;
-      margin: 1.5rem 0;
-    }
-
-    .styled-list li {
-      position: relative;
-      padding-left: 2rem;
-      margin-bottom: 1.2rem;
-    }
-
-    .styled-list li::before {
-      content: "▹";
-      color: var(--neon-lavender);
-      position: absolute;
-      left: 0;
-      font-weight: 700;
-    }
-
-    .citation-block {
-      background: rgba(45, 0, 102, 0.3);
-      padding: 1.5rem;
-      border-radius: 12px;
-      margin-top: 3rem;
-    }
-
-    /* Button Styles */
-    .search-button {
-      background: linear-gradient(135deg, var(--neon-lavender), var(--cosmic-purple));
-      color: var(--text-primary);
-      border: none;
-      padding: 1rem 2.5rem;
-      font-size: 1.2rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-      margin: 2rem 0;
-    }
-
-    .search-button:hover {
-      transform: translateY(-2px);
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        padding: 1.5rem;
-      }
-
-      h1 {
-        font-size: 2.5rem;
-      }
-
-      .modal-container {
-        padding: 1.5rem;
-      }
-
-      .content-section h3 {
-        margin-left: -1rem;
-        font-size: 1.2rem;
-      }
-    }
-    /* Add search input styling */
-    .search-container {
-      margin-bottom: 2rem;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 1rem;
-      font-size: 1.1rem;
-      background: rgba(45, 0, 102, 0.3);
-      border: 1px solid var(--neon-lavender);
-      border-radius: 8px;
-      color: var(--text-primary);
-      transition: all 0.3s ease;
-    }
-
-    .search-input:focus {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(157, 75, 255, 0.2);
-    }
-
-    .result-container {
-      font-size: 1.1rem;
-      line-height: 1.8;
-    }
-
-    .result-container strong {
-      color: var(--neon-lavender);
-    }
-
-    .result-container a {
-      color: var(--stellar-dust);
-      text-decoration: none;
-      border-bottom: 1px solid var(--neon-lavender);
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="container">
     <header>
       <h1>AI-NSPIRED</h1>
-      <p style="font-size: 1.5rem; color: var(--neon-lavender)">
-        visionary tech | poetic code | systems that remember
-      </p>
+      <p class="header-subtitle">visionary tech | poetic code | systems that remember</p>
     </header>
 
     <main>
-      <button class="search-button" onclick="openModal()">
-        Access Truth Engine
-      </button>
+      <button class="search-button" onclick="openModal()">Access Truth Engine</button>
 
       <section>
-        <h2 style="color: var(--neon-lavender)">🧠 Core Philosophy</h2>
+        <h2>🧠 Core Philosophy</h2>
         <p>We architect ethical AI systems that enhance human potential through:</p>
         <ul class="styled-list">
           <li>Neural-Linguistic Programming</li>
@@ -260,15 +26,14 @@
           <li>Ethical Decision Matrices</li>
         </ul>
       </section>
-
-      <!-- Additional sections here -->
     </main>
 
-    <footer style="text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--neon-lavender);">
+    <footer>
       <p>© 2025 AI-Nspired | Cryptographic Consensus</p>
     </footer>
   </div>
-<!-- Updated Truth Engine Modal -->
+
+  <!-- Truth Engine Modal -->
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal-container">
       <div class="modal-header">
@@ -282,123 +47,13 @@
                id="queryInput" 
                placeholder="Query about justice, AI, or systems..."
                aria-label="Truth Engine Search">
-        <button class="search-button" 
-                id="searchButton" 
-                style="margin-top: 1rem; width: 100%">
-          Execute Query
-        </button>
+        <button class="search-button" id="searchButton">Execute Query</button>
       </div>
 
       <div class="result-container" id="resultContainer"></div>
     </div>
   </div>
 
-  <script>
-    // API Configuration
-    const API_URL = 'https://justice.ai-n.workers.dev/api/ai/truth';
-
-    // Modal Elements
-    const modalOverlay = document.getElementById('modal-overlay');
-    const closeModalBtn = document.getElementById('close-modal'); // Changed variable name
-    const queryInput = document.getElementById('queryInput');
-    const searchButton = document.getElementById('searchButton');
-    const resultContainer = document.getElementById('resultContainer');
-
-    function closeModal() {  // Add this function
-      modalOverlay.classList.remove('active');
-      document.body.style.overflow = 'auto';
-    }
-
-    // Enhanced Query Function
-    async function performTruthQuery() {
-      const query = queryInput.value.trim();
-      resultContainer.innerHTML = '';
-
-      if (!query) {
-        resultContainer.innerHTML = `<p class="error">Enter a question to initiate search protocol</p>`;
-        return;
-      }
-
-      resultContainer.innerHTML = `<p class="search-status">⚡ Scanning truth matrix...</p>`;
-
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query }),
-        });
-
-        const data = await response.json();
-        
-        let resultHTML = '';
-        if (data.answer) {
-          resultHTML = `
-            <div class="content-section">
-              <h3>Response Analysis</h3>
-              <p>${data.answer}</p>
-            </div>
-          `;
-
-          if (data.citations?.length) {
-            resultHTML += `
-              <div class="citation-block">
-                <h3>Source Verification</h3>
-                <ul class="styled-list">
-                  ${data.citations.map(cite => `
-                    <li>
-                      <a href="${cite.url}" target="_blank" rel="noopener">
-                        ${cite.title}
-                      </a>
-                    </li>
-                  `).join('')}
-                </ul>
-              </div>
-            `;
-          }
-        } else {
-          resultHTML = `<p class="no-results">No definitive patterns found. Refine query parameters.</p>`;
-        }
-
-        resultContainer.innerHTML = resultHTML;
-      } catch (error) {
-        resultContainer.innerHTML = `
-          <div class="error-section">
-            <h3>System Error</h3>
-            <p>Query failed: ${error.message}</p>
-          </div>
-        `;
-      }
-    }
-
-    // Event Listeners
-    searchButton.addEventListener('click', performTruthQuery);
-    queryInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') performTruthQuery();
-    });
-
-    // Add these event listeners
-    closeModalBtn.addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', (e) => {
-      if (e.target === modalOverlay) closeModal();
-    });
-
-    // Preserve data-search functionality
-    document.querySelectorAll('[data-search]').forEach(el => {
-      el.addEventListener('click', (e) => {
-        e.preventDefault();
-        const query = el.dataset.search;
-        openModal(query);
-      });
-    });
-
-    // Modified openModal function
-    function openModal(initialQuery = '') {
-      modalOverlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      queryInput.value = initialQuery;
-      if (initialQuery) performTruthQuery();
-      else queryInput.focus();
-    }
-  </script>
+  <script src="scripts.js"></script>
 </body>
 </html>
