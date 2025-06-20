@@ -37,7 +37,7 @@
         position: relative;
         width: 100%;
         max-width: 100vw;
-        height: 200px; /* Consistent with about.html header */
+        height: 200px; /* Consistent with other internal page headers */
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -92,7 +92,7 @@
 
       .hero-text h1 {
         font-family: 'Montserrat', sans-serif;
-        font-size: 4rem; /* Consistent with about.html header */
+        font-size: 4rem; /* Consistent with other internal page headers */
         margin: 0;
         letter-spacing: 3px;
         font-weight: 700;
@@ -116,56 +116,67 @@
         margin-bottom: 40px; /* Space before footer */
         flex-grow: 1; /* Allows content to push footer down */
       }
-
-      .main-content h2 {
+      
+      .main-content h2 { /* Section Headings */
         font-family: 'Montserrat', sans-serif;
         font-size: 2.2rem;
         color: #6A05A3;
         margin-bottom: 25px;
         text-align: center;
       }
-      
-      /* Style for the email list */
-      .email-list {
-          list-style: none; /* Remove default list bullets */
-          padding: 0;
-          margin: 0 auto; /* Center the list within main-content */
-          max-width: 600px; /* Control max width of list for readability */
+
+      .main-content p {
+        font-family: 'Roboto', sans-serif;
+        font-size: 1.5rem; /* Consistent 150% scaled text size */
+        line-height: 1.8;
+        color: #444;
+        margin-bottom: 20px;
       }
 
-      .email-list li {
+      /* Style for the categorized email list */
+      .contact-list {
+          list-style: none; /* Remove default list bullets */
+          padding: 0;
+          margin: 30px 0; /* Space above/below the list */
+      }
+
+      .contact-list li {
           font-family: 'Roboto', sans-serif;
           font-size: 1.5rem; /* Consistent 150% scaled text size */
           line-height: 1.8;
           color: #444;
-          padding: 15px 0; /* Vertical padding around each email */
-          border-bottom: 1px solid #eee; /* Light gray separator line */
-          text-align: center; /* Center email text */
+          margin-bottom: 25px; /* Vertical spacing between each contact type */
       }
 
-      .email-list li:last-child {
-          border-bottom: none; /* No border for the last item */
+      .contact-list li:last-child {
+          margin-bottom: 0; /* No margin after the last item */
       }
 
-      .email-list li a {
+      .contact-list li strong {
+          color: #6A05A3; /* Strong color for the category name */
+          display: block; /* Make category name take full width */
+          margin-bottom: 5px; /* Space between category and email/description */
+      }
+
+      .contact-list li a {
           color: #A300FF; /* Consistent link color */
           text-decoration: none;
           transition: color 0.3s ease;
+          display: inline-block; /* Allows padding/margin */
+          margin-left: 10px; /* Space from symbol */
       }
 
-      .email-list li a:hover {
+      .contact-list li a:hover {
           color: #6A05A3;
           text-decoration: underline;
       }
 
-      /* General paragraph styling if needed */
-      .main-content p {
-        font-family: 'Roboto', sans-serif;
-        font-size: 1.5rem; 
-        line-height: 1.8;
-        color: #444;
-        margin-bottom: 20px;
-        text-align: center; /* Center general text too */
+      /* Horizontal Rule styles */
+      .main-content hr {
+        border: none;
+        border-top: 2px solid #eee;
+        margin: 40px auto;
+        width: 80%; /* Shorter line to act as a separator */
       }
 
       footer {
@@ -210,14 +221,20 @@
           font-size: 1.8rem;
           margin-bottom: 20px;
         }
-        .email-list li {
-            font-size: 1.2rem; /* Adjusted for mobile readability */
-            line-height: 1.6;
-            padding: 10px 0; /* Less padding on mobile */
-        }
-        .main-content p {
-          font-size: 1.2rem;
+        .main-content p,
+        .contact-list li {
+          font-size: 1.2rem; /* Adjusted for mobile readability */
           line-height: 1.6;
+        }
+        .contact-list li {
+            margin-bottom: 20px;
+        }
+        .contact-list li a {
+            margin-left: 5px; /* Adjust spacing for mobile */
+        }
+        .main-content hr {
+          margin: 25px auto;
+          width: 90%;
         }
         footer {
           padding: 20px 15px;
@@ -237,18 +254,41 @@
     </div>
 
     <div class="main-content">
-      <h2>Get In Touch</h2>
-      <p>Have a question, feedback, or a partnership inquiry? Reach out to us via the appropriate email address below. We look forward to hearing from you!</p>
+      <h2>🛰️ Get In Touch</h2>
+      <p>Have a question, lead, or idea that belongs in the signal?</p>
+      <p>We're all ears—and we don’t play gatekeeper. Hit us at the right channel below so your message lands where it matters most:</p>
 
-      <ul class="email-list">
-        <li><a href="mailto:feedback@ai-nspired.com">feedback@ai-nspired.com</a></li>
-        <li><a href="mailto:partnerships@ai-nspired.com">partnerships@ai-nspired.com</a></li>
-        <li><a href="mailto:media@ai-nspired.com">media@ai-nspired.com</a></li>
-        <li><a href="mailto:legal@ai-nspired.com">legal@ai-nspired.com</a></li>
-        <li><a href="mailto:info@ai-nspired.com">info@ai-nspired.com</a></li>
+      <ul class="contact-list">
+        <li>
+          📬 <strong>Feedback & Ideas</strong> → 
+          <a href="mailto:feedback@ai-nspired.com">feedback@ai-nspired.com</a><br>
+          Spotted a bug? Got a feature idea? Just wanna tell us we’re doing good work? This is your spot.
+        </li>
+        <li>
+          🤝 <strong>Partnerships</strong> → 
+          <a href="mailto:partnerships@ai-nspired.com">partnerships@ai-nspired.com</a><br>
+          Tech collab, justice initiative, or joint ops? Let’s talk synergy—not bullshit.
+        </li>
+        <li>
+          🎤 <strong>Media & Press</strong> → 
+          <a href="mailto:media@ai-nspired.com">media@ai-nspired.com</a><br>
+          Story requests, interviews, features, documentaries—we roll with purpose.
+        </li>
+        <li>
+          ⚖️ <strong>Legal</strong> → 
+          <a href="mailto:legal@ai-nspired.com">legal@ai-nspired.com</a><br>
+          Terms questions, takedown requests, compliance issues—handle with care.
+        </li>
+        <li>
+          🧭 <strong>General Ops</strong> → 
+          <a href="mailto:info@ai-nspired.com">info@ai-nspired.com</a><br>
+          Anything else? This inbox is the catch-all. We triage daily. Send it here.
+        </li>
       </ul>
 
-      <p style="margin-top: 30px;">For general inquiries not covered by the above categories, please use the info@ai-nspired.com address.</p>
+      <hr>
+
+      <p>We monitor all inboxes like they're signals from the frontlines. Expect clarity, not corporate. ✊🏽</p>
     </div>
 
     <footer>
