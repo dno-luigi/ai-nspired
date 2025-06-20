@@ -16,11 +16,11 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        min-height: 100vh; /* Ensures footer sticks to bottom if content is short */
+        min-height: 100vh; /* Ensures content pushes to bottom */
         box-sizing: border-box;
       }
 
-      /* Base styles for header gradient - copy from index.html */
+      /* Base styles for header gradient */
       @keyframes gradientShift {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
@@ -37,7 +37,7 @@
         position: relative;
         width: 100%;
         max-width: 100vw;
-        height: 200px; /* Adjusted height for about page header */
+        height: 200px; /* Consistent with other internal page headers */
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -92,7 +92,7 @@
 
       .hero-text h1 {
         font-family: 'Montserrat', sans-serif;
-        font-size: 4rem; /* Slightly smaller for internal pages but still prominent */
+        font-size: 4rem; /* Consistent with other internal page headers */
         margin: 0;
         letter-spacing: 3px;
         font-weight: 700;
@@ -105,46 +105,78 @@
           display: block;
       }
 
-
       .main-content {
         width: 90%;
         max-width: 800px;
         background-color: #ffffff;
-        padding: 40px; /* Slightly more padding for general content */
+        padding: 40px;
         border-radius: 18px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         border: 1px solid #f0f0f0;
-        margin-bottom: 40px; /* Space before footer */
-        flex-grow: 1; /* Allows content to push footer down */
+        margin-bottom: 40px; /* Space before footer (or final content block) */
+        flex-grow: 1; /* Allows content area to expand */
       }
 
-      .main-content h2 {
+      .main-content > h1 { /* Main content title if desired */
         font-family: 'Montserrat', sans-serif;
-        font-size: 2.2rem; /* Larger than body text */
+        font-size: 2.8rem;
         color: #6A05A3;
-        margin-bottom: 25px;
+        margin-bottom: 20px;
         text-align: center;
+        background: linear-gradient(90deg, #6A05A3 0%, #A300FF 50%, #6A05A3 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: block;
+      }
+      .main-content h2 { /* Section Headings */
+        font-family: 'Montserrat', sans-serif;
+        font-size: 2.2rem;
+        color: #6A05A3;
+        margin-top: 40px; /* Ample space above new sections */
+        margin-bottom: 20px;
+      }
+      .main-content h3 { /* Subheadings (e.g., 'You have the right to:') */
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.8rem;
+        color: #DAA520; /* Use a gold accent for subheadings */
+        margin-top: 30px;
+        margin-bottom: 15px;
       }
 
       .main-content p {
         font-family: 'Roboto', sans-serif;
-        font-size: 1.5rem; /* Equivalent to 150% text size, fixed */
+        font-size: 1.5rem; /* Consistent 150% scaled text size */
         line-height: 1.8;
         color: #444;
         margin-bottom: 20px;
       }
+      .main-content p strong {
+        color: #6A05A3; /* Make strong tags in paragraphs prominent */
+      }
 
+      /* List styling */
       .main-content ul {
+        list-style: disc;
+        padding-left: 30px;
+        margin-bottom: 20px;
+      }
+      .main-content ul li {
         font-family: 'Roboto', sans-serif;
-        font-size: 1.5rem; /* Apply to list items too */
+        font-size: 1.5rem; /* Consistent 150% scaled text size */
         line-height: 1.8;
         color: #444;
-        margin-bottom: 20px;
-        padding-left: 30px;
+        margin-bottom: 10px;
+      }
+      .main-content ul li strong{
+        color: #6A05A3;
       }
 
-      .main-content li {
-        margin-bottom: 10px;
+      /* Horizontal Rule styles */
+      .main-content hr {
+        border: none;
+        border-top: 2px solid #eee;
+        margin: 40px auto;
+        width: 80%; /* Shorter line to act as a separator */
       }
 
       .main-content a {
@@ -158,18 +190,35 @@
         text-decoration: underline;
       }
 
-      footer {
-        margin-top: auto; /* Keeps footer at the bottom */
-        padding: 25px 20px;
-        font-size: 0.95rem;
-        color: #777;
-        text-align: center;
-        width: 100%;
-        background-color: #f5f5f5;
-        border-top: 1px solid #e5e5e5;
+      /* Quote styling (for "The old systems failed..." quote) */
+      .main-content blockquote {
+          font-style: italic;
+          font-size: 1.6rem; /* Slightly larger, more emphasize */
+          color: #A300FF; /* Primary purple color */
+          border-left: 5px solid #FFD700; /* Gold border for accent */
+          padding-left: 25px;
+          margin: 30px 0;
+          line-height: 1.5;
       }
 
-      footer a {
+      /* The very bottom section of content (links and copyright) */
+      .about-footer-section {
+        width: 100%;
+        max-width: 800px; /* Constrain to main content width */
+        text-align: center;
+        padding: 30px 20px; /* Padding similar to real footer */
+        margin-top: auto; /* Push it to bottom, if main-content isn't very tall */
+        background-color: #f5f5f5; /* Subtle background */
+        border-top: 1px solid #e5e5e5; /* Separator line */
+      }
+
+      .about-footer-section p {
+        font-size: 0.95rem; /* Smaller text as it's typically footer content */
+        color: #777;
+        margin: 5px 0;
+      }
+
+      .about-footer-section a {
         color: #6A05A3;
         text-decoration: none;
         margin: 0 12px;
@@ -177,7 +226,7 @@
         cursor: pointer;
       }
 
-      footer a:hover {
+      .about-footer-section a:hover {
         color: #A300FF;
         text-decoration: underline;
       }
@@ -198,22 +247,39 @@
         }
         .main-content h2 {
           font-size: 1.8rem;
-          margin-bottom: 20px;
+          margin-top: 30px;
+          margin-bottom: 15px;
+        }
+        .main-content h3 {
+          font-size: 1.5rem;
+          margin-top: 20px;
+          margin-bottom: 10px;
         }
         .main-content p,
-        .main-content ul {
-          font-size: 1.2rem; /* Adjusted for mobile readability at a "larger" scale */
+        .main-content ul li {
+          font-size: 1.2rem; /* Adjusted for mobile readability */
           line-height: 1.6;
         }
         .main-content ul {
           padding-left: 20px;
         }
-        footer {
-          padding: 20px 15px;
-          font-size: 0.8rem;
+        .main-content hr {
+          margin: 25px auto;
+          width: 90%;
         }
-        footer a {
-          margin: 0 8px;
+        .main-content blockquote {
+            font-size: 1.3rem; /* Adjusted for mobile */
+            padding-left: 15px;
+            margin: 20px 0;
+        }
+        .about-footer-section {
+            padding: 20px 15px;
+        }
+        .about-footer-section p {
+            font-size: 0.8rem;
+        }
+        .about-footer-section a {
+            margin: 0 8px;
         }
       }
     </style>
@@ -226,32 +292,74 @@
     </div>
 
     <div class="main-content">
-      <h2>Our Mission</h2>
-      <p>At ai-nspired, we believe in the power of artificial intelligence to illuminate truth and empower individuals. Our mission is to provide a platform where complex information can be distilled into understandable, verifiable facts, all while upholding the highest standards of user privacy and data security.</p>
-      <p>We are a team of dedicated technologists, researchers, and ethicists committed to building tools that augment human understanding, not replace it. In an increasingly noisy world, we strive to be a beacon of clarity and a trusted source of knowledge.</p>
+      <h2>🧠 About Us</h2>
 
-      <h2>Our Philosophy</h2>
-      <p>Our work is guided by three core principles:</p>
+      <h3>The Mission</h3>
+      <p>We started <strong>ai-nspired</strong> because someone had to.</p>
+      <p>The world’s on fire with noise, lies, and weaponized bullshit. We built a system to cut through all that—a place where artificial intelligence isn’t some soulless tool, but a spark for awakening. Truth is the power. We use AI to find it, light it up, and hand it back to the people.</p>
+      <p>We don’t automate humans out—we build tools that make humans <em>dangerously clear</em>. You deserve systems that respect your sovereignty, your privacy, and your right to know.</p>
+      <p>We’re here for that.</p>
+
+      <hr>
+
+      <h3>The Vibe (a.k.a. Our Philosophy)</h3>
+      <p>We’re not another “disruptive” tech startup. We’re a <strong>post-system movement</strong> disguised as a tech platform.</p>
+      <p>Here’s how we roll:</p>
       <ul>
-        <li><strong>Pragmatic:</strong> We focus on practical applications of AI that solve real-world problems.</li>
-        <li><strong>Personal:</strong> We believe technology should serve the individual, providing tailored insights and tools.</li>
-        <li><strong>Private:</strong> User data and privacy are paramount. We are built on a foundation of zero-knowledge and secure-by-design principles.</li>
+        <li><strong>Pragmatic</strong>: If it doesn’t solve a real problem, it doesn’t make the cut. Period.</li>
+        <li><strong>Personal</strong>: AI should feel like a mirror, not a menu. We build for the individual, not the algorithm.</li>
+        <li><strong>Private</strong>: Zero-knowledge. Zero sellouts. You own your data. We’ll never touch it without reason—and never sell it. Fuck those guys.</li>
       </ul>
 
-      <h2>The TruthEngine</h2>
-      <p>Our proprietary TruthEngine leverages advanced AI models to synthesize information from diverse datasets, cross-referencing sources to identify consensus and flag contradictions. It's designed to give you concise, well-sourced answers to your most pressing questions, ensuring you can make informed decisions with confidence.</p>
+      <hr>
 
-      <p>We continuously refine our algorithms and expand our knowledge base to provide the most accurate and up-to-date information possible. Your trust is our greatest asset, and we work tirelessly to earn it every single day.</p>
+      <h3>What Powers It All: The TruthEngine&trade;</h3>
+      <p>The <strong>TruthEngine</strong> is our brainchild. A signal processor. A contradiction killer. A bullshit detector. It pulls from real sources, cross-references claims, and gives you layered, confidence-rated answers—backed by receipts.</p>
+      <p>Think of it as:</p>
+      <ul>
+        <li>🕵️ Research assistant</li>
+        <li>🛡️ Fact shield</li>
+        <li>📡 Signal relay</li>
+      </ul>
+      <p>It wasn’t born for propaganda. It was born for <strong>personal clarity</strong>. When everyone else is feeding you vibes, we give you <em>verified reality</em>.</p>
+
+      <hr>
+
+      <h3>Who We Are</h3>
+      <p>We’re not suits.<br>
+      We’re not bots.<br>
+      We’re legal minds, code architects, street philosophers, and renegade builders from every background you can imagine—brought together by one shared truth:</p>
+      <blockquote>The old systems failed. So we made a new one.</blockquote>
+
+      <hr>
+
+      <h3>Where We’re Headed</h3>
+      <p>We start in one town, one county.<br>
+      Then all of California.<br>
+      Then everywhere the signal spreads.</p>
+      <ul>
+        <li>Mandatory legal education.</li>
+        <li>Restored sovereignty.</li>
+        <li>Truth as a service.</li>
+        <li>AI that remembers what mattered when others tried to erase it.</li>
+      </ul>
+
+      <hr>
+
+      <p>Built with purpose.<br>
+      Run with fire.<br>
+      <strong>Powered by ai-n.</strong></p>
     </div>
 
-    <footer>
+    <!-- This section replaces the standard footer for this page -->
+    <div class="about-footer-section">
       <p>
         <a href="about.html">About</a> | 
         <a href="contact.html">Contact</a> | 
         <a href="privacy.html">Privacy</a> | 
         <a href="terms.html">Terms</a>
       </p>
-      <p>© 2025 ai-nspired Inc.</p>
-    </footer>
+      <p>© 2025 <strong>ai-nspired Inc.</strong> – all rights retained. No bullshit tolerated.</p>
+    </div>
   </body>
 </html>
