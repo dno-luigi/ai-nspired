@@ -45,22 +45,21 @@
         justify-content: center;
         overflow: hidden;
         margin-bottom: 30px;
-        /* NEW: Gold/Amber Gradient Background */
+        /* Gold/Amber Gradient Background - unchanged from previous iteration */
         background: linear-gradient(135deg, #FFD700, #FFA500, #FFC107); /* Gold, Orange, Amber */
         background-size: 200% 200%;
         animation: gradientShift 15s ease infinite;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
       }
 
-      /* Abstract background elements (AI-inspired) */
+      /* Abstract background elements (AI-inspired) - unchanged */
       .hero-section::before,
       .hero-section::after {
         content: "";
         position: absolute;
         filter: blur(80px);
         opacity: 0.3;
-        /* NEW: Glow colors adjusted for gold background */
-        background-color: rgba(255, 255, 180, 0.3); /* Pale yellow-white glow */
+        background-color: rgba(255, 255, 180, 0.3);
         pointer-events: none;
       }
 
@@ -75,7 +74,7 @@
         width: 250px; height: 100px;
         border-radius: 100px / 50px;
         bottom: 15%; right: 5%;
-        background-color: rgba(255, 220, 150, 0.3); /* Pale orange-yellow glow */
+        background-color: rgba(255, 220, 150, 0.3);
         animation: glowFade 10s ease-in-out infinite reverse;
       }
 
@@ -84,17 +83,17 @@
         position: relative;
         z-index: 2;
         text-align: center;
-        /* Default color - this won't be visible for gradient text */
-        color: #000000;
+        color: #000000; /* Fallback */
 
-        /* Text shadow adjusted for a brighter pop on gold */
-        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5), /* Dark inner shadow for depth */
-                     0 0 20px rgba(0, 0, 0, 0.3), /* Wider dark shadow */
-                     0 5px 15px rgba(0, 0, 0, 0.7); /* Deep dark shadow for lift */
+        /* NEW: SHARPER TEXT SHADOWS */
+        text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.7), /* Sharp, tight black shadow for definition */
+                     2px 2px 0px rgba(0, 0, 0, 0.5), /* Slightly offset black shadow */
+                     0 0 5px rgba(255, 255, 255, 0.4), /* Subtle white inner glow (no real blur) */
+                     0 0 10px rgba(255, 255, 255, 0.2); /* A wider, fainter white glow for luminescence */
 
-        /* Drop shadow adjusted for stronger pop with different colors */
-        filter: drop-shadow(0 0 15px rgba(100, 50, 150, 0.8)) /* Vibrant blue-purple glow */
-                drop-shadow(0 0 25px rgba(130, 80, 180, 0.6)); /* Broader blue-purple glow */
+        /* NEW: SHARPER DROP SHADOW */
+        filter: drop-shadow(0px 0px 5px rgba(106, 5, 163, 0.9)) /* Crisp purple glow */
+                drop-shadow(0px 0px 10px rgba(163, 0, 255, 0.7)); /* Broader, slightly softer purple glow */
       }
 
       .hero-text h1 {
@@ -107,7 +106,7 @@
       }
 
       .hero-text h1 span {
-          /* NEW: Metallic Blue-Purple Gradient for text */
+          /* Metallic Blue-Purple Gradient for text - unchanged */
           background: linear-gradient(90deg, #6A05A3 0%, #A300FF 50%, #6A05A3 100%); /* Deep to vibrant purple */
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -117,16 +116,14 @@
       .hero-text h2 {
         font-family: 'Montserrat', sans-serif;
         font-size: 1.6rem;
-        /* NEW: Darker color for subtitle given gold background */
-        color: rgba(50, 50, 50, 0.9); /* Dark grey for clarity */
+        color: rgba(50, 50, 50, 0.9);
         margin-top: 20px;
         font-weight: 400;
         letter-spacing: 1.8px;
-        /* Subtitle shadow for contrast on gold */
-        text-shadow: 0 2px 8px rgba(255, 255, 255, 0.4); /* White shadow helps against gold */
+        text-shadow: 0 2px 8px rgba(255, 255, 255, 0.4);
       }
 
-      /* REMAINING STYLES (Search, Result, Footer) - Adjust Brand Colors to Complement Gold */
+      /* REMAINING STYLES (Search, Result, Footer) - Unchanged */
 
       .search-container {
         display: flex;
@@ -151,14 +148,13 @@
       }
 
       input[type="text"]:focus {
-        border-color: #FFC107; /* Gold focus border */
-        box-shadow: 0 8px 25px rgba(255, 209, 0, 0.28); /* Gold focus shadow */
+        border-color: #FFC107;
+        box-shadow: 0 8px 25px rgba(255, 209, 0, 0.28);
       }
 
       button {
         padding: 15px 45px;
-        /* Adjust button color to deep purple-blue or a complementary gold */
-        background-color: #6A05A3; /* Deep Aetherium Purple */
+        background-color: #6A05A3;
         color: #ffffff;
         border: none;
         border-radius: 35px;
@@ -172,7 +168,7 @@
       }
 
       button:hover {
-        background-color: #A300FF; /* Lighter purple-blue on hover */
+        background-color: #A300FF;
         transform: translateY(-4px);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
       }
@@ -201,7 +197,7 @@
       }
 
       .result strong {
-        color: #6A05A3; /* Matching new brand color */
+        color: #6A05A3;
       }
 
       .result code {
@@ -226,18 +222,18 @@
       }
 
       footer a {
-        color: #6A05A3; /* Matching new brand color */
+        color: #6A05A3;
         text-decoration: none;
         margin: 0 12px;
         transition: color 0.3s ease;
       }
 
       footer a:hover {
-        color: #A300FF; /* Lighter on hover */
+        color: #A300FF;
         text-decoration: underline;
       }
 
-      /* Scrollbar styling for webkit browsers - adjusted colors */
+      /* Scrollbar styling for webkit browsers - unchanged */
       .result::-webkit-scrollbar {
         width: 12px;
       }
@@ -248,7 +244,7 @@
       }
 
       .result::-webkit-scrollbar-thumb {
-        background: #FFC107; /* Gold scrollbar thumb */
+        background: #FFC107;
         border-radius: 10px;
         border: 3px solid #fcfcfc;
       }
@@ -296,7 +292,7 @@
           return;
         }
 
-        resultContainer.innerHTML = '<p style="text-align: center; color: #6A05A3;">Searching for answers...</p>'; /* Updated color */
+        resultContainer.innerHTML = '<p style="text-align: center; color: #6A05A3;">Searching for answers...</p>';
 
         try {
           const response = await fetch(`${API_BASE}/api/ai/truth`, {
