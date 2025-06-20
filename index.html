@@ -299,10 +299,15 @@
 
     // Modal Elements
     const modalOverlay = document.getElementById('modal-overlay');
-    const closeModal = document.getElementById('close-modal');
+    const closeModalBtn = document.getElementById('close-modal'); // Changed variable name
     const queryInput = document.getElementById('queryInput');
     const searchButton = document.getElementById('searchButton');
     const resultContainer = document.getElementById('resultContainer');
+
+    function closeModal() {  // Add this function
+      modalOverlay.classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
 
     // Enhanced Query Function
     async function performTruthQuery() {
@@ -369,6 +374,12 @@
     searchButton.addEventListener('click', performTruthQuery);
     queryInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') performTruthQuery();
+    });
+
+    // Add these event listeners
+    closeModalBtn.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
     });
 
     // Preserve data-search functionality
