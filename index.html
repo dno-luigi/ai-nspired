@@ -45,21 +45,22 @@
         justify-content: center;
         overflow: hidden;
         margin-bottom: 30px;
-        /* Gold/Amber Gradient Background - unchanged from previous iteration */
-        background: linear-gradient(135deg, #FFD700, #FFA500, #FFC107); /* Gold, Orange, Amber */
+        /* NEW: Yellow/Gold Gradient Background */
+        background: linear-gradient(135deg, #FFFACD, #FFD700, #DAA520); /* Lighter Gold, Standard Gold, Deeper Gold */
         background-size: 200% 200%;
         animation: gradientShift 15s ease infinite;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
       }
 
-      /* Abstract background elements (AI-inspired) - unchanged */
+      /* Abstract background elements (AI-inspired) */
       .hero-section::before,
       .hero-section::after {
         content: "";
         position: absolute;
         filter: blur(80px);
         opacity: 0.3;
-        background-color: rgba(255, 255, 180, 0.3);
+        /* Glow colors adjusted for yellow/gold background */
+        background-color: rgba(255, 255, 200, 0.35); /* Brighter, more yellow glow */
         pointer-events: none;
       }
 
@@ -74,7 +75,7 @@
         width: 250px; height: 100px;
         border-radius: 100px / 50px;
         bottom: 15%; right: 5%;
-        background-color: rgba(255, 220, 150, 0.3);
+        background-color: rgba(255, 240, 180, 0.35); /* Slightly warmer, brighter glow */
         animation: glowFade 10s ease-in-out infinite reverse;
       }
 
@@ -85,15 +86,15 @@
         text-align: center;
         color: #000000; /* Fallback */
 
-        /* NEW: SHARPER TEXT SHADOWS */
-        text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.7), /* Sharp, tight black shadow for definition */
-                     2px 2px 0px rgba(0, 0, 0, 0.5), /* Slightly offset black shadow */
-                     0 0 5px rgba(255, 255, 255, 0.4), /* Subtle white inner glow (no real blur) */
-                     0 0 10px rgba(255, 255, 255, 0.2); /* A wider, fainter white glow for luminescence */
+        /* Sharp Text Shadows - unchanged */
+        text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.7),
+                     2px 2px 0px rgba(0, 0, 0, 0.5),
+                     0 0 5px rgba(255, 255, 255, 0.4),
+                     0 0 10px rgba(255, 255, 255, 0.2);
 
-        /* NEW: SHARPER DROP SHADOW */
-        filter: drop-shadow(0px 0px 5px rgba(106, 5, 163, 0.9)) /* Crisp purple glow */
-                drop-shadow(0px 0px 10px rgba(163, 0, 255, 0.7)); /* Broader, slightly softer purple glow */
+        /* Sharp Drop Shadows - unchanged */
+        filter: drop-shadow(0px 0px 5px rgba(106, 5, 163, 0.9))
+                drop-shadow(0px 0px 10px rgba(163, 0, 255, 0.7));
       }
 
       .hero-text h1 {
@@ -107,7 +108,7 @@
 
       .hero-text h1 span {
           /* Metallic Blue-Purple Gradient for text - unchanged */
-          background: linear-gradient(90deg, #6A05A3 0%, #A300FF 50%, #6A05A3 100%); /* Deep to vibrant purple */
+          background: linear-gradient(90deg, #6A05A3 0%, #A300FF 50%, #6A05A3 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           display: block;
@@ -122,8 +123,6 @@
         letter-spacing: 1.8px;
         text-shadow: 0 2px 8px rgba(255, 255, 255, 0.4);
       }
-
-      /* REMAINING STYLES (Search, Result, Footer) - Unchanged */
 
       .search-container {
         display: flex;
@@ -148,8 +147,9 @@
       }
 
       input[type="text"]:focus {
-        border-color: #FFC107;
-        box-shadow: 0 8px 25px rgba(255, 209, 0, 0.28);
+        /* NEW: Gold focus border/shadow */
+        border-color: #FFD700; /* Standard Gold */
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.28); /* Standard Gold shadow */
       }
 
       button {
@@ -226,6 +226,7 @@
         text-decoration: none;
         margin: 0 12px;
         transition: color 0.3s ease;
+        cursor: pointer; /* Indicate that these are clickable */
       }
 
       footer a:hover {
@@ -233,7 +234,7 @@
         text-decoration: underline;
       }
 
-      /* Scrollbar styling for webkit browsers - unchanged */
+      /* Scrollbar styling for webkit browsers */
       .result::-webkit-scrollbar {
         width: 12px;
       }
@@ -244,13 +245,15 @@
       }
 
       .result::-webkit-scrollbar-thumb {
-        background: #FFC107;
+        /* NEW: Gold scrollbar thumb */
+        background: #FFD700;
         border-radius: 10px;
         border: 3px solid #fcfcfc;
       }
 
       .result::-webkit-scrollbar-thumb:hover {
-        background: #FFA500;
+        /* NEW: Deeper Gold on hover */
+        background: #DAA520;
       }
     </style>
   </head>
@@ -274,7 +277,10 @@
 
     <footer>
       <p>
-        <a href="#">About</a> | <a href="#">Contact</a> | <a href="#">Privacy</a> | <a href="#">Terms</a>
+        <a id="aboutLink">About</a> | 
+        <a id="contactLink">Contact</a> | 
+        <a id="privacyLink">Privacy</a> | 
+        <a id="termsLink">Terms</a>
       </p>
       <p>© 2025 ai-nspired Inc.</p>
     </footer>
@@ -282,8 +288,9 @@
     <script>
       const API_BASE = 'https://justice.ai-n.workers.dev';
 
-      async function performTruthQuery() {
-        const query = document.getElementById('queryInput').value.trim();
+      async function performTruthQuery(queryText = null) { // Added parameter for pre-set queries
+        const queryInput = document.getElementById('queryInput');
+        const query = queryText || queryInput.value.trim(); // Use provided query or input field value
         const resultContainer = document.getElementById('resultContainer');
         resultContainer.innerHTML = '';
 
@@ -291,6 +298,8 @@
           resultContainer.innerHTML = '<p style="text-align: center; color: #777;">Please enter a question to begin your search.</p>';
           return;
         }
+        
+        queryInput.value = query; // Set input field to the query being searched
 
         resultContainer.innerHTML = '<p style="text-align: center; color: #6A05A3;">Searching for answers...</p>';
 
@@ -329,12 +338,18 @@
         }
       }
 
-      document.getElementById('searchButton').addEventListener('click', performTruthQuery);
+      document.getElementById('searchButton').addEventListener('click', () => performTruthQuery()); // Call with no args for input field
       document.getElementById('queryInput').addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
           performTruthQuery();
         }
       });
+
+      // NEW: Event listeners for footer links
+      document.getElementById('aboutLink').addEventListener('click', () => performTruthQuery('About ai-nspired'));
+      document.getElementById('contactLink').addEventListener('click', () => performTruthQuery('Contact ai-nspired'));
+      document.getElementById('privacyLink').addEventListener('click', () => performTruthQuery('Privacy policy of ai-nspired'));
+      document.getElementById('termsLink').addEventListener('click', () => performTruthQuery('Terms of service for ai-nspired'));
     </script>
   </body>
 </html>
