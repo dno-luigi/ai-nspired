@@ -4,136 +4,281 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI-Nspired TruthEngine</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- Add Marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap');
+
       body {
         font-family: 'Roboto', sans-serif;
-        background-color: #ffffff;
+        background-color: #fcfcfc; /* A very subtle off-white */
         color: #333333;
         margin: 0;
         padding: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
+        min-height: 100vh;
+        box-sizing: border-box;
+      }
+
+      /* Keyframes for subtle background animation */
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      @keyframes glowFade {
+          0% { opacity: 0.2; transform: scale(0.9); }
+          50% { opacity: 0.5; transform: scale(1); }
+          100% { opacity: 0.2; transform: scale(0.9); }
+      }
+
+      .hero-section {
+        position: relative;
+        width: 100%;
+        max-width: 100vw; /* Take full viewport width */
+        height: 380px;
+        display: flex;
+        flex-direction: column; /* Stack h1 and h2 */
+        align-items: center;
         justify-content: center;
-        height: 100vh;
+        overflow: hidden;
+        margin-bottom: 30px;
+        background: linear-gradient(135deg, #4a2172, #6a3a99, #8d5bae); /* Dynamic purple gradient */
+        background-size: 200% 200%; /* For animation */
+        animation: gradientShift 15s ease infinite; /* Subtle gradient animation */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); /* Shadow for depth */
       }
 
-      h1 {
-        font-size: 3rem;
-        color: #5a2d82;
-        margin-bottom: 10px;
-        text-align: center;
+      /* Abstract background elements (AI-inspired) */
+      .hero-section::before,
+      .hero-section::after {
+        content: "";
+        position: absolute;
+        filter: blur(80px); /* Heavy blur for soft glow */
+        opacity: 0.3; /* Subtle presence */
+        background-color: rgba(255, 255, 255, 0.2); /* White glow */
+        pointer-events: none; /* Don't interfere with mouse events */
       }
 
-      h2 {
-        font-size: 1.2rem;
-        color: #666666;
-        margin-bottom: 20px;
+      .hero-section::before {
+        width: 180px; height: 180px;
+        border-radius: 50%; /* Circle */
+        top: 20%; left: 10%;
+        animation: glowFade 8s ease-in-out infinite alternate;
+      }
+
+      .hero-section::after {
+        width: 250px; height: 100px;
+        border-radius: 100px / 50px; /* Ellipse */
+        bottom: 15%; right: 5%;
+        background-color: rgba(220, 200, 255, 0.2); /* Lighter purple glow */
+        animation: glowFade 10s ease-in-out infinite reverse;
+      }
+
+
+      .hero-text {
+        position: relative;
+        z-index: 2; /* Ensure text is above background elements */
         text-align: center;
-        font-weight: 300;
+        color: #ffffff;
+        text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(180, 100, 255, 0.4); /* Stronger shadow */
+      }
+
+      .hero-text h1 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 5.5rem; /* Large and impactful */
+        margin: 0;
+        letter-spacing: 4px; /* Wider spacing */
+        font-weight: 700;
+        line-height: 1; /* Tighten line height */
+      }
+
+      .hero-text h1 span {
+          background: linear-gradient(90deg, #e0c8ff 0%, #ffffff 50%, #e0c8ff 100%); /* Bright, almost white gradient for max impact */
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          display: block;
+      }
+
+      .hero-text h2 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.6rem; /* Larger subtitle */
+        color: rgba(255, 255, 255, 0.9);
+        margin-top: 20px; /* More space from h1 */
+        font-weight: 400;
+        letter-spacing: 1.8px; /* Slightly wider spacing */
       }
 
       .search-container {
         display: flex;
         flex-direction: column;
         align-items: center;
-        width: 100%;
-        max-width: 600px;
+        width: 90%;
+        max-width: 650px; /* Slightly wider for the search elements */
+        padding-bottom: 25px;
       }
 
       input[type="text"] {
         width: 100%;
-        padding: 15px;
-        border: 1px solid #cccccc;
-        border-radius: 25px;
-        margin-bottom: 15px;
-        font-size: 16px;
+        padding: 18px 30px; /* More padding */
+        border: 1px solid #e0e0e0; /* Lighter border */
+        border-radius: 35px; /* More rounded */
+        margin-bottom: 25px; /* More space */
+        font-size: 1.2rem; /* Larger font */
         text-align: center;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); /* More noticeable shadow */
+        outline: none;
+        transition: all 0.3s ease;
+      }
+
+      input[type="text"]:focus {
+        border-color: #8a4edb; /* Vibrant purple on focus */
+        box-shadow: 0 8px 25px rgba(138, 78, 219, 0.28); /* Stronger focus shadow */
       }
 
       button {
-        padding: 10px 20px;
-        background-color: #5a2d82;
+        padding: 15px 45px; /* Larger button */
+        background-color: #6a3a99; /* Mid-tone purple */
         color: #ffffff;
         border: none;
-        border-radius: 25px;
+        border-radius: 35px; /* More rounded */
         cursor: pointer;
-        font-size: 16px;
-        transition: background-color 0.3s ease;
+        font-size: 1.2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        letter-spacing: 1px;
+        min-width: 200px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
 
       button:hover {
-        background-color: #3e1f5a;
+        background-color: #8d5bae; /* Lighter on hover */
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+      }
+
+      button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       }
 
       .result {
-        margin-top: 20px;
-        width: 100%;
-        max-height: 400px; /* Limit the height of the result container */
-        overflow-y: auto; /* Enable vertical scrolling */
+        margin-top: 35px;
+        width: 90%;
+        max-width: 800px; /* Wider result container */
+        max-height: 500px; /* Taller */
+        overflow-y: auto;
         text-align: left;
-        background-color: #f9f9f9;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        font-size: 1rem;
-        line-height: 1.5;
-        color: #333333;
+        background-color: #ffffff;
+        padding: 35px; /* More padding */
+        border-radius: 18px; /* Even more rounded */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Stronger shadow */
+        font-size: 1.1rem; /* Larger result text */
+        line-height: 1.7;
+        color: #444;
+        border: 1px solid #f0f0f0; /* Very light border */
+        margin-bottom: 40px;
+      }
+
+      .result strong {
+        color: #5a2d82; /* Highlight strong text in brand color */
+      }
+
+      .result code {
+        background-color: #f7f7f7;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-family: 'Roboto Mono', monospace;
+        font-size: 0.98em;
+        border: 1px solid #ededed;
+        color: #555; /* Darker code text */
       }
 
       footer {
-        margin-top: 20px;
-        font-size: 0.9rem;
-        color: #666666;
+        margin-top: auto;
+        padding: 35px 20px;
+        font-size: 0.95rem;
+        color: #777;
         text-align: center;
+        width: 100%;
+        background-color: #f5f5f5; /* Light grey footer */
+        border-top: 1px solid #e5e5e5;
       }
 
       footer a {
-        color: #5a2d82;
+        color: #6a3a99; /* Use mid-tone purple for links */
         text-decoration: none;
+        margin: 0 12px;
+        transition: color 0.3s ease;
       }
 
       footer a:hover {
+        color: #8d5bae; /* Lighter on hover */
         text-decoration: underline;
+      }
+
+      /* Scrollbar styling for webkit browsers - adjusted colors */
+      .result::-webkit-scrollbar {
+        width: 12px;
+      }
+
+      .result::-webkit-scrollbar-track {
+        background: #fcfcfc; /* Consistent with body bg */
+        border-radius: 10px;
+      }
+
+      .result::-webkit-scrollbar-thumb {
+        background: #a980cf; /* Purple thumb */
+        border-radius: 10px;
+        border: 3px solid #fcfcfc; /* Add border for floating effect */
+      }
+
+      .result::-webkit-scrollbar-thumb:hover {
+        background: #8e6cbb;
       }
     </style>
   </head>
   <body>
-    <h1>ai-nspired</h1>
-    <h2>pragmatic personal private</h2>
+    <div class="hero-section">
+      <div class="hero-text">
+        <h1><span>ai-nspired</span></h1>
+        <h2>pragmatic personal private</h2>
+      </div>
+    </div>
+
     <div class="search-container">
       <input
         type="text"
         id="queryInput"
-        placeholder="Enter your question..."
+        placeholder="Discover truths, privately..."
       />
       <button id="searchButton">Search</button>
     </div>
     <div class="result" id="resultContainer"></div>
+
     <footer>
       <p>
-        <a href="#">about</a> | <a href="#">contact</a> | <a href="#">privacy</a> | <a href="#">terms</a>
+        <a href="#">About</a> | <a href="#">Contact</a> | <a href="#">Privacy</a> | <a href="#">Terms</a>
       </p>
-      <p>© 2025 ai-nspired</p>
+      <p>© 2025 ai-nspired Inc.</p>
     </footer>
 
     <script>
       const API_BASE = 'https://justice.ai-n.workers.dev';
 
-      // Function to perform the truth query
       async function performTruthQuery() {
         const query = document.getElementById('queryInput').value.trim();
         const resultContainer = document.getElementById('resultContainer');
-        resultContainer.innerHTML = ''; // Clear previous results
+        resultContainer.innerHTML = '';
 
         if (!query) {
-          resultContainer.innerHTML = '<p>Please enter a question.</p>';
+          resultContainer.innerHTML = '<p style="text-align: center; color: #777;">Please enter a question to begin your search.</p>';
           return;
         }
 
-        resultContainer.innerHTML = '<p>Searching...</p>';
+        resultContainer.innerHTML = '<p style="text-align: center; color: #6a3a99;">Searching for answers...</p>';
 
         try {
           const response = await fetch(`${API_BASE}/api/ai/truth`, {
@@ -142,31 +287,35 @@
             body: JSON.stringify({ query }),
           });
 
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
           const data = await response.json();
 
           if (data.answer) {
             let resultHTML = `<p><strong>Answer:</strong></p>`;
-            resultHTML += `<div>${marked.parse(data.answer)}</div>`; // Render Markdown
-            if (data.citations && Array.isArray(data.citations)) {
-              resultHTML += '<p><strong>Sources:</strong></p><ul>';
+            resultHTML += `<div>${marked.parse(data.answer)}</div>`;
+            if (data.citations && Array.isArray(data.citations) && data.citations.length > 0) {
+              resultHTML += '<p style="margin-top: 18px;"><strong>Sources:</strong></p><ul>';
               data.citations.forEach((citation) => {
-                resultHTML += `<li><a href="${citation.url}" target="_blank">${citation.title}</a></li>`;
+                resultHTML += `<li><a href="${citation.url}" target="_blank" rel="noopener noreferrer">${citation.title}</a></li>`;
               });
               resultHTML += '</ul>';
+            } else {
+                 resultHTML += '<p style="margin-top: 18px; font-style: italic; color: #888;">No specific citations found for this answer.</p>';
             }
             resultContainer.innerHTML = resultHTML;
           } else {
-            resultContainer.innerHTML = '<p>No answer found. Please try again.</p>';
+            resultContainer.innerHTML = '<p style="text-align: center; color: #777;">No direct answer found for your query. Please try rephrasing.</p>';
           }
         } catch (error) {
-          resultContainer.innerHTML = `<p>Error: ${error.message}</p>`;
+          resultContainer.innerHTML = `<p style="text-align: center; color: #d9534f;">Error: ${error.message} <br> Could not connect to AI service.</p>`;
+          console.error("Fetch error:", error);
         }
       }
 
-      // Add event listener for the search button
       document.getElementById('searchButton').addEventListener('click', performTruthQuery);
-
-      // Add event listener for the Enter key
       document.getElementById('queryInput').addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
           performTruthQuery();
