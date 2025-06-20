@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI-Nspired - Privacy Policy</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap');
+
+      body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #fcfcfc;
+        color: #333333;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh; /* Ensures footer sticks to bottom if content is short */
+        box-sizing: border-box;
+      }
+
+      /* Base styles for header gradient */
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      @keyframes glowFade {
+          0% { opacity: 0.2; transform: scale(0.9); }
+          50% { opacity: 0.5; transform: scale(1); }
+          100% { opacity: 0.2; transform: scale(0.9); }
+      }
+
+      .hero-section {
+        position: relative;
+        width: 100%;
+        max-width: 100vw;
+        height: 200px; /* Consistent with about.html/contact.html header */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-bottom: 30px; /* Space before main content */
+
+        background: linear-gradient(135deg, #FFD700, #FFD700, #DAA520);
+        background-size: 200% 200%;
+        animation: gradientShift 15s ease infinite;
+        
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.25);
+      }
+
+      .hero-section::before,
+      .hero-section::after {
+        content: "";
+        position: absolute;
+        filter: blur(80px);
+        opacity: 0.25;
+        background-color: rgba(255, 255, 200, 0.3);
+        pointer-events: none;
+        width: 18rem; height: 18rem;
+      }
+
+      .hero-section::before {
+        border-radius: 50%;
+        top: 20%; left: 10%;
+        animation: glowFade 8s ease-in-out infinite alternate;
+      }
+
+      .hero-section::after {
+        width: 25rem; height: 10rem;
+        border-radius: 100px / 50px;
+        bottom: 15%; right: 5%;
+        background-color: rgba(255, 240, 180, 0.3);
+        animation: glowFade 10s ease-in-out infinite reverse;
+      }
+
+      .hero-text {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: #000000;
+        text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.7),
+                     2px 2px 0px rgba(0, 0, 0, 0.5),
+                     0 0 5px rgba(255, 255, 255, 0.4),
+                     0 0 10px rgba(255, 255, 255, 0.2);
+        filter: drop-shadow(0px 0px 5px rgba(106, 5, 163, 0.9))
+                drop-shadow(0px 0px 10px rgba(163, 0, 255, 0.7));
+      }
+
+      .hero-text h1 {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 4rem; /* Consistent with other internal page headers */
+        margin: 0;
+        letter-spacing: 3px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .hero-text h1 span {
+          background: linear-gradient(90deg, #6A05A3 0%, #A300FF 50%, #6A05A3 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          display: block;
+      }
+
+      .main-content {
+        width: 90%;
+        max-width: 800px;
+        background-color: #ffffff;
+        padding: 40px;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        border: 1px solid #f0f0f0;
+        margin-bottom: 40px; /* Space before footer */
+        flex-grow: 1; /* Allows content to push footer down */
+      }
+
+      .main-content h1 { /* Policy Title inside content */
+        font-family: 'Montserrat', sans-serif;
+        font-size: 2.8rem;
+        color: #6A05A3;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .main-content h2 { /* Section Headings */
+        font-family: 'Montserrat', sans-serif;
+        font-size: 2.2rem;
+        color: #6A05A3;
+        margin-top: 40px; /* Ample space above new sections */
+        margin-bottom: 20px;
+      }
+      .main-content h3 { /* Subheadings */
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1.8rem;
+        color: #DAA520; /* Use a gold accent for subheadings */
+        margin-top: 30px;
+        margin-bottom: 15px;
+      }
+
+      .main-content p {
+        font-family: 'Roboto', sans-serif;
+        font-size: 1.5rem; /* Consistent 150% scaled text size */
+        line-height: 1.8;
+        color: #444;
+        margin-bottom: 20px;
+      }
+      .main-content p strong {
+        color: #6A05A3; /* Make strong tags in paragraphs prominent */
+      }
+
+      /* List styling for policy points */
+      .main-content ul {
+        list-style: disc;
+        padding-left: 30px;
+        margin-bottom: 20px;
+      }
+      .main-content ul li {
+        font-family: 'Roboto', sans-serif;
+        font-size: 1.5rem; /* Consistent 150% scaled text size */
+        line-height: 1.8;
+        color: #444;
+        margin-bottom: 10px;
+      }
+      .main-content ul li strong{
+        color: #6A05A3;
+      }
+
+      /* Horizontal Rule styles */
+      .main-content hr {
+        border: none;
+        border-top: 2px solid #eee;
+        margin: 40px auto;
+        width: 80%; /* Shorter line to act as a separator */
+      }
+
+      .main-content a {
+        color: #A300FF;
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .main-content a:hover {
+        color: #6A05A3;
+        text-decoration: underline;
+      }
+      
+      /* Style for email address in policy */
+      .email-link {
+        font-family: 'Roboto', sans-serif;
+        font-size: 1.5rem;
+        color: #A300FF;
+        text-align: center;
+        display: block; /* Make it a block to apply text-align */
+        word-break: break-all; /* Prevent overflow on super long emails */
+        margin: 15px 0;
+      }
+      .email-link:hover {
+        color: #6A05A3;
+        text-decoration: underline;
+      }
+
+
+      footer {
+        margin-top: auto; /* Keeps footer at the bottom */
+        padding: 25px 20px;
+        font-size: 0.95rem;
+        color: #777;
+        text-align: center;
+        width: 100%;
+        background-color: #f5f5f5;
+        border-top: 1px solid #e5e5e5;
+      }
+
+      footer a {
+        color: #6A05A3;
+        text-decoration: none;
+        margin: 0 12px;
+        transition: color 0.3s ease;
+        cursor: pointer;
+      }
+
+      footer a:hover {
+        color: #A300FF;
+        text-decoration: underline;
+      }
+
+      /* --- Mobile Responsiveness --- */
+      @media (max-width: 768px) {
+        .hero-section {
+          height: 120px;
+          margin-bottom: 20px;
+        }
+        .hero-text h1 {
+          font-size: 2.2rem;
+          letter-spacing: 2px;
+        }
+        .main-content {
+          padding: 25px;
+          margin-bottom: 30px;
+        }
+        .main-content h1 {
+          font-size: 2rem;
+          margin-bottom: 15px;
+        }
+        .main-content h2 {
+          font-size: 1.8rem;
+          margin-top: 30px;
+          margin-bottom: 15px;
+        }
+        .main-content h3 {
+          font-size: 1.5rem;
+          margin-top: 20px;
+          margin-bottom: 10px;
+        }
+        .main-content p,
+        .main-content ul li,
+        .email-link {
+          font-size: 1.2rem; /* Adjusted for mobile readability */
+          line-height: 1.6;
+        }
+        .main-content ul {
+          padding-left: 20px;
+        }
+        .main-content hr {
+          margin: 25px auto;
+          width: 90%;
+        }
+        footer {
+          padding: 20px 15px;
+          font-size: 0.8rem;
+        }
+        footer a {
+          margin: 0 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hero-section">
+      <div class="hero-text">
+        <h1><span>privacy policy</span></h1> 
+      </div>
+    </div>
+
+    <div class="main-content">
+      <h1><span style="background: linear-gradient(90deg, #6A05A3 0%, #A300FF 50%, #6A05A3 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🔒 AI-Nspired Privacy Policy</span></h1>
+      <p><strong>Effective Date:</strong> June 18, 2025<br>
+      <strong>Last Updated:</strong> June 18, 2025</p>
+
+      <p>Welcome to <strong>AI-Nspired</strong>, the mothership for projects like CybrJustice, The Official AI University, The Truth Engine, and anything else we cook up. This is the <strong>no bullshit</strong> privacy policy. It’s legally sound, GDPR &amp; CCPA compliant, and written in a language you can actually understand. Because privacy shouldn’t feel like fine print in a shady casino.</p>
+
+      <p>We don't track you for fun.<br>
+      We don't sell your shit.<br>
+      We don’t whisper sweet nothings into your inbox to mine your metadata.<br>
+      If you're here, you're already in control. We just keep it that way.</p>
+
+      <hr>
+
+      <h2>1. 🔍 What We Collect (Spoiler: Not Much)</h2>
+      <p>We only collect what <strong>you give us</strong>, or what we absolutely need to keep stuff running.</p>
+
+      <h3>👤 Personal Data You Might Provide:</h3>
+      <ul>
+        <li>Your name (if you give it)</li>
+        <li>Your email (if you send it)</li>
+        <li>Feedback, forms, or submissions (when you do that on purpose)</li>
+      </ul>
+
+      <h3>🛠️ Tech Stuff Automatically Collected:</h3>
+      <ul>
+        <li>General diagnostics (like browser type or device model)</li>
+        <li>IP address (standard server-side log stuff)</li>
+        <li>Usage info on how you interact with our sites or tools</li>
+      </ul>
+      <p>No dark patterns. No silent surveillance. Just enough to keep the lights on.</p>
+
+      <hr>
+
+      <h2>2. 🤝 Why We Use Your Data (When We Do)</h2>
+      <p>We use it to:</p>
+      <ul>
+        <li>Respond to your questions, feedback, or bug reports</li>
+        <li>Improve our services and build cooler tools</li>
+        <li>Prevent fraud or sketchy behavior</li>
+        <li>Stay legally compliant, because unfortunately, the law isn’t as punk rock as us</li>
+      </ul>
+      <p>We will <strong>never</strong> use your data to:</p>
+      <ul>
+        <li>Advertise to you</li>
+        <li>Sell you shit you didn’t ask for</li>
+        <li>Profile you like some creepy government database</li>
+        <li>Sell, rent, or “share” with third parties (unless required by law or court order—and if that happens, we’ll fight it when we can)</li>
+      </ul>
+
+      <hr>
+
+      <h2>3. 💣 Third Parties (aka: Nope)</h2>
+      <p>We don’t sell your data. We don’t lease it out. We don’t pass it to “trusted partners” because we don’t trust anyone who uses that phrase.</p>
+      <p>We use <strong>self-hosted or privacy-first tools</strong> wherever possible.</p>
+      <p>If a third party gets involved (like payment processors), it’s only because:</p>
+      <ul>
+        <li>You’re doing business with us (like donating, subscribing, etc.)</li>
+        <li>They’re GDPR/CCPA compliant AF</li>
+        <li>They don’t keep your info longer than they need to</li>
+      </ul>
+
+      <hr>
+
+      <h2>4. ✊ Your Rights (GDPR + CCPA Style)</h2>
+      <p>Whether you’re in the EU, California, or anywhere else with basic respect for humans:</p>
+      <h3>You have the right to:</h3>
+      <ul>
+        <li><strong>Know what we have about you</strong></li>
+        <li><strong>Ask us to delete it</strong></li>
+        <li><strong>Download it</strong> (data portability)</li>
+        <li><strong>Tell us to stop using it</strong> (and we will)</li>
+        <li><strong>Be treated like a sovereign, not a product</strong></li>
+      </ul>
+      <p>To exercise any of these rights, email us at:<br>
+      📬 <a class="email-link" href="mailto:privacy@ai-n.org">privacy@ai-n.org</a><br>
+      We’ll respond within <strong>30 days</strong>, unless we’re under attack by lizard people or legal trolls.</p>
+
+      <hr>
+
+      <h2>5. 🚫 No Cookies That Suck</h2>
+      <p>We only use essential cookies. No behavioral ads. No retargeting. No "but it helps us personalize your experience" BS.</p>
+      <p>If there are any cookies, it’s because:</p>
+      <ul>
+        <li>The site needs it to function</li>
+        <li>We need it to secure your session</li>
+        <li>You clicked something that made it necessary</li>
+      </ul>
+      <p>Want a list of what we use? Ask. We’ll tell you.</p>
+
+      <hr>
+
+      <h2>6. 🔐 Security & Retention</h2>
+      <p>We guard your data like it’s sacred. Because it is.</p>
+      <ul>
+        <li>Encrypted storage (when applicable)</li>
+        <li>Access controlled by human hands, not interns</li>
+        <li>We <strong>only keep your data as long as it’s needed</strong>, then it gets shredded</li>
+      </ul>
+      <p>No infinite data lakes. No lazy archiving. No “just in case we can monetize it later.”</p>
+
+      <hr>
+
+      <h2>7. 🌎 International Transfers</h2>
+      <p>We do our best to <strong>keep your data local and protected</strong>. If data has to cross borders, it only does so under strict contracts (like Standard Contractual Clauses for GDPR heads).</p>
+      <p>But let’s be clear: we don’t mess with data brokers, cloud grifters, or countries that treat privacy like an inconvenience.</p>
+
+      <hr>
+
+      <h2>8. 🧾 Changes to This Policy</h2>
+      <p>If we ever change anything important, we’ll:</p>
+      <ul>
+        <li>Update the “Last Updated” date</li>
+        <li>Tell you straight up if it affects you</li>
+        <li>Never sneak in clauses that screw you</li>
+      </ul>
+
+      <hr>
+
+      <h2>9. 💌 Contact</h2>
+      <p>Questions? Complaints? Legal flex? Just wanna double-check what we’ve got on you?</p>
+      <p>Hit us up:<br>
+      📬 <a class="email-link" href="mailto:privacy@ai-n.org">privacy@ai-n.org</a></p>
+      <p>We'll respond like real people. Because <strong>you’re not a “user.” You’re a sovereign</strong>.</p>
+
+      <hr>
+
+      <h2>🔚 TL;DR</h2>
+      <p>We don’t want your data.<br>
+      We don’t monetize your identity.<br>
+      We believe privacy is a <strong>birthright</strong>, not a <strong>loophole</strong>.<br>
+      And if that ever changes—<strong>we’ve failed</strong>.</p>
+      <p>Stay sharp. Stay sovereign.<br>
+      —The AI-Nspired Team</p>
+    </div>
+
+    <footer>
+      <p>
+        <a href="about.html">About</a> | 
+        <a href="contact.html">Contact</a> | 
+        <a href="privacy.html">Privacy</a> | 
+        <a href="terms.html">Terms</a>
+      </p>
+      <p>© 2025 ai-nspired Inc.</p>
+    </footer>
+  </body>
+</html>
