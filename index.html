@@ -10,7 +10,7 @@
 
       body {
         font-family: 'Roboto', sans-serif;
-        background-color: #fcfcfc; /* A very subtle off-white */
+        background-color: #fcfcfc;
         color: #333333;
         margin: 0;
         padding: 0;
@@ -37,18 +37,19 @@
       .hero-section {
         position: relative;
         width: 100%;
-        max-width: 100vw; /* Take full viewport width */
+        max-width: 100vw;
         height: 380px;
         display: flex;
-        flex-direction: column; /* Stack h1 and h2 */
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         overflow: hidden;
         margin-bottom: 30px;
-        background: linear-gradient(135deg, #4a2172, #6a3a99, #8d5bae); /* Dynamic purple gradient */
-        background-size: 200% 200%; /* For animation */
-        animation: gradientShift 15s ease infinite; /* Subtle gradient animation */
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); /* Shadow for depth */
+        /* Adjusted gradient for slightly more contrast */
+        background: linear-gradient(135deg, #3a1e50, #5a2d82, #7d49b2); /* Darker purples for better contrast with brighter text */
+        background-size: 200% 200%;
+        animation: gradientShift 15s ease infinite;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Slightly stronger shadow */
       }
 
       /* Abstract background elements (AI-inspired) */
@@ -56,47 +57,55 @@
       .hero-section::after {
         content: "";
         position: absolute;
-        filter: blur(80px); /* Heavy blur for soft glow */
-        opacity: 0.3; /* Subtle presence */
-        background-color: rgba(255, 255, 255, 0.2); /* White glow */
-        pointer-events: none; /* Don't interfere with mouse events */
+        filter: blur(80px);
+        opacity: 0.3;
+        background-color: rgba(255, 255, 255, 0.25); /* Slightly brighter glow for ambient light */
+        pointer-events: none;
       }
 
       .hero-section::before {
         width: 180px; height: 180px;
-        border-radius: 50%; /* Circle */
+        border-radius: 50%;
         top: 20%; left: 10%;
         animation: glowFade 8s ease-in-out infinite alternate;
       }
 
       .hero-section::after {
         width: 250px; height: 100px;
-        border-radius: 100px / 50px; /* Ellipse */
+        border-radius: 100px / 50px;
         bottom: 15%; right: 5%;
-        background-color: rgba(220, 200, 255, 0.2); /* Lighter purple glow */
+        background-color: rgba(220, 200, 255, 0.25); /* Slightly brighter purple glow */
         animation: glowFade 10s ease-in-out infinite reverse;
       }
 
 
       .hero-text {
         position: relative;
-        z-index: 2; /* Ensure text is above background elements */
+        z-index: 2;
         text-align: center;
-        color: #ffffff;
-        text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(180, 100, 255, 0.4); /* Stronger shadow */
+        color: #ffffff; /* This is the fallback color if gradient fails */
+        /* Enhanced text-shadow for a stronger lift and subtle glow */
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), /* White inner glow */
+                     0 0 20px rgba(255, 255, 255, 0.5), /* Wider white glow */
+                     0 5px 15px rgba(0, 0, 0, 0.6); /* Stronger dark shadow beneath */
+
+        /* Add filter: drop-shadow for a cleaner outline glow effect */
+        filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8)) /* Intense white glow */
+                drop-shadow(0 0 25px rgba(180, 100, 255, 0.6)); /* Purple outer glow */
       }
 
       .hero-text h1 {
         font-family: 'Montserrat', sans-serif;
-        font-size: 5.5rem; /* Large and impactful */
+        font-size: 5.5rem;
         margin: 0;
-        letter-spacing: 4px; /* Wider spacing */
+        letter-spacing: 4px;
         font-weight: 700;
-        line-height: 1; /* Tighten line height */
+        line-height: 1;
       }
 
       .hero-text h1 span {
-          background: linear-gradient(90deg, #e0c8ff 0%, #ffffff 50%, #e0c8ff 100%); /* Bright, almost white gradient for max impact */
+          /* Adjusted gradient for maximum brightness */
+          background: linear-gradient(90deg, #F0F8FF 0%, #FFFFFF 50%, #F0F8FF 100%); /* Closer to pure white, slightly off-white ends */
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           display: block;
@@ -104,11 +113,13 @@
 
       .hero-text h2 {
         font-family: 'Montserrat', sans-serif;
-        font-size: 1.6rem; /* Larger subtitle */
-        color: rgba(255, 255, 255, 0.9);
-        margin-top: 20px; /* More space from h1 */
+        font-size: 1.6rem;
+        color: rgba(255, 255, 255, 0.95); /* Slightly brighter subtitle color */
+        margin-top: 20px;
         font-weight: 400;
-        letter-spacing: 1.8px; /* Slightly wider spacing */
+        letter-spacing: 1.8px;
+        /* Add a subtle text shadow to h2 as well for readability on dark background */
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
       }
 
       .search-container {
@@ -116,34 +127,34 @@
         flex-direction: column;
         align-items: center;
         width: 90%;
-        max-width: 650px; /* Slightly wider for the search elements */
+        max-width: 650px;
         padding-bottom: 25px;
       }
 
       input[type="text"] {
         width: 100%;
-        padding: 18px 30px; /* More padding */
-        border: 1px solid #e0e0e0; /* Lighter border */
-        border-radius: 35px; /* More rounded */
-        margin-bottom: 25px; /* More space */
-        font-size: 1.2rem; /* Larger font */
+        padding: 18px 30px;
+        border: 1px solid #e0e0e0;
+        border-radius: 35px;
+        margin-bottom: 25px;
+        font-size: 1.2rem;
         text-align: center;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); /* More noticeable shadow */
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
         outline: none;
         transition: all 0.3s ease;
       }
 
       input[type="text"]:focus {
-        border-color: #8a4edb; /* Vibrant purple on focus */
-        box-shadow: 0 8px 25px rgba(138, 78, 219, 0.28); /* Stronger focus shadow */
+        border-color: #8a4edb;
+        box-shadow: 0 8px 25px rgba(138, 78, 219, 0.28);
       }
 
       button {
-        padding: 15px 45px; /* Larger button */
-        background-color: #6a3a99; /* Mid-tone purple */
+        padding: 15px 45px;
+        background-color: #6a3a99;
         color: #ffffff;
         border: none;
-        border-radius: 35px; /* More rounded */
+        border-radius: 35px;
         cursor: pointer;
         font-size: 1.2rem;
         font-weight: 600;
@@ -154,7 +165,7 @@
       }
 
       button:hover {
-        background-color: #8d5bae; /* Lighter on hover */
+        background-color: #8d5bae;
         transform: translateY(-4px);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
       }
@@ -167,23 +178,23 @@
       .result {
         margin-top: 35px;
         width: 90%;
-        max-width: 800px; /* Wider result container */
-        max-height: 500px; /* Taller */
+        max-width: 800px;
+        max-height: 500px;
         overflow-y: auto;
         text-align: left;
         background-color: #ffffff;
-        padding: 35px; /* More padding */
-        border-radius: 18px; /* Even more rounded */
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Stronger shadow */
-        font-size: 1.1rem; /* Larger result text */
+        padding: 35px;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        font-size: 1.1rem;
         line-height: 1.7;
         color: #444;
-        border: 1px solid #f0f0f0; /* Very light border */
+        border: 1px solid #f0f0f0;
         margin-bottom: 40px;
       }
 
       .result strong {
-        color: #5a2d82; /* Highlight strong text in brand color */
+        color: #5a2d82;
       }
 
       .result code {
@@ -193,7 +204,7 @@
         font-family: 'Roboto Mono', monospace;
         font-size: 0.98em;
         border: 1px solid #ededed;
-        color: #555; /* Darker code text */
+        color: #555;
       }
 
       footer {
@@ -203,19 +214,19 @@
         color: #777;
         text-align: center;
         width: 100%;
-        background-color: #f5f5f5; /* Light grey footer */
+        background-color: #f5f5f5;
         border-top: 1px solid #e5e5e5;
       }
 
       footer a {
-        color: #6a3a99; /* Use mid-tone purple for links */
+        color: #6a3a99;
         text-decoration: none;
         margin: 0 12px;
         transition: color 0.3s ease;
       }
 
       footer a:hover {
-        color: #8d5bae; /* Lighter on hover */
+        color: #8d5bae;
         text-decoration: underline;
       }
 
@@ -225,14 +236,14 @@
       }
 
       .result::-webkit-scrollbar-track {
-        background: #fcfcfc; /* Consistent with body bg */
+        background: #fcfcfc;
         border-radius: 10px;
       }
 
       .result::-webkit-scrollbar-thumb {
-        background: #a980cf; /* Purple thumb */
+        background: #a980cf;
         border-radius: 10px;
-        border: 3px solid #fcfcfc; /* Add border for floating effect */
+        border: 3px solid #fcfcfc;
       }
 
       .result::-webkit-scrollbar-thumb:hover {
