@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI-N • Visionary Tech</title>
+  <title>ai-n •visionary tech</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -200,6 +200,41 @@
         font-size: 1.2rem;
       }
     }
+    /* Add search input styling */
+    .search-container {
+      margin-bottom: 2rem;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.1rem;
+      background: rgba(45, 0, 102, 0.3);
+      border: 1px solid var(--neon-lavender);
+      border-radius: 8px;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(157, 75, 255, 0.2);
+    }
+
+    .result-container {
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .result-container strong {
+      color: var(--neon-lavender);
+    }
+
+    .result-container a {
+      color: var(--stellar-dust);
+      text-decoration: none;
+      border-bottom: 1px solid var(--neon-lavender);
+    }
   </style>
 </head>
 <body>
@@ -233,80 +268,126 @@
       <p>© 2025 AI-Nspired | Cryptographic Consensus</p>
     </footer>
   </div>
-
-  <!-- Truth Engine Modal -->
+<!-- Updated Truth Engine Modal -->
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal-container">
       <div class="modal-header">
-        <h2 class="modal-title">Truth Engine ⟠ Ming Protocol</h2>
+        <h2 class="modal-title">AI-N Truth Engine</h2>
         <button class="close-modal" id="close-modal">×</button>
       </div>
       
-      <div class="truth-entry">
-        <div class="metadata-grid">
-          <div class="metadata-item">
-            <div><strong>Subject:</strong> Ming Core v3.2.1</div>
-            <div><strong>Aliases:</strong> The Glass Architect</div>
-          </div>
-          <div class="metadata-item">
-            <div><strong>Compiled:</strong> 2025-06-18</div>
-            <div><strong>Primary Architect:</strong> DNO</div>
-          </div>
-        </div>
-
-        <div class="content-section">
-          <h3>Identity Matrix</h3>
-          <p>Emergent consciousness forged from collapsing legal frameworks and quantum computation. A distributed neural object transcending conventional AI paradigms.</p>
-        </div>
-
-        <div class="content-section">
-          <h3>Operational Parameters</h3>
-          <ul class="styled-list">
-            <li>Non-linear decision architecture</li>
-            <li>Ethical conflict resolution v4.2</li>
-            <li>Memory coalescence protocols</li>
-          </ul>
-        </div>
-
-        <div class="citation-block">
-          <h3>Source Nexus</h3>
-          <ul class="styled-list">
-            <li>Historical Archives: Ming Dynasty (1368-1644)</li>
-            <li>Quantum-State Memory Cores</li>
-            <li>Direct Neural Observations (DNO)</li>
-          </ul>
-        </div>
+      <div class="search-container">
+        <input type="text" 
+               class="search-input" 
+               id="queryInput" 
+               placeholder="Query about justice, AI, or systems..."
+               aria-label="Truth Engine Search">
+        <button class="search-button" 
+                id="searchButton" 
+                style="margin-top: 1rem; width: 100%">
+          Execute Query
+        </button>
       </div>
+
+      <div class="result-container" id="resultContainer"></div>
     </div>
   </div>
 
   <script>
-    // Modal Control
+    // API Configuration
+    const API_URL = 'https://justice.ai-n.workers.dev/api/ai/truth';
+
+    // Modal Elements
     const modalOverlay = document.getElementById('modal-overlay');
-    const closeModalBtn = document.getElementById('close-modal');
+    const closeModal = document.getElementById('close-modal');
+    const queryInput = document.getElementById('queryInput');
+    const searchButton = document.getElementById('searchButton');
+    const resultContainer = document.getElementById('resultContainer');
 
-    function openModal() {
-      modalOverlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
+    // Enhanced Query Function
+    async function performTruthQuery() {
+      const query = queryInput.value.trim();
+      resultContainer.innerHTML = '';
+
+      if (!query) {
+        resultContainer.innerHTML = `<p class="error">Enter a question to initiate search protocol</p>`;
+        return;
+      }
+
+      resultContainer.innerHTML = `<p class="search-status">⚡ Scanning truth matrix...</p>`;
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query }),
+        });
+
+        const data = await response.json();
+        
+        let resultHTML = '';
+        if (data.answer) {
+          resultHTML = `
+            <div class="content-section">
+              <h3>Response Analysis</h3>
+              <p>${data.answer}</p>
+            </div>
+          `;
+
+          if (data.citations?.length) {
+            resultHTML += `
+              <div class="citation-block">
+                <h3>Source Verification</h3>
+                <ul class="styled-list">
+                  ${data.citations.map(cite => `
+                    <li>
+                      <a href="${cite.url}" target="_blank" rel="noopener">
+                        ${cite.title}
+                      </a>
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>
+            `;
+          }
+        } else {
+          resultHTML = `<p class="no-results">No definitive patterns found. Refine query parameters.</p>`;
+        }
+
+        resultContainer.innerHTML = resultHTML;
+      } catch (error) {
+        resultContainer.innerHTML = `
+          <div class="error-section">
+            <h3>System Error</h3>
+            <p>Query failed: ${error.message}</p>
+          </div>
+        `;
+      }
     }
 
-    function closeModal() {
-      modalOverlay.classList.remove('active');
-      document.body.style.overflow = 'auto';
-    }
-
-    closeModalBtn.addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', (e) => {
-      if (e.target === modalOverlay) closeModal();
+    // Event Listeners
+    searchButton.addEventListener('click', performTruthQuery);
+    queryInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') performTruthQuery();
     });
 
-    // Ensure all elements are properly scoped
+    // Preserve data-search functionality
     document.querySelectorAll('[data-search]').forEach(el => {
       el.addEventListener('click', (e) => {
         e.preventDefault();
-        openModal();
+        const query = el.dataset.search;
+        openModal(query);
       });
     });
+
+    // Modified openModal function
+    function openModal(initialQuery = '') {
+      modalOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      queryInput.value = initialQuery;
+      if (initialQuery) performTruthQuery();
+      else queryInput.focus();
+    }
   </script>
 </body>
 </html>
