@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI-Nspired TruthEngine</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Special Elite font from Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap');
 
@@ -14,132 +16,134 @@
         color: #333333;
         margin: 0;
         padding: 0;
-        /* Initially set for a 150% zoom effect */
-        transform: scale(1.5); 
+        transform: scale(1.5);
         transform-origin: top center;
-        width: 100%; /* Ensure it spans full width after scale */
-        min-height: 100vh; /* Helps content distribution even with scale */
-        overflow-x: hidden; /* Prevent horizontal scroll due to scaling */
+        width: 100vw;
+        min-height: 100vh;
+        overflow-x: hidden;
         display: flex;
         flex-direction: column;
         align-items: center;
-        transition: transform 0.5s ease-in-out; /* Smooth transition for scale change */
+        transition: transform 0.5s cubic-bezier(.7,.3,.2,1);
       }
-
-      /* When body is reset to 100% scale after search */
       body.scaled-down {
         transform: scale(1);
-        width: 100%; /* Ensure it resizes correctly */
+        width: 100vw;
       }
-
-      /* Keyframes remain */
       @keyframes gradientShift {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
         100% { background-position: 0% 50%; }
       }
-
       @keyframes glowFade {
-          0% { opacity: 0.2; transform: scale(0.9); }
-          50% { opacity: 0.5; transform: scale(1); }
-          100% { opacity: 0.2; transform: scale(0.9); }
+        0% { opacity: 0.16; transform: scale(0.9); }
+        50% { opacity: 0.33; transform: scale(1.1); }
+        100% { opacity: 0.16; transform: scale(0.9); }
       }
-
       .hero-section {
         position: relative;
-        width: 100%;
+        width: 100vw;
+        min-width: 0;
         max-width: 100vw;
-        height: 250px; /* Reduced to leave more space for search input at 150% scale */
+        height: 260px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        margin-bottom: 0px; 
-
-        background: linear-gradient(135deg, #FFD700, #FFD700, #DAA520);
-        background-size: 200% 200%;
-        animation: gradientShift 15s ease infinite;
-        
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.25);
+        margin-bottom: 0;
+        background: linear-gradient(120deg, #16001a 0%, #6A05A3 40%, #FFD700 80%, #000 100%);
+        background-size: 300% 300%;
+        animation: gradientShift 7s cubic-bezier(.7,.3,.2,1) infinite;
+        box-shadow: 0 12px 28px 0 rgba(100, 0, 140, 0.22), 0 1.5px 0.5px 0 rgba(255, 215, 0, 0.15);
+        z-index: 1;
+        isolation: isolate;
       }
-
-      /* Abstract background elements (AI-inspired) */
       .hero-section::before,
       .hero-section::after {
         content: "";
         position: absolute;
-        filter: blur(80px);
-        opacity: 0.25;
-        background-color: rgba(255, 255, 200, 0.3);
         pointer-events: none;
-        width: 18rem; height: 18rem;
+        z-index: 0;
+        filter: blur(70px);
       }
-
       .hero-section::before {
-        border-radius: 50%;
-        top: 20%; left: 10%;
+        top: -70px; left: -60px;
+        width: 25vw; min-width: 200px; height: 25vw; min-height: 200px;
+        background: radial-gradient(circle at 60% 40%, #6a05a3 70%, transparent 100%);
+        opacity: 0.33;
         animation: glowFade 8s ease-in-out infinite alternate;
+        mix-blend-mode: lighten;
       }
-
       .hero-section::after {
-        width: 25rem; height: 10rem;
-        border-radius: 100px / 50px;
-        bottom: 15%; right: 5%;
-        background-color: rgba(255, 240, 180, 0.3);
+        bottom: -45px; right: -40px;
+        width: 30vw; min-width: 250px; height: 14vw; min-height: 120px;
+        background: radial-gradient(ellipse at 40% 50%, #FFD700 70%, transparent 100%);
+        opacity: 0.29;
         animation: glowFade 10s ease-in-out infinite reverse;
+        mix-blend-mode: hard-light;
       }
-
-
       .hero-text {
         position: relative;
         z-index: 2;
         text-align: center;
         color: #000000;
-        text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.7),
-                     2px 2px 0px rgba(0, 0, 0, 0.5),
-                     0 0 5px rgba(255, 255, 255, 0.4),
-                     0 0 10px rgba(255, 255, 255, 0.2);
-        filter: drop-shadow(0px 0px 5px rgba(106, 5, 163, 0.9))
-                drop-shadow(0px 0px 10px rgba(163, 0, 255, 0.7));
+        text-shadow: 0 2px 12px rgba(160,0,200,0.12), 0 5px 24px #FFD70040;
+        filter: drop-shadow(0px 0px 14px #a300ff40);
       }
-
       .hero-text h1 {
-        font-family: 'Montserrat', sans-serif;
+        font-family: 'Special Elite', 'Montserrat', Arial, sans-serif;
         font-size: 5.5rem;
         margin: 0;
-        letter-spacing: 4px;
+        letter-spacing: 6px;
         font-weight: 700;
         line-height: 1;
+        text-shadow: 
+          0 3px 12px #FFD70055, 
+          0 2px 8px #6A05A388, 
+          0 0 22px #a300ff22;
       }
-
       .hero-text h1 span {
-          background: linear-gradient(90deg, #6A05A3 0%, #A300FF 50%, #6A05A3 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          display: block;
+        /* Gradient from gold to black to purple */
+        background: linear-gradient(95deg,
+          #FFD700 0%,
+          #FFD700 18%,
+          #16001a 40%,
+          #000 58%,
+          #6A05A3 75%,
+          #A300FF 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: block;
+        letter-spacing: 8px;
+        filter: brightness(1.13) saturate(1.5);
+        text-shadow: 
+          0 0 18px #a300ff22, 
+          0 0 32px #FFD70033, 
+          0 0 8px #00000044;
+        /* Make the gradient pop even more */
       }
-
       .hero-text h2 {
         font-family: 'Montserrat', sans-serif;
         font-size: 1.5rem;
-        color: rgba(50, 50, 50, 0.9);
+        color: #222;
         margin-top: 15px;
         font-weight: 400;
-        letter-spacing: 1.5px;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        letter-spacing: 2.5px;
+        text-shadow: 0 3px 14px #FFD70077, 0 2px 8px #6A05A355;
       }
-
       .search-container {
         display: flex;
         flex-direction: column;
         align-items: center;
-        width: 90%;
+        width: 98vw;
         max-width: 650px;
-        padding-top: 50px; /* Space from header when scaled */
-        padding-bottom: 80px; /* Push results/footer out of initial view when scaled */
+        min-width: 0;
+        padding-top: 50px;
+        padding-bottom: 60px;
+        z-index: 3;
       }
-
       input[type="text"] {
         width: 100%;
         padding: 18px 30px;
@@ -151,76 +155,62 @@
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
         outline: none;
         transition: all 0.3s ease;
+        background: #fff;
       }
-
       input[type="text"]:focus {
         border-color: #FFD700;
         box-shadow: 0 8px 25px rgba(255, 215, 0, 0.28);
       }
-
       button {
         padding: 14px 40px;
-        background-color: #6A05A3;
+        background: linear-gradient(90deg, #6A05A3 0%, #a300ff 100%);
         color: #ffffff;
         border: none;
         border-radius: 35px;
         cursor: pointer;
         font-size: 1.15rem;
         font-weight: 600;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(.7,.3,.2,1);
         letter-spacing: 1px;
         min-width: 200px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 12px rgba(106, 5, 163, 0.14);
       }
-
       button:hover {
-        background-color: #A300FF;
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+        background: linear-gradient(90deg, #A300FF 0%, #FFD700 100%);
+        color: #6A05A3;
+        transform: translateY(-3px) scale(1.04);
+        box-shadow: 0 8px 20px rgba(255, 215, 0, 0.16), 0 8px 20px rgba(163,0,255,0.18);
       }
-
       button:active {
         transform: translateY(0);
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(90deg, #FFD700 0%, #A300FF 100%);
+        color: #fff;
+        box-shadow: 0 2px 5px rgba(163, 0, 255, 0.08);
       }
-
       .result {
-        /* Not visible initially due to `body` scale */
-        flex-grow: 1; 
-        width: 90%;
-        max-width: 800px;
-        min-height: 50px; /* Small default, will be styled via JS after search */
-        max-height: unset; /* Let content dictate height */
-        overflow-y: auto;
-        text-align: left;
-        background-color: #ffffff;
-        padding: 35px;
+        flex-grow: 1;
+        width: 99vw;
+        min-width: 0;
+        min-height: 50px;
+        background: #fff;
+        padding: 35px 2vw 35px 2vw;
         border-radius: 18px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-        font-size: 1.1rem; /* Base font size */
+        box-shadow: 0 10px 30px rgba(106, 5, 163, 0.10), 0 5px 26px #FFD70018;
+        font-size: 1.1rem;
         line-height: 1.7;
         color: #444;
         border: 1px solid #f0f0f0;
-        margin-bottom: 40px; /* Push footer down for scrolling */
+        margin-bottom: 40px;
+        margin-left: auto;
+        margin-right: auto;
+        overflow-x: auto;
+        box-sizing: border-box;
+        word-break: break-word;
       }
-
-      /* Applies to content inside .result when it's styled for 150% text */
-      .result.scaled-text * { /* Target all elements inside result */
-        font-size: 1.5em; /* Scale font size of its children */
-        line-height: 1.5; /* Adjust line height for larger text */
-      }
-      .result.scaled-text strong { /* Ensure strong tags also scale properly */
-        font-size: 1.5em; 
-      }
-      .result.scaled-text code { /* Code blocks might need specific adjustment */
-        font-size: 1.5em; 
-      }
-
-
-      .result strong {
-        color: #6A05A3;
-      }
-
+      .result.scaled-text * { font-size: 1.5em; line-height: 1.5; }
+      .result.scaled-text strong { font-size: 1.5em; }
+      .result.scaled-text code { font-size: 1.4em; }
+      .result strong { color: #6A05A3; }
       .result code {
         background-color: #f7f7f7;
         padding: 4px 8px;
@@ -230,107 +220,79 @@
         border: 1px solid #ededed;
         color: #555;
       }
-
       footer {
-        margin-top: auto; /* Pushes footer to the bottom of the viewport once scaled */
+        margin-top: auto;
         padding: 35px 20px;
         font-size: 0.95rem;
         color: #777;
         text-align: center;
-        width: 100%;
+        width: 100vw;
         background-color: #f5f5f5;
         border-top: 1px solid #e5e5e5;
-        /* Footers appearance upon 100% body-scale is affected as well */
       }
-
       footer a {
         color: #6A05A3;
         text-decoration: none;
         margin: 0 12px;
-        transition: color 0.3s ease;
+        transition: color 0.3s cubic-bezier(.7,.3,.2,1);
         cursor: pointer;
       }
-
       footer a:hover {
         color: #A300FF;
         text-decoration: underline;
       }
-
-      /* Scrollbar styling for webkit browsers - remain */
-      .result::-webkit-scrollbar {
-        width: 12px;
+      .result::-webkit-scrollbar { width: 12px; }
+      .result::-webkit-scrollbar-track { background: #fcfcfc; border-radius: 10px; }
+      .result::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 10px; border: 3px solid #fcfcfc; }
+      .result::-webkit-scrollbar-thumb:hover { background: #A300FF; }
+      @media (max-width: 950px) {
+        .result, .search-container { max-width: 99vw; }
       }
-
-      .result::-webkit-scrollbar-track {
-        background: #fcfcfc;
-        border-radius: 10px;
-      }
-
-      .result::-webkit-scrollbar-thumb {
-        background: #FFD700;
-        border-radius: 10px;
-        border: 3px solid #fcfcfc;
-      }
-
-      .result::-webkit-scrollbar-thumb:hover {
-        background: #FFA500;
-      }
-
-      /* --- Mobile Responsiveness --- */
       @media (max-width: 768px) {
-        body {
-          transform: scale(1.2); /* Smaller initial scale for mobile */
-        }
         .hero-section {
-          height: 150px; 
+          height: 130px;
         }
-
         .hero-text h1 {
-          font-size: 2.5rem; 
+          font-size: 2.3rem;
           letter-spacing: 2px;
         }
-
         .hero-text h2 {
-          font-size: 0.9rem;
+          font-size: 1rem;
           margin-top: 10px;
-          letter-spacing: 1px;
         }
-
         .search-container {
-          padding-top: 30px; 
-          padding-bottom: 50px; /* Ensure enough space to push out */
-          max-width: 95%; 
+          padding-top: 24px;
+          padding-bottom: 34px;
+          max-width: 98vw;
         }
-
         input[type="text"] {
-          padding: 12px 20px;
+          padding: 10px 13px;
           font-size: 1rem;
         }
-
         button {
-          padding: 10px 30px;
+          padding: 9px 18px;
           font-size: 1rem;
-          min-width: 150px;
+          min-width: 120px;
         }
-
         .result {
-          padding: 20px;
-          font-size: 0.9em; /* base font size before scaling */
-          margin-bottom: 30px;
+          padding: 20px 2vw 20px 2vw;
+          font-size: 0.95em;
+          margin-bottom: 20px;
         }
-        .result.scaled-text * {
-            font-size: 1.5em; /* Result text still scales to 150% of its (smaller) mobile base */
-             line-height: inherit; /* Inherit line height from parent if needed */
-        }
-
+        .result.scaled-text * { font-size: 1.14em; }
         footer {
-          padding: 25px 15px; 
+          padding: 19px 10px;
           font-size: 0.85rem;
         }
-
-        footer a {
-          margin: 0 8px;
+        footer a { margin: 0 6px; }
+      }
+      @media (max-width: 480px) {
+        .hero-section, footer, .result, .search-container {
+          width: 100vw;
+          max-width: 100vw;
+          min-width: 0;
         }
+        .result, .search-container { padding-left: 2vw; padding-right: 2vw; }
       }
     </style>
   </head>
@@ -341,7 +303,6 @@
         <h2>pragmatic personal private</h2>
       </div>
     </div>
-
     <div class="search-container">
       <input
         type="text"
@@ -351,7 +312,6 @@
       <button id="searchButton">run it</button>
     </div>
     <div class="result" id="resultContainer"></div>
-
     <footer>
       <p>
         <a href="about.html">About</a> | 
@@ -361,43 +321,33 @@
       </p>
       <p>© 2025 ai-nspired Inc.</p>
     </footer>
-
     <script>
       const API_BASE = 'https://justice.ai-n.workers.dev';
       const body = document.body;
       const resultContainer = document.getElementById('resultContainer');
       const queryInput = document.getElementById('queryInput');
-
       async function performTruthQuery(queryText = null) {
         const query = queryText || queryInput.value.trim();
-        resultContainer.innerHTML = ''; 
-
+        resultContainer.innerHTML = '';
         if (!query) {
           resultContainer.innerHTML = '<p style="text-align: center; color: #777;">Please enter a question to begin your search.</p>';
           return;
         }
-        
         queryInput.value = query;
-
-        // Step 1: Revert main page zoom to 100%
+        // Only now, after first search, scale down
         body.classList.add('scaled-down');
-
         resultContainer.innerHTML = '<p style="text-align: center; color: #6A05A3;">Searching for answers...</p>';
-        resultContainer.classList.add('scaled-text'); // Apply 150% text scaling class
-
+        resultContainer.classList.add('scaled-text'); // Always large result text
         try {
           const response = await fetch(`${API_BASE}/api/ai/truth`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ query }),
           });
-
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
-
           const data = await response.json();
-
           if (data.answer) {
             let resultHTML = `<p><strong>Answer:</strong></p>`;
             resultHTML += `<div>${marked.parse(data.answer)}</div>`;
@@ -408,7 +358,7 @@
               });
               resultHTML += '</ul>';
             } else {
-                 resultHTML += '<p style="margin-top: 18px; font-style: italic; color: #888;">No specific citations found for this answer.</p>';
+              resultHTML += '<p style="margin-top: 18px; font-style: italic; color: #888;">No specific citations found for this answer.</p>';
             }
             resultContainer.innerHTML = resultHTML;
           } else {
@@ -419,7 +369,6 @@
           console.error("Fetch error:", error);
         }
       }
-
       document.getElementById('searchButton').addEventListener('click', () => performTruthQuery());
       queryInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
