@@ -314,10 +314,11 @@
     <div class="result" id="resultContainer"></div>
     <footer>
       <p>
-        <a href="about.html">About</a> | 
-        <a href="contact.html">Contact</a> | 
-        <a href="privacy.html">Privacy</a> | 
-        <a href="terms.html">Terms</a>
+        <a href="ain about" class="truth-link">About</a> | 
+	<a href="ain about contact" class="truth-link">Contact</a> | 
+	<a href="ain about privacy" class="truth-link">Privacy</a> | 
+	<a href="ain about terms" class="truth-link">Terms</a>
+
       </p>
       <p>© 2025 ai-nspired Inc.</p>
     </footer>
@@ -376,13 +377,44 @@
         }
       });
     </script>
-    <script>
-  // Add this AFTER your main script
-  document.getElementById('resultContainer').addEventListener('click', function(event) {
-    if (event.target.matches('.truth-link')) {
+<script>
+  // --- Your existing performTruthQuery and related code goes above ---
+
+  // 1. On page load, check for ?q=... and run a query if found
+  window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('q');
+    if (q) {
+      const queryInput = document.getElementById('queryInput');
+      if (queryInput) queryInput.value = q;
+      // If you use a modal, open it here:
+      // openModal();
+      performTruthQuery(q);
+    }
+  });
+
+  // 2. Intercept clicks on internal ?q=... links (including markdown links)
+  document.body.addEventListener('click', function(event) {
+    // Find the closest <a> if a child element was clicked
+    const link = event.target.closest('a[href]');
+    if (!link) return;
+
+    // Only handle links to this site with ?q=...
+    const url = new URL(link.href, window.location.origin);
+
+    // Accept either absolute or relative ?q=... links
+    const isSamePage = url.origin === window.location.origin && url.pathname === window.location.pathname;
+    const hasQuery = url.searchParams.has('q');
+    if (isSamePage && hasQuery) {
       event.preventDefault();
-      const newQuery = event.target.getAttribute('href');
-      performTruthQuery(newQuery);
+      const query = url.searchParams.get('q');
+      if (query) {
+        // Update browser address bar (no reload)
+        history.replaceState(null, '', url.search);
+        // If you use a modal, open it here:
+        // openModal();
+        performTruthQuery(query);
+      }
     }
   });
 </script>
