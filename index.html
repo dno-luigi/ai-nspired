@@ -206,13 +206,20 @@
         overflow-x: auto;
         box-sizing: border-box;
         word-break: break-word;
+	max-height: 60vh; /* Limit the height to 60% of viewport */
+	overflow-y: auto;  /* Enable vertical scrolling if needed */
+  	word-break: break-word;
+  	white-space: pre-wrap; /* Preserve line breaks and wrap text */
       }
       .result.scaled-text * { font-size: 1.5em; line-height: 1.5; }
       .result.scaled-text strong { font-size: 1.5em; }
       .result.scaled-text code { font-size: 1.4em; }
       .result strong { color: #6A05A3; }
-      .result code {
-        background-color: #f7f7f7;
+      .result code,
+      .result pre {
+       word-break: break-word;
+       white-space: pre-wrap;
+       overflow-x: auto;        background-color: #f7f7f7;
         padding: 4px 8px;
         border-radius: 6px;
         font-family: 'Roboto Mono', monospace;
