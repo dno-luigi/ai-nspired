@@ -376,5 +376,15 @@
         }
       });
     </script>
+    <script>
+  // Add this AFTER your main script
+  document.getElementById('resultContainer').addEventListener('click', function(event) {
+    if (event.target.matches('.truth-link')) {
+      event.preventDefault();
+      const newQuery = event.target.getAttribute('href');
+      performTruthQuery(newQuery);
+    }
+  });
+</script>
   </body>
 </html>
