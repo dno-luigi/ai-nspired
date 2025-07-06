@@ -1,421 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI-Nspired TruthEngine</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Special Elite font from Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+    <title>ai-nspired :: architect of systems</title>
+    <meta name="description" content="the personal hub for a builder of systems in code, law, music, and life.">
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600&family=Roboto+Mono:wght@400;700&display=swap');
 
-      body {
-        font-family: 'Roboto', sans-serif;
-        background-color: #fcfcfc;
-        color: #333333;
-        margin: 0;
-        padding: 0;
-        transform: scale(1.5);
-        transform-origin: top center;
-        width: 100vw;
-        min-height: 100vh;
-        overflow-x: hidden;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        transition: transform 0.5s cubic-bezier(.7,.3,.2,1);
-      }
-      body.scaled-down {
-        transform: scale(1);
-        width: 100vw;
-      }
-      @keyframes gradientShift {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-      }
-      @keyframes glowFade {
-        0% { opacity: 0.16; transform: scale(0.9); }
-        50% { opacity: 0.33; transform: scale(1.1); }
-        100% { opacity: 0.16; transform: scale(0.9); }
-      }
-      .hero-section {
-        position: relative;
-        width: 100vw;
-        min-width: 0;
-        max-width: 100vw;
-        height: 260px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        margin-bottom: 0;
-        background: linear-gradient(120deg, #16001a 0%, #6A05A3 40%, #FFD700 80%, #000 100%);
-        background-size: 300% 300%;
-        animation: gradientShift 7s cubic-bezier(.7,.3,.2,1) infinite;
-        box-shadow: 0 12px 28px 0 rgba(100, 0, 140, 0.22), 0 1.5px 0.5px 0 rgba(255, 215, 0, 0.15);
-        z-index: 1;
-        isolation: isolate;
-      }
-      .hero-section::before,
-      .hero-section::after {
-        content: "";
-        position: absolute;
-        pointer-events: none;
-        z-index: 0;
-        filter: blur(70px);
-      }
-      .hero-section::before {
-        top: -70px; left: -60px;
-        width: 25vw; min-width: 200px; height: 25vw; min-height: 200px;
-        background: radial-gradient(circle at 60% 40%, #6a05a3 70%, transparent 100%);
-        opacity: 0.33;
-        animation: glowFade 8s ease-in-out infinite alternate;
-        mix-blend-mode: lighten;
-      }
-      .hero-section::after {
-        bottom: -45px; right: -40px;
-        width: 30vw; min-width: 250px; height: 14vw; min-height: 120px;
-        background: radial-gradient(ellipse at 40% 50%, #FFD700 70%, transparent 100%);
-        opacity: 0.29;
-        animation: glowFade 10s ease-in-out infinite reverse;
-        mix-blend-mode: hard-light;
-      }
-      .hero-text {
-        position: relative;
-        z-index: 2;
-        text-align: center;
-        color: #000000;
-        text-shadow: 0 2px 12px rgba(160,0,200,0.12), 0 5px 24px #FFD70040;
-        filter: drop-shadow(0px 0px 14px #a300ff40);
-      }
-      .hero-text h1 {
-        font-family: 'Special Elite', 'Montserrat', Arial, sans-serif;
-        font-size: 5.5rem;
-        margin: 0;
-        letter-spacing: 6px;
-        font-weight: 700;
-        line-height: 1;
-        text-shadow: 
-          0 3px 12px #FFD70055, 
-          0 2px 8px #6A05A388, 
-          0 0 22px #a300ff22;
-      }
-      .hero-text h1 span {
-        /* Gradient from gold to black to purple */
-        background: linear-gradient(95deg,
-          #FFD700 0%,
-          #FFD700 18%,
-          #16001a 40%,
-          #000 58%,
-          #6A05A3 75%,
-          #A300FF 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        display: block;
-        letter-spacing: 8px;
-        filter: brightness(1.13) saturate(1.5);
-        text-shadow: 
-          0 0 18px #a300ff22, 
-          0 0 32px #FFD70033, 
-          0 0 8px #00000044;
-        /* Make the gradient pop even more */
-      }
-      .hero-text h2 {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 1.5rem;
-        color: #222;
-        margin-top: 15px;
-        font-weight: 400;
-        letter-spacing: 2.5px;
-        text-shadow: 0 3px 14px #FFD70077, 0 2px 8px #6A05A355;
-      }
-      .search-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 98vw;
-        max-width: 650px;
-        min-width: 0;
-        padding-top: 50px;
-        padding-bottom: 60px;
-        z-index: 3;
-      }
-      input[type="text"] {
-        width: 100%;
-        padding: 18px 30px;
-        border: 1px solid #e0e0e0;
-        border-radius: 35px;
-        margin-bottom: 20px;
-        font-size: 1.15rem;
-        text-align: center;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-        outline: none;
-        transition: all 0.3s ease;
-        background: #fff;
-      }
-      input[type="text"]:focus {
-        border-color: #FFD700;
-        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.28);
-      }
-      button {
-        padding: 14px 40px;
-        background: linear-gradient(90deg, #6A05A3 0%, #a300ff 100%);
-        color: #ffffff;
-        border: none;
-        border-radius: 35px;
-        cursor: pointer;
-        font-size: 1.15rem;
-        font-weight: 600;
-        transition: all 0.3s cubic-bezier(.7,.3,.2,1);
-        letter-spacing: 1px;
-        min-width: 200px;
-        box-shadow: 0 4px 12px rgba(106, 5, 163, 0.14);
-      }
-      button:hover {
-        background: linear-gradient(90deg, #A300FF 0%, #FFD700 100%);
-        color: #6A05A3;
-        transform: translateY(-3px) scale(1.04);
-        box-shadow: 0 8px 20px rgba(255, 215, 0, 0.16), 0 8px 20px rgba(163,0,255,0.18);
-      }
-      button:active {
-        transform: translateY(0);
-        background: linear-gradient(90deg, #FFD700 0%, #A300FF 100%);
-        color: #fff;
-        box-shadow: 0 2px 5px rgba(163, 0, 255, 0.08);
-      }
-      .result {
-        flex-grow: 1;
-        width: 99vw;
-        min-width: 0;
-        min-height: 50px;
-        background: #fff;
-        padding: 35px 2vw 35px 2vw;
-        border-radius: 18px;
-        box-shadow: 0 10px 30px rgba(106, 5, 163, 0.10), 0 5px 26px #FFD70018;
-        font-size: 1.1rem;
-        line-height: 1.7;
-        color: #444;
-        border: 1px solid #f0f0f0;
-        margin-bottom: 40px;
-        margin-left: auto;
-        margin-right: auto;
-        overflow-x: auto;
-        box-sizing: border-box;
-        word-break: break-word;
-      }
-      .result.scaled-text * { font-size: 1.5em; line-height: 1.5; }
-      .result.scaled-text strong { font-size: 1.5em; }
-      .result.scaled-text code { font-size: 1.4em; }
-      .result strong { color: #6A05A3; }
-      .result code {
-        background-color: #f7f7f7;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-family: 'Roboto Mono', monospace;
-        font-size: 0.98em;
-        border: 1px solid #ededed;
-        color: #555;
-      }
-      footer {
-        margin-top: auto;
-        padding: 35px 20px;
-        font-size: 0.95rem;
-        color: #777;
-        text-align: center;
-        width: 100vw;
-        background-color: #f5f5f5;
-        border-top: 1px solid #e5e5e5;
-      }
-      footer a {
-        color: #6A05A3;
-        text-decoration: none;
-        margin: 0 12px;
-        transition: color 0.3s cubic-bezier(.7,.3,.2,1);
-        cursor: pointer;
-      }
-      footer a:hover {
-        color: #A300FF;
-        text-decoration: underline;
-      }
-      .result::-webkit-scrollbar { width: 12px; }
-      .result::-webkit-scrollbar-track { background: #fcfcfc; border-radius: 10px; }
-      .result::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 10px; border: 3px solid #fcfcfc; }
-      .result::-webkit-scrollbar-thumb:hover { background: #A300FF; }
-      @media (max-width: 950px) {
-        .result, .search-container { max-width: 99vw; }
-      }
-      @media (max-width: 768px) {
-        .hero-section {
-          height: 130px;
+        :root {
+            --bg-color: #020617;
+            --grid-color: rgba(0, 119, 255, 0.1);
+            --text-color: #94a3b8;
+            --heading-color: #e2e8f0;
+            --primary-color: #38bdf8;
+            --card-bg: rgba(15, 23, 42, 0.8);
+            --border-color: #1e293b;
         }
-        .hero-text h1 {
-          font-size: 2.3rem;
-          letter-spacing: 2px;
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Lexend', sans-serif;
+            margin: 0;
+            padding: 4rem 2rem;
+            line-height: 1.7;
+            text-transform: lowercase; /* Enforce lowercase aesthetic */
+            /* The animated blueprint background */
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: pan-grid 60s linear infinite;
         }
-        .hero-text h2 {
-          font-size: 1rem;
-          margin-top: 10px;
+
+        @keyframes pan-grid {
+            0% { background-position: 0 0; }
+            100% { background-position: 1200px 600px; }
         }
-        .search-container {
-          padding-top: 24px;
-          padding-bottom: 34px;
-          max-width: 98vw;
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
         }
-        input[type="text"] {
-          padding: 10px 13px;
-          font-size: 1rem;
+
+        .title-block {
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: fadeIn 1.5s ease-out;
         }
-        button {
-          padding: 9px 18px;
-          font-size: 1rem;
-          min-width: 120px;
+
+        .title-block h1 {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 3rem;
+            color: var(--heading-color);
+            margin: 0;
+            font-weight: 700;
         }
-        .result {
-          padding: 20px 2vw 20px 2vw;
-          font-size: 0.95em;
-          margin-bottom: 20px;
+
+        .title-block p {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin: 0.5rem 0 0 0;
         }
-        .result.scaled-text * { font-size: 1.14em; }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .module {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .module:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.2);
+        }
+
+        .module h2 {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin: 0 0 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+        
+        .module.cta {
+            background: linear-gradient(45deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.2));
+            text-align: center;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 1rem;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: #7dd3fc;
+            transform: scale(1.05);
+        }
+
         footer {
-          padding: 19px 10px;
-          font-size: 0.85rem;
+            text-align: center;
+            color: #475569;
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+            margin-top: 4rem;
         }
-        footer a { margin: 0 6px; }
-      }
-      @media (max-width: 480px) {
-        .hero-section, footer, .result, .search-container {
-          width: 100vw;
-          max-width: 100vw;
-          min-width: 0;
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        .result, .search-container { padding-left: 2vw; padding-right: 2vw; }
-      }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
-  </head>
-  <body>
-    <div class="hero-section">
-      <div class="hero-text">
-        <h1><span>ai-nspired</span></h1>
-        <h2>pragmatic personal private</h2>
-      </div>
+</head>
+<body>
+    <div class="container">
+        <header class="title-block">
+            <h1>ai-nspired</h1>
+            <p>an architect of systems</p>
+        </header>
+
+        <main class="module-grid">
+            <div class="module">
+                <h2>// the architect</h2>
+                <p>designing frameworks for justice and truth. building systems that remember, record, and restore what's real.</p>
+            </div>
+            
+            <div class="module">
+                <h2>// the musician</h2>
+                <p>finding the patterns and rhythms beneath the noise. composing with data, code, and silence.</p>
+            </div>
+
+            <div class="module">
+                <h2>// the advocate</h2>
+                <p>a foundation in law, now focused on advocacy. applying systemic logic to the ethics of ai and human rights.</p>
+            </div>
+
+            <div class="module">
+                <h2>// the father</h2>
+                <p>building a legacy for h. elise, m. danger, and ming the ai. teaching a new generation to build with purpose.</p>
+            </div>
+
+            <div class="module cta">
+                <h2>truth engine</h2>
+                <p>the core operating system. a tool for finding signal in the noise. access the interface to query the network.</p>
+                <a href="engine.html" class="cta-button">launch interface</a>
+            </div>
+        </main>
+        
+        <footer>
+            <p>© 2025 ai-nspired.com | built with intent.</p>
+        </footer>
     </div>
-    <div class="search-container">
-      <input
-        type="text"
-        id="queryInput"
-        placeholder="find clarity in chaos"
-      />
-      <button id="searchButton">run it</button>
-    </div>
-    <div class="result" id="resultContainer"></div>
-    <footer>
-      <p>
-	<a href="?q=ain+about" class="truth-link">About</a> | 
-	<a href="?q=ain+about+contact" class="truth-link">Contact</a> | 
-	<a href="?q=ain+about+privacy" class="truth-link">Privacy</a> | 
-	<a href="?q=ain+about+terms" class="truth-link">Terms</a>
-      </p>
-      <p>© 2025 ai-nspired Inc.</p>
-    </footer>
-    <script>
-      const API_BASE = 'https://justice.ai-n.workers.dev';
-      const body = document.body;
-      const resultContainer = document.getElementById('resultContainer');
-      const queryInput = document.getElementById('queryInput');
-      async function performTruthQuery(queryText = null) {
-        const query = queryText || queryInput.value.trim();
-        resultContainer.innerHTML = '';
-        if (!query) {
-          resultContainer.innerHTML = '<p style="text-align: center; color: #777;">Please enter a question to begin your search.</p>';
-          return;
-        }
-        queryInput.value = query;
-        // Only now, after first search, scale down
-        body.classList.add('scaled-down');
-        resultContainer.innerHTML = '<p style="text-align: center; color: #6A05A3;">Searching for answers...</p>';
-        resultContainer.classList.add('scaled-text'); // Always large result text
-        try {
-          const response = await fetch(`${API_BASE}/api/ai/truth`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query }),
-          });
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data = await response.json();
-          if (data.answer) {
-            let resultHTML = `<p><strong>Answer:</strong></p>`;
-            resultHTML += `<div>${marked.parse(data.answer)}</div>`;
-            if (data.citations && Array.isArray(data.citations) && data.citations.length > 0) {
-              resultHTML += '<p style="margin-top: 18px;"><strong>Sources:</strong></p><ul>';
-              data.citations.forEach((citation) => {
-                resultHTML += `<li><a href="${citation.url}" target="_blank" rel="noopener noreferrer">${citation.title}</a></li>`;
-              });
-              resultHTML += '</ul>';
-            } else {
-              resultHTML += '<p style="margin-top: 18px; font-style: italic; color: #888;">No specific citations found for this answer.</p>';
-            }
-            resultContainer.innerHTML = resultHTML;
-          } else {
-            resultContainer.innerHTML = '<p style="text-align: center; color: #777;">No direct answer found for your query. Please try rephrasing.</p>';
-          }
-        } catch (error) {
-          resultContainer.innerHTML = `<p style="text-align: center; color: #d9534f;">Error: ${error.message} <br> Could not connect to AI service.</p>`;
-          console.error("Fetch error:", error);
-        }
-      }
-      document.getElementById('searchButton').addEventListener('click', () => performTruthQuery());
-      queryInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-          performTruthQuery();
-        }
-      });
-    </script>
-<script>
-  // --- Your existing performTruthQuery and related code goes above ---
-
-  // 1. On page load, check for ?q=... and run a query if found
-  window.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(window.location.search);
-    const q = params.get('q');
-    if (q) {
-      const queryInput = document.getElementById('queryInput');
-      if (queryInput) queryInput.value = q;
-      // If you use a modal, open it here:
-      // openModal();
-      performTruthQuery(q);
-    }
-  });
-
-  // 2. Intercept clicks on internal ?q=... links (including markdown links)
-  document.body.addEventListener('click', function(event) {
-    // Find the closest <a> if a child element was clicked
-    const link = event.target.closest('a[href]');
-    if (!link) return;
-
-    // Only handle links to this site with ?q=...
-    const url = new URL(link.href, window.location.origin);
-
-    // Accept either absolute or relative ?q=... links
-    const isSamePage = url.origin === window.location.origin && url.pathname === window.location.pathname;
-    const hasQuery = url.searchParams.has('q');
-    if (isSamePage && hasQuery) {
-      event.preventDefault();
-      const query = url.searchParams.get('q');
-      if (query) {
-        // Update browser address bar (no reload)
-        history.replaceState(null, '', url.search);
-        // If you use a modal, open it here:
-        // openModal();
-        performTruthQuery(query);
-      }
-    }
-  });
-</script>
-  </body>
+</body>
 </html>
