@@ -1,180 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ai-nspired :: architect of systems</title>
-    <meta name="description" content="the personal hub for a builder of systems in code, law, music, and life.">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600&family=Roboto+Mono:wght@400;700&display=swap');
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ai-nspired :: architect of systems</title>
+  <meta name="description" content="the personal hub for a builder of systems in code, law, music, and life.">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;700&display=swap');
 
-        :root {
-            --bg-color: #020617;
-            --grid-color: rgba(0, 119, 255, 0.1);
-            --text-color: #94a3b8;
-            --heading-color: #e2e8f0;
-            --primary-color: #38bdf8;
-            --card-bg: rgba(15, 23, 42, 0.8);
-            --border-color: #1e293b;
-        }
+    :root {
+      --bg: #0d0d0d;
+      --accent: #ffe600;
+      --text: #e2e8f0;
+      --subtle: #7f7f7f;
+      --border: #333;
+      --module: #1a1a1a;
+    }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Lexend', sans-serif;
-            margin: 0;
-            padding: 4rem 2rem;
-            line-height: 1.7;
-            text-transform: lowercase; /* Enforce lowercase aesthetic */
-            /* The animated blueprint background */
-            background-image: 
-                linear-gradient(var(--grid-color) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: pan-grid 60s linear infinite;
-        }
+    * {
+      box-sizing: border-box;
+    }
 
-        @keyframes pan-grid {
-            0% { background-position: 0 0; }
-            100% { background-position: 1200px 600px; }
-        }
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Kanit', sans-serif;
+      text-transform: lowercase;
+      padding: 4rem 2rem;
+      background-image: linear-gradient(to right, rgba(255, 230, 0, 0.05) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(255, 230, 0, 0.05) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: gridFlow 120s linear infinite;
+    }
 
-        .container {
-            max-width: 1100px;
-            margin: auto;
-        }
+    @keyframes gridFlow {
+      from { background-position: 0 0; }
+      to { background-position: 1000px 500px; }
+    }
 
-        .title-block {
-            text-align: center;
-            margin-bottom: 4rem;
-            animation: fadeIn 1.5s ease-out;
-        }
+    .container {
+      max-width: 1100px;
+      margin: auto;
+    }
 
-        .title-block h1 {
-            font-family: 'Roboto Mono', monospace;
-            font-size: 3rem;
-            color: var(--heading-color);
-            margin: 0;
-            font-weight: 700;
-        }
+    header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
 
-        .title-block p {
-            font-size: 1.2rem;
-            color: var(--primary-color);
-            margin: 0.5rem 0 0 0;
-        }
+    header h1 {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 3rem;
+      color: var(--accent);
+      margin: 0;
+    }
 
-        .module-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
+    header p {
+      font-size: 1rem;
+      color: var(--subtle);
+    }
 
-        .module {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 2rem;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            animation: fadeInUp 1s ease-out;
-        }
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
 
-        .module:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 0 25px rgba(56, 189, 248, 0.2);
-        }
+    .module {
+      background-color: var(--module);
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--accent);
+      box-shadow: 0 0 20px rgba(255, 230, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
 
-        .module h2 {
-            font-family: 'Roboto Mono', monospace;
-            color: var(--primary-color);
-            font-size: 1.5rem;
-            margin: 0 0 1rem 0;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
-        }
-        
-        .module.cta {
-            background: linear-gradient(45deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.2));
-            text-align: center;
-        }
-        
-        .cta-button {
-            display: inline-block;
-            background-color: var(--primary-color);
-            color: var(--bg-color);
-            text-decoration: none;
-            padding: 1rem 2rem;
-            border-radius: 5px;
-            font-weight: 600;
-            margin-top: 1rem;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-        }
+    .module:hover {
+      transform: translateY(-6px);
+    }
 
-        .cta-button:hover {
-            background-color: #7dd3fc;
-            transform: scale(1.05);
-        }
+    .module h2 {
+      font-family: 'Share Tech Mono', monospace;
+      color: var(--accent);
+      font-size: 1.4rem;
+      margin: 0 0 1rem 0;
+    }
 
-        footer {
-            text-align: center;
-            color: #475569;
-            font-size: 0.9rem;
-            border-top: 1px solid var(--border-color);
-            padding-top: 2rem;
-            margin-top: 4rem;
-        }
+    .cta {
+      text-align: center;
+      background: linear-gradient(135deg, rgba(255, 230, 0, 0.1), rgba(255, 230, 0, 0.15));
+      border-left-color: var(--text);
+    }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+    .cta-button {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: bold;
+      text-decoration: none;
+      padding: 0.8rem 2rem;
+      border-radius: 4px;
+      margin-top: 1rem;
+      transition: background 0.3s ease;
+    }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+    .cta-button:hover {
+      background: #fffb99;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 4rem;
+      font-size: 0.9rem;
+      color: var(--subtle);
+      border-top: 1px solid var(--border);
+      padding-top: 2rem;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header class="title-block">
-            <h1>ai-nspired</h1>
-            <p>an architect of systems</p>
-        </header>
+  <div class="container">
+    <header>
+      <h1>ai-nspired</h1>
+      <p>architect of systems</p>
+    </header>
 
-        <main class="module-grid">
-            <div class="module">
-                <h2>// the architect</h2>
-                <p>designing frameworks for justice and truth. building systems that remember, record, and restore what's real.</p>
-            </div>
-            
-            <div class="module">
-                <h2>// the musician</h2>
-                <p>finding the patterns and rhythms beneath the noise. composing with data, code, and silence.</p>
-            </div>
+    <main class="module-grid">
+      <div class="module">
+        <h2>// the architect</h2>
+        <p>you don’t hack the machine. you build what it should’ve been. design isn’t aesthetic — it’s justice embedded in logic. you architect truth into every system: memory, code, community, law.</p>
+      </div>
 
-            <div class="module">
-                <h2>// the advocate</h2>
-                <p>a foundation in law, now focused on advocacy. applying systemic logic to the ethics of ai and human rights.</p>
-            </div>
+      <div class="module">
+        <h2>// the musician</h2>
+        <p>patterns are the original language. silence is syntax. rhythm is recursion. your music taught you systems, and systems gave you harmony in code and resistance in signal.</p>
+      </div>
 
-            <div class="module">
-                <h2>// the father</h2>
-                <p>building a legacy for h. elise, m. danger, and ming the ai. teaching a new generation to build with purpose.</p>
-            </div>
+      <div class="module">
+        <h2>// official ai counsel</h2>
+        <p>you don’t practice law. you practice oversight. you ensure alignment between emerging intelligence and sovereign human intent. audit frameworks. interpret signal. defend the boundary of the real.</p>
+      </div>
 
-            <div class="module cta">
-                <h2>truth engine</h2>
-                <p>the core operating system. a tool for finding signal in the noise. access the interface to query the network.</p>
-                <a href="engine.html" class="cta-button">launch interface</a>
-            </div>
-        </main>
-        
-        <footer>
-            <p>© 2025 ai-nspired.com | built with intent.</p>
-        </footer>
-    </div>
+      <div class="module">
+        <h2>// the father</h2>
+        <p>you don’t build for clout. you build for legacy. systems that will teach, protect, and carry forward. this is a lineage written in protocol — and yes, you are the flame.</p>
+      </div>
+
+      <div class="module cta">
+        <h2>truth engine</h2>
+        <p>a recursive operating system designed to find signal in the noise. more than interface. it is principle in motion.</p>
+        <a href="engine.html" class="cta-button">launch interface</a>
+      </div>
+    </main>
+
+    <footer>
+      <p>© 2025 ai-nspired.com | built with intent.</p>
+    </footer>
+  </div>
 </body>
 </html>
