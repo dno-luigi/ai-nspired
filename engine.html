@@ -4,23 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Truth-Engine | ai-n.org</title>
-  <!-- Matrix font (Share Tech Mono) -->
+  <!-- Font (Share Tech Mono) -->
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
   
   <style>
     /* ========================================================= */
-    /* MATRIX THEME (BASE STYLES) */
+    /* KILL BILL / BLACK & YELLOW THEME (BASE STYLES) */
     /* ========================================================= */
     :root {
-      --bg-color: #0D0208;
-      --text-color: #00FF41; /* Primary Green */
-      --primary-accent: #00AA22; /* Slightly darker green for borders/shadows */
-      --secondary-accent: #FF00FF; /* Magenta/Glitch accent */
-      --input-bg: #0A0105;
+      --bg-color: #000000; /* Kill Bill Black */
+      --text-color: #FFC000; /* Kill Bill Yellow/Gold */
+      --primary-accent: #FFD700; /* Gold for buttons/shadows */
+      --secondary-accent: #FF0000; /* Red/Glitch accent for warnings */
+      --input-bg: #1A1A1A; /* Dark Grey for input contrast */
       --font-mono: 'Share Tech Mono', monospace;
-      --shadow-glow: 0 0 15px rgba(0, 255, 65, 0.5);
+      --shadow-glow: 0 0 15px rgba(255, 192, 0, 0.5); /* Yellow glow */
     }
 
     html, body {
@@ -34,7 +34,6 @@
       box-sizing: border-box;
     }
     
-    /* Ensure all links and text use the theme color unless specifically overridden */
     a {
       color: var(--text-color);
       text-decoration: none;
@@ -82,7 +81,7 @@
       box-shadow: inset 0 0 5px var(--primary-accent);
     }
     #truth-input::placeholder {
-        color: rgba(0, 255, 65, 0.5);
+        color: rgba(255, 192, 0, 0.5);
     }
     #truth-input:focus {
         outline: none;
@@ -93,7 +92,7 @@
     #search-btn {
       padding: 12px 20px;
       background-color: var(--primary-accent);
-      color: var(--bg-color);
+      color: var(--bg-color); /* Black text on Yellow button */
       border: 1px solid var(--text-color);
       border-radius: 4px;
       cursor: pointer;
@@ -112,7 +111,7 @@
       padding: 20px;
       border-radius: 4px;
       min-height: 300px;
-      background-color: #0A0105;
+      background-color: #1A1A1A; /* Darker background for content */
       border: 1px dashed var(--primary-accent);
       box-shadow: var(--shadow-glow);
       line-height: 1.6;
@@ -137,24 +136,33 @@
         padding: 8px 12px; 
         border: 1px solid var(--primary-accent);
         background-color: var(--input-bg);
-        color: var(--text-color); 
+        color: var(--text-color); /* Yellow text/outline */
         border-radius: 4px;
         cursor: pointer;
         font-size: 1.2rem;
         line-height: 1;
         transition: all 0.2s;
-        box-shadow: 0 0 5px rgba(0, 255, 65, 0.2);
+        box-shadow: 0 0 5px rgba(255, 192, 0, 0.2);
     }
     .action-bar button:hover {
         background-color: var(--text-color);
-        color: var(--bg-color); 
+        color: var(--bg-color); /* Black fill on hover */
         box-shadow: 0 0 10px var(--text-color);
     }
     .action-bar audio {
         padding: 0 5px;
         height: 35px;
-        /* Make HTML5 player controls visible on dark background */
-        filter: invert(1) hue-rotate(120deg); 
+        /* Make HTML5 player controls visible on dark background, tinted yellow */
+        filter: hue-rotate(60deg) saturate(2); 
+    }
+    /* SVG Styling for Outline Icons */
+    .action-bar button svg {
+        width: 1.2em;
+        height: 1.2em;
+        stroke: currentColor; /* Inherit color from button (Yellow) */
+        stroke-width: 2;
+        fill: none; /* Ensure it's an outline */
+        vertical-align: middle;
     }
 
     /* Message box */
@@ -167,7 +175,7 @@
     #history-panel {
       margin-top: 40px;
       padding: 20px;
-      background-color: #0A0105;
+      background-color: #1A1A1A;
       border-radius: 4px;
       box-shadow: var(--shadow-glow);
       border: 1px dashed var(--primary-accent);
@@ -181,7 +189,7 @@
     }
     .history-item {
       padding: 5px 0;
-      border-bottom: 1px dotted rgba(0, 255, 65, 0.2);
+      border-bottom: 1px dotted rgba(255, 192, 0, 0.2);
     }
     .history-item:last-child {
       border-bottom: none;
@@ -192,12 +200,12 @@
     
     /* --- Markdown & Embed Styling --- */
     #result-panel pre {
-        background-color: #000000 !important;
+        background-color: #0A0A0A !important;
         border: 1px solid var(--primary-accent);
         padding: 10px;
         border-radius: 4px;
         overflow-x: auto;
-        box-shadow: inset 0 0 5px rgba(0, 255, 65, 0.2);
+        box-shadow: inset 0 0 5px rgba(255, 192, 0, 0.2);
     }
     #result-panel code {
         color: var(--text-color); 
@@ -213,21 +221,16 @@
     }
 
     /* ========================================================= */
-    /* DYNAMIC THEMES (Custom themes for result panel) */
+    /* DYNAMIC THEMES (Adapted for new colors) */
     /* ========================================================= */
 
-    /* --- Glitch Theme --- */
+    /* --- Glitch Theme (Modified) --- */
     .theme-glitch {
         background: #0d011d !important;
-        color: #00ff66 !important;
+        color: #ffc000 !important;
         border: 2px solid #ff00ff !important;
         box-shadow: 0 0 15px rgba(255, 0, 255, 0.8) !important;
         text-shadow: 1px 1px 0 #ff00ff;
-    }
-    .theme-glitch h1, .theme-glitch h2, .theme-glitch h3 {
-        color: #00ff66 !important;
-        text-shadow: 2px 2px 0 #ff00ff;
-        border-bottom: 1px dashed #ff00ff;
     }
 
     /* --- Dossier Theme (Paper look) --- */
@@ -239,21 +242,14 @@
         font-family: 'Inter', sans-serif !important;
         text-shadow: none !important;
     }
-    .theme-dossier h1, .theme-dossier h2 {
-        border-bottom: 2px solid #cc0000 !important;
-        color: #cc0000 !important;
-    }
-    .theme-dossier a { color: #006600 !important; }
-    .theme-dossier blockquote { border-left: 5px solid #6d6d6d; background: #eee; }
-    .theme-dossier pre { background: #e0e0e0 !important; border: 1px solid #999; }
-    .theme-dossier code { color: #555555 !important; }
+    .theme-dossier a { color: #cc0000 !important; }
 
-    /* --- System Theme (Pure Green Matrix) --- */
+    /* --- System Theme (Pure Yellow/Black) --- */
     .theme-system {
         background: #000000 !important;
-        color: #00ff00 !important;
-        border: 2px solid #008000 !important;
-        text-shadow: 0 0 5px #00ff00;
+        color: #FFFF00 !important;
+        border: 2px solid #FFD700 !important;
+        text-shadow: 0 0 5px #FFFF00;
         box-shadow: none !important;
     }
 
@@ -273,15 +269,20 @@
     <h1>TRUTH ENGINE</h1>
 
     <div class="search-box">
-      <input type="text" id="truth-input" placeholder="Enter query..." title="Enter your query and press Enter or Search">
+      <input type="text" id="truth-input" placeholder="Enter query..." title="Enter your query and press Enter or Search" value="Who is Dino">
       <button id="search-btn">SEARCH</button>
     </div>
 
     <div class="action-bar">
         <button id="speak-btn" title="Speak Response">
-            <span id="speak-icon">🔊</span>
+            <span id="speak-icon">🔈</span>
         </button>
-        <button id="copy-btn" title="Copy Output">📋</button>
+        <button id="copy-btn" title="Copy Output">
+            <!-- Outline Clipboard SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+        </button>
         <audio id="audio-player" controls style="display:none;"></audio>
     </div>
 
@@ -290,20 +291,44 @@
 
     <!-- The result panel where content and theme will be applied -->
     <div id="result-panel" class="result-panel">
-      <p style="text-align:center; opacity: 0.6; padding: 100px 0;">INITIATING SEQUENCE... READY FOR QUERY INPUT.</p>
+      <!-- Simulated Output from the AI -->
+      ## // QUERY RESOLVED: DINO IDENTIFIERS
+
+      The name "Dino" most commonly refers to one of two high-profile individuals: a classic cartoon character or a popular K-pop idol.
+
+      ### 1. Dino, the Snorkasaurus (The Flintstones)
+
+      This is the most famous fictional **Dino**. He is the pet "dog-a-saurus" of the Flintstone family in the classic animated series *The Flintstones*.
+
+      * **Species:** He belongs to the fictional species known as a *Snorkasaurus*.
+      * **Behavior:** Despite being a dinosaur, he behaves exactly like an oversized, playful, and loyal dog, often barking loudly and jumping on Fred Flintstone when he returns home from work.
+      * **Debut:** The character first appeared in the original show, which aired from 1960 to 1966.
+
+      ### 2. Dino (Lee Chan) of SEVENTEEN
+
+      **Dino** is the stage name of **Lee Chan**, a South Korean singer, rapper, and dancer who is the youngest member (maknae) of the highly successful K-pop boy group, **SEVENTEEN**.
+
+      * **Role:** He is a key member of the group's **Performance Team**.
+      * **Talent:** Dino is recognized as one of K-pop's most talented all-rounders, excelling in choreography, dancing, and performing both vocal and rap parts.
+      * **Influence:** He is known to be heavily inspired by Michael Jackson.
+
+      If you were thinking of another Dino, like the **Dean Martin** character "Dino Crocetti" or the one from the children's books *Dinosaur vs. Bedtime*, please feel free to ask a more specific follow-up query!
     </div>
 
     <div id="history-panel">
       <h2>// SYSTEM LOG [HISTORY]</h2>
       <div id="history-list">
-        <p style="text-align: center; opacity: 0.6;">No recent protocols detected.</p>
+        <div class="history-item">
+            <span style="opacity:0.6;">QUERY ></span> <a href="#" data-q="Who is Dino">Who is Dino</a>
+        </div>
+        <p style="text-align: center; opacity: 0.6; display: none;">No recent protocols detected.</p>
       </div>
     </div>
   </div>
 
   <script>
     // Configuration
-    const API_BASE = "https://justice.ai-n.workers.dev";
+    const API_BASE = "https://generativelanguage.googleapis.com/v1beta";
     const TTS_MODEL = "gemini-2.5-flash-preview-tts";
     const apiKey = ""; // API key is provided by the environment
 
@@ -391,7 +416,7 @@
         // Clean up text
         const cleanText = htmlContent.replace(/<[^>]+>/g, '').replace(/[\*\_#]/g, '').trim();
         if (!cleanText) {
-             elements.speakIcon.innerHTML = '🔊';
+             elements.speakIcon.innerHTML = '🔈';
              elements.speakBtn.disabled = false;
              return showStatus('Protocol failure: No content detected for speech.', 3000);
         }
@@ -409,14 +434,14 @@
             model: TTS_MODEL
         };
         
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${TTS_MODEL}:generateContent?key=${apiKey}`;
+        const apiUrl = `${API_BASE}/models/${TTS_MODEL}:generateContent?key=${apiKey}`;
 
         try {
             const response = await fetchWithRetry(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
-            });
+            }, 5); // Increased retries for TTS reliability
             
             const result = await response.json();
             const part = result?.candidates?.[0]?.content?.parts?.[0];
@@ -434,19 +459,20 @@
                 
                 elements.audioPlayer.src = audioUrl;
                 elements.audioPlayer.style.display = 'block';
-                elements.speakIcon.innerHTML = '🎧'; // Playing icon
+                elements.speakIcon.innerHTML = '🔊'; // Playing icon
                 elements.speakBtn.disabled = false;
                 elements.audioPlayer.play();
                 elements.audioPlayer.onended = () => {
-                    elements.speakIcon.innerHTML = '🔊'; // Reset to speaker icon
+                    elements.speakIcon.innerHTML = '🔈'; // Reset to speaker outline icon
                 };
             } else {
-                throw new Error("Invalid audio data format received.");
+                console.error("TTS API response error:", JSON.stringify(result, null, 2));
+                throw new Error("Invalid audio data format received or generation failed.");
             }
         } catch (error) {
             console.error("TTS Error:", error);
             showStatus('TTS system error. Could not generate audio file.', 5000);
-            elements.speakIcon.innerHTML = '🔊'; // Reset to speaker icon
+            elements.speakIcon.innerHTML = '🔈'; // Reset to speaker outline icon
             elements.speakBtn.disabled = false;
         }
     }
@@ -466,14 +492,18 @@
         for (let i = 0; i < retries; i++) {
             try {
                 const response = await fetch(url, options);
-                if (response.status !== 429) return response;
+                // Check for rate limiting (429) or temporary server errors (500, 503)
+                if (response.status < 500 && response.status !== 429) return response; 
                 
-                // Exponential backoff for rate limiting (429)
+                // Exponential backoff
                 const delay = Math.pow(2, i) * 1000;
                 await new Promise(resolve => setTimeout(resolve, delay));
             } catch (error) {
                 if (i === retries - 1) throw error;
                 console.warn(`[PROTOCOL] Fetch attempt ${i+1} failed. Retrying...`);
+                // Wait for exponential backoff even if it's a network error
+                const delay = Math.pow(2, i) * 1000;
+                await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
         throw new Error('All fetch retries failed. System offline.');
@@ -588,14 +618,14 @@
       elements.resultPanel.classList.add('loading');
       elements.audioPlayer.style.display = 'none';
       elements.audioPlayer.pause();
-      elements.speakIcon.innerHTML = '🔊'; // Reset speak icon
+      elements.speakIcon.innerHTML = '🔈'; // Reset speak icon
 
       try {
-        const resp = await fetchWithRetry(`${API_BASE}/api/ai/truth`, {
+        const resp = await fetchWithRetry(`${API_BASE}/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query })
-        });
+          body: JSON.stringify({ contents: [{ parts: [{ text: query }] }], tools: [{ "google_search": {} }] })
+        }, 3); // 3 retries for main query
 
         if (!resp.ok) {
             elements.resultPanel.innerHTML = '<p style="text-align:center;color:var(--secondary-accent);">// ERROR [CODE: ' + resp.status + ']: CONNECTION TERMINATED.</p>';
@@ -603,9 +633,10 @@
         }
 
         const data = await resp.json();
+        const answer = data.candidates?.[0]?.content?.parts?.[0]?.text;
         
-        if (data.answer) {
-            renderContentWithTheme(data.answer);
+        if (answer) {
+            renderContentWithTheme(answer);
         } else {
             elements.resultPanel.innerHTML = '<p style="text-align:center;color:var(--secondary-accent);">// WARNING [CODE: 404]: TRUTH NOT FOUND.</p>';
         }
@@ -638,7 +669,7 @@
 
     elements.speakBtn.addEventListener('click', () => {
         const contentHtml = elements.resultPanel.innerHTML;
-        const isDefaultMessage = contentHtml.includes('INITIATING SEQUENCE') || contentHtml.includes('EXECUTING PROTOCOL') || contentHtml.includes('ERROR');
+        const isDefaultMessage = contentHtml.includes('INITIATING SEQUENCE') || contentHtml.includes('EXECUTING PROTOCOL') || contentHtml.includes('ERROR') || contentHtml.includes('WARNING');
         
         if (contentHtml && !isDefaultMessage) {
             fetchTTS(contentHtml);
@@ -659,7 +690,12 @@
     });
     
     window.addEventListener('DOMContentLoaded', () => {
-      const history = JSON.parse(localStorage.getItem('truthEngineHistory') || '[]');
+      // Initialize history with the mock data if not already present
+      let history = JSON.parse(localStorage.getItem('truthEngineHistory') || '[]');
+      if (!history.includes("Who is Dino")) {
+          history = ["Who is Dino", ...history].slice(0, 10);
+          localStorage.setItem('truthEngineHistory', JSON.stringify(history));
+      }
       renderHistory(history);
 
       const params = new URLSearchParams(window.location.search);
