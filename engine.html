@@ -244,7 +244,7 @@
     }
     .theme-dossier a { color: #cc0000 !important; }
 
-    /* --- System Theme (Pure Yellow/Black) --- */
+    /* --- System Theme (Pure Yellow/Black) */
     .theme-system {
         background: #000000 !important;
         color: #FFFF00 !important;
@@ -269,7 +269,8 @@
     <h1>TRUTH ENGINE</h1>
 
     <div class="search-box">
-      <input type="text" id="truth-input" placeholder="Enter query..." title="Enter your query and press Enter or Search" value="Who is Dino">
+      <!-- FIXED: Removed value="Who is Dino" attribute to ensure clean load -->
+      <input type="text" id="truth-input" placeholder="Enter query..." title="Enter your query and press Enter or Search">
       <button id="search-btn">SEARCH</button>
     </div>
 
@@ -291,37 +292,15 @@
 
     <!-- The result panel where content and theme will be applied -->
     <div id="result-panel" class="result-panel">
-      <!-- Simulated Output from the AI -->
-      ## // QUERY RESOLVED: DINO IDENTIFIERS
-
-      The name "Dino" most commonly refers to one of two high-profile individuals: a classic cartoon character or a popular K-pop idol.
-
-      ### 1. Dino, the Snorkasaurus (The Flintstones)
-
-      This is the most famous fictional **Dino**. He is the pet "dog-a-saurus" of the Flintstone family in the classic animated series *The Flintstones*.
-
-      * **Species:** He belongs to the fictional species known as a *Snorkasaurus*.
-      * **Behavior:** Despite being a dinosaur, he behaves exactly like an oversized, playful, and loyal dog, often barking loudly and jumping on Fred Flintstone when he returns home from work.
-      * **Debut:** The character first appeared in the original show, which aired from 1960 to 1966.
-
-      ### 2. Dino (Lee Chan) of SEVENTEEN
-
-      **Dino** is the stage name of **Lee Chan**, a South Korean singer, rapper, and dancer who is the youngest member (maknae) of the highly successful K-pop boy group, **SEVENTEEN**.
-
-      * **Role:** He is a key member of the group's **Performance Team**.
-      * **Talent:** Dino is recognized as one of K-pop's most talented all-rounders, excelling in choreography, dancing, and performing both vocal and rap parts.
-      * **Influence:** He is known to be heavily inspired by Michael Jackson.
-
-      If you were thinking of another Dino, like the **Dean Martin** character "Dino Crocetti" or the one from the children's books *Dinosaur vs. Bedtime*, please feel free to ask a more specific follow-up query!
+      <!-- Minimal, functional placeholder - Non-conversational -->
+      <h2>// TRUTH ENGINE V3.0 ONLINE</h2>
+      <p>STATUS: AWAITING QUERY EXECUTION</p>
     </div>
 
     <div id="history-panel">
       <h2>// SYSTEM LOG [HISTORY]</h2>
       <div id="history-list">
-        <div class="history-item">
-            <span style="opacity:0.6;">QUERY ></span> <a href="#" data-q="Who is Dino">Who is Dino</a>
-        </div>
-        <p style="text-align: center; opacity: 0.6; display: none;">No recent protocols detected.</p>
+        <!-- History will be populated by JavaScript only -->
       </div>
     </div>
   </div>
@@ -614,6 +593,7 @@
       if (!query) return;
 
       saveHistory(query);
+      // Ensure resultPanel is completely overwritten with the loading message
       elements.resultPanel.innerHTML = '<p style="text-align:center;">// EXECUTING PROTOCOL: SEARCHING FOR TRUTH...</p>';
       elements.resultPanel.classList.add('loading');
       elements.audioPlayer.style.display = 'none';
@@ -659,6 +639,7 @@
     });
 
     elements.copyBtn.addEventListener('click', () => {
+        // We only copy the visible text content from the dynamic result panel
         const textToCopy = elements.resultPanel.textContent.trim();
         if (copyToClipboard(textToCopy)) {
             showStatus("// ACTION COMPLETE: OUTPUT COPIED TO CLIPBOARD.");
@@ -669,7 +650,8 @@
 
     elements.speakBtn.addEventListener('click', () => {
         const contentHtml = elements.resultPanel.innerHTML;
-        const isDefaultMessage = contentHtml.includes('INITIATING SEQUENCE') || contentHtml.includes('EXECUTING PROTOCOL') || contentHtml.includes('ERROR') || contentHtml.includes('WARNING');
+        // Check for content that is not a default status or error message
+        const isDefaultMessage = contentHtml.includes('ONLINE') || contentHtml.includes('AWAITING QUERY') || contentHtml.includes('EXECUTING PROTOCOL') || contentHtml.includes('ERROR') || contentHtml.includes('WARNING');
         
         if (contentHtml && !isDefaultMessage) {
             fetchTTS(contentHtml);
@@ -690,12 +672,8 @@
     });
     
     window.addEventListener('DOMContentLoaded', () => {
-      // Initialize history with the mock data if not already present
+      // Load history
       let history = JSON.parse(localStorage.getItem('truthEngineHistory') || '[]');
-      if (!history.includes("Who is Dino")) {
-          history = ["Who is Dino", ...history].slice(0, 10);
-          localStorage.setItem('truthEngineHistory', JSON.stringify(history));
-      }
       renderHistory(history);
 
       const params = new URLSearchParams(window.location.search);
