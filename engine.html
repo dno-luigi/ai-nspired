@@ -3,323 +3,294 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Truth-Engine | ai-n.org</title>
-  <!-- Matrix font (Share Tech Mono) -->
+  <title>Truth-Engine | Yellow Mode</title>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
   
   <style>
     /* ========================================================= */
-    /* MATRIX THEME (BASE STYLES) */
+    /* YELLOW TERMINAL THEME */
     /* ========================================================= */
     :root {
-      --bg-color: #0D0208;
-      --text-color: #00FF41; /* Primary Green */
-      --primary-accent: #00AA22; /* Slightly darker green for borders/shadows */
-      --secondary-accent: #FF00FF; /* Magenta/Glitch accent */
-      --input-bg: #0A0105;
+      --bg-color: #000000; /* Black */
+      --text-color: #FFC000; /* Bright Yellow/Gold */
+      --secondary-text: #FFD700;
+      --input-bg: #1A1A1A; /* Dark Grey for contrast */
+      --accent-shadow: 0 0 15px rgba(255, 192, 0, 0.4);
       --font-mono: 'Share Tech Mono', monospace;
-      --shadow-glow: 0 0 15px rgba(0, 255, 65, 0.5);
     }
 
     html, body {
-      min-height: 100vh;
+      height: 100%;
       margin: 0;
       padding: 0;
       background-color: var(--bg-color);
       color: var(--text-color);
       font-family: var(--font-mono);
       overflow-x: hidden;
+      min-height: 100vh;
       box-sizing: border-box;
     }
-    
-    /* Ensure all links and text use the theme color unless specifically overridden */
-    a {
-      color: var(--text-color);
-      text-decoration: none;
-      text-shadow: 0 0 5px var(--primary-accent);
-      transition: color 0.2s, text-shadow 0.2s;
-    }
-    a:hover {
-      color: var(--secondary-accent);
-      text-shadow: 0 0 8px var(--secondary-accent);
-    }
-    
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px;
-      box-sizing: border-box;
+
+    #matrix-rain { display: none; } 
+
+    .terminal-container {
+      background: rgba(0, 0, 0, 0.9);
+      width: 95vw;
+      max-width: 1300px;
+      height: 95vh;
+      min-height: 500px;
+      border-radius: 12px;
+      margin: 2.5vh auto 0 auto;
+      box-shadow: var(--accent-shadow);
+      padding: 0;
+      z-index: 2;
       position: relative;
-      z-index: 10;
-    }
-
-    /* --- Header & Search --- */
-    h1 {
-      text-align: center;
-      color: var(--text-color);
-      margin-top: 50px;
-      font-size: 3rem;
-      text-shadow: var(--shadow-glow);
-    }
-
-    .search-box {
       display: flex;
-      gap: 10px;
-      margin: 30px 0;
+      flex-direction: column;
+      align-items: stretch;
+      border: 2px solid var(--text-color);
     }
 
-    #truth-input {
-      flex-grow: 1;
-      padding: 12px 15px;
-      border: 2px solid var(--primary-accent);
-      border-radius: 4px;
-      font-size: 1rem;
-      font-family: var(--font-mono);
-      background-color: var(--input-bg);
+    .terminal-header {
+      text-align: left;
+      padding: 15px 30px 0 30px;
+      font-size: 1.8rem;
       color: var(--text-color);
-      box-shadow: inset 0 0 5px var(--primary-accent);
-    }
-    #truth-input::placeholder {
-        color: rgba(0, 255, 65, 0.5);
-    }
-    #truth-input:focus {
-        outline: none;
-        border-color: var(--text-color);
-        box-shadow: 0 0 10px var(--text-color);
+      letter-spacing: 1px;
+      text-shadow: 0 0 8px var(--text-color);
     }
 
-    #search-btn {
-      padding: 12px 20px;
-      background-color: var(--primary-accent);
-      color: var(--bg-color);
-      border: 1px solid var(--text-color);
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: bold;
-      transition: background-color 0.2s, box-shadow 0.2s;
-      box-shadow: 0 0 5px var(--primary-accent);
-    }
-    #search-btn:hover {
-      background-color: var(--text-color);
-      box-shadow: 0 0 15px var(--text-color);
-    }
-
-    /* --- Result Panel --- */
-    #result-panel {
-      padding: 20px;
-      border-radius: 4px;
-      min-height: 300px;
-      background-color: #0A0105;
-      border: 1px dashed var(--primary-accent);
-      box-shadow: var(--shadow-glow);
-      line-height: 1.6;
-    }
-    
-    #result-panel.loading {
-      text-align: center;
-      opacity: 0.5;
-    }
-
-    /* --- Action Buttons (Minimalist Icons) --- */
-    .action-bar {
+    .terminal-body {
       display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      align-items: center;
-      justify-content: flex-start;
+      flex-direction: column;
+      align-items: stretch;
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 0 30px 20px 30px;
+      gap: 15px;
     }
 
-    .action-bar button, .action-bar audio {
-        /* Icon-Only Styling */
-        padding: 8px 12px; 
-        border: 1px solid var(--primary-accent);
-        background-color: var(--input-bg);
-        color: var(--text-color); 
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 1.2rem;
-        line-height: 1;
-        transition: all 0.2s;
-        box-shadow: 0 0 5px rgba(0, 255, 65, 0.2);
-    }
-    .action-bar button:hover {
-        background-color: var(--text-color);
-        color: var(--bg-color); 
-        box-shadow: 0 0 10px var(--text-color);
-    }
-    .action-bar audio {
-        padding: 0 5px;
-        height: 35px;
-        /* Make HTML5 player controls visible on dark background */
-        filter: invert(1) hue-rotate(120deg); 
-    }
-
-    /* Message box */
     #status-message {
         color: var(--text-color) !important;
         text-shadow: 0 0 5px var(--text-color);
+        font-weight: bold;
+        text-align: center;
+        margin-top: -10px;
+        margin-bottom: 10px;
+        display: none;
+        height: 1em;
     }
 
-    /* --- History Panel (Styled like terminal output) --- */
-    #history-panel {
-      margin-top: 40px;
-      padding: 20px;
-      background-color: #0A0105;
+    .terminal-history {
+      font-size: 1rem;
+      color: var(--secondary-text);
+      max-height: 10vh;
+      overflow-y: auto;
+      min-height: 3em;
+      margin: 0;
+      padding: 0;
+      border-bottom: 1px dotted rgba(255, 192, 0, 0.3);
+    }
+    .terminal-history p { margin: 2px 0; }
+    .user-input { color: #FFFFFF; }
+
+    .search-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      width: 100%;
+      z-index: 2;
+    }
+
+    .terminal-input {
+      flex: 1;
+      background: var(--input-bg);
+      border: 1px solid var(--text-color);
+      color: var(--secondary-text);
+      font-size: 1rem;
       border-radius: 4px;
-      box-shadow: var(--shadow-glow);
-      border: 1px dashed var(--primary-accent);
+      padding: 12px 15px;
+      font-family: var(--font-mono);
+      outline: none;
+      transition: border 0.18s, box-shadow 0.18s;
+      box-shadow: inset 0 0 8px rgba(255, 192, 0, 0.2);
     }
-    #history-panel h2 {
-      margin-top: 0;
-      border-bottom: 1px solid var(--primary-accent);
-      padding-bottom: 10px;
-      color: var(--text-color);
-      text-shadow: 0 0 5px var(--primary-accent);
+    .terminal-input:focus {
+      border-color: #FFFFFF;
+      box-shadow: 0 0 10px #FFFFFF40, inset 0 0 8px var(--text-color);
     }
-    .history-item {
-      padding: 5px 0;
-      border-bottom: 1px dotted rgba(0, 255, 65, 0.2);
-    }
-    .history-item:last-child {
-      border-bottom: none;
-    }
-    .history-item a {
-      font-weight: 400;
+
+    .action-row {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        margin-top: -5px;
+        margin-bottom: 5px;
     }
     
-    /* --- Markdown & Embed Styling --- */
-    #result-panel pre {
-        background-color: #000000 !important;
-        border: 1px solid var(--primary-accent);
-        padding: 10px;
-        border-radius: 4px;
-        overflow-x: auto;
-        box-shadow: inset 0 0 5px rgba(0, 255, 65, 0.2);
+    .matrix-btn, .action-btn {
+      background: var(--text-color);
+      border: 1px solid var(--bg-color);
+      color: var(--bg-color);
+      border-radius: 4px;
+      font-size: 1rem;
+      font-family: var(--font-mono);
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background 0.14s, color 0.14s, box-shadow 0.14s;
+      letter-spacing: 1px;
+      font-weight: bold;
+      box-shadow: 0 0 8px var(--text-color);
     }
-    #result-panel code {
-        color: var(--text-color); 
-        background: none !important;
+    .matrix-btn:hover, .action-btn:hover {
+      background: var(--secondary-text);
+      box-shadow: 0 0 15px var(--secondary-text);
     }
-    #result-panel blockquote {
-        border-left: 4px solid var(--secondary-accent);
-        padding-left: 15px;
-        margin: 1em 0;
-        opacity: 0.9;
-        color: var(--secondary-accent);
-        text-shadow: 0 0 2px var(--secondary-accent);
+    
+    .action-btn {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* Adjusted padding for icon-only button */
+        padding: 10px 5px; 
     }
-
-    /* ========================================================= */
-    /* DYNAMIC THEMES (Custom themes for result panel) */
-    /* ========================================================= */
-
-    /* --- Glitch Theme --- */
-    .theme-glitch {
-        background: #0d011d !important;
-        color: #00ff66 !important;
-        border: 2px solid #ff00ff !important;
-        box-shadow: 0 0 15px rgba(255, 0, 255, 0.8) !important;
-        text-shadow: 1px 1px 0 #ff00ff;
+    .action-btn span, .action-btn svg {
+        font-size: 1.5em; /* Larger icon size */
     }
-    .theme-glitch h1, .theme-glitch h2, .theme-glitch h3 {
-        color: #00ff66 !important;
-        text-shadow: 2px 2px 0 #ff00ff;
-        border-bottom: 1px dashed #ff00ff;
+    .action-btn svg {
+        width: 1.5em;
+        height: 1.5em;
+        stroke: var(--bg-color);
+        fill: none;
     }
-
-    /* --- Dossier Theme (Paper look) --- */
-    .theme-dossier {
-        background: #fcf8e3 !important; 
-        color: #1a1a1a !important;
-        border: 1px dashed #6d6d6d !important;
-        box-shadow: 3px 3px 0 #6d6d6d !important;
-        font-family: 'Inter', sans-serif !important;
-        text-shadow: none !important;
+    
+    #audio-player {
+        width: 100%;
+        height: 40px;
+        margin-top: 5px;
+        filter: hue-rotate(90deg) saturate(2); 
     }
-    .theme-dossier h1, .theme-dossier h2 {
-        border-bottom: 2px solid #cc0000 !important;
-        color: #cc0000 !important;
-    }
-    .theme-dossier a { color: #006600 !important; }
-    .theme-dossier blockquote { border-left: 5px solid #6d6d6d; background: #eee; }
-    .theme-dossier pre { background: #e0e0e0 !important; border: 1px solid #999; }
-    .theme-dossier code { color: #555555 !important; }
-
-    /* --- System Theme (Pure Green Matrix) --- */
-    .theme-system {
-        background: #000000 !important;
-        color: #00ff00 !important;
-        border: 2px solid #008000 !important;
-        text-shadow: 0 0 5px #00ff00;
-        box-shadow: none !important;
+    
+    .result-panel {
+      background: var(--input-bg);
+      border: 1px dashed var(--text-color);
+      border-radius: 8px;
+      color: #ccffcc;
+      font-size: 1.1rem;
+      min-width: 0;
+      flex: 1 1 0%;
+      width: 100%;
+      max-height: 100%;
+      min-height: 0;
+      overflow-y: auto;
+      margin: 0 auto;
+      box-shadow: 0 0 15px rgba(255, 192, 0, 0.15);
+      animation: fadeIn 0.6s;
+      word-break: break-word;
+      padding: 20px;
+      line-height: 1.5;
     }
 
+    /* Result Panel Content Styling */
+    .result-panel h3, .result-panel strong { color: var(--secondary-text); }
+    .result-panel a { color: #FFF; text-decoration: underline; cursor: pointer; }
+    .result-panel a:hover { color: var(--text-color); }
+    .result-panel code, .result-panel pre {
+      background: #0D0208;
+      border: 1px solid rgba(255, 192, 0, 0.2);
+      border-radius: 4px;
+      color: var(--secondary-text);
+      padding: 8px 14px;
+      font-family: var(--font-mono);
+      font-size: 0.9em;
+      display: block;
+      margin: 14px 0;
+      overflow-x: auto;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     @media (max-width: 600px) {
-        h1 { font-size: 2rem; margin-top: 30px; }
-        .search-box { flex-direction: column; }
-        #search-btn { width: 100%; }
-        .action-bar { justify-content: space-around; } 
-        .action-bar button { width: 45%; }
-        .action-bar audio { width: 100%; }
+      .terminal-header { font-size: 1.2rem; padding: 10px 15px 0 15px; }
+      .terminal-body { padding: 0 15px 10px 15px; }
+      .result-panel { font-size: 1rem; padding: 15px; }
+      .search-row { flex-direction: column; gap: 8px; }
+      .matrix-btn { width: 100%; padding: 12px 15px; }
+      .terminal-input { padding: 12px 12px; }
+      .action-btn { padding: 8px 5px; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>TRUTH ENGINE</h1>
+  <div class="terminal-container">
+    <div class="terminal-header">ai-nspired://>root@TRUTH-ENGINE</div>
+    <div class="terminal-body">
+      <div id="status-message"></div>
+      
+      <div class="terminal-history" id="terminal-history">
+        <p>&gt; <span style="color:#FFF;">// SYSTEM INITIATED. Yellow Mode Online.</span></p>
+        <p>&gt; Enter query below and press RUN or ENTER.</p>
+      </div>
 
-    <div class="search-box">
-      <input type="text" id="truth-input" placeholder="Enter query..." title="Enter your query and press Enter or Search">
-      <button id="search-btn">SEARCH</button>
-    </div>
+      <div class="search-row">
+        <input type="text" id="truth-input" class="terminal-input" placeholder="uncover the truth..." autocomplete="off" />
+        <button class="matrix-btn" id="search-btn">RUN</button>
+      </div>
+      
+      <!-- TTS and Copy Buttons (Icon Only) -->
+      <div class="action-row">
+          <button id="speak-btn" class="action-btn icon-only" title="Read Response Aloud">
+              <span id="speak-icon">🔊</span>
+          </button>
+          <button id="copy-btn" class="action-btn icon-only" title="Copy Output to Clipboard">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                  <path d="M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+          </button>
+      </div>
+      <audio id="audio-player" controls style="display:none;"></audio>
 
-    <div class="action-bar">
-        <button id="speak-btn" title="Speak Response">
-            <span id="speak-icon">🔊</span>
-        </button>
-        <button id="copy-btn" title="Copy Output">📋</button>
-        <audio id="audio-player" controls style="display:none;"></audio>
-    </div>
-
-    <!-- Message box for copy/loading status -->
-    <div id="status-message" style="margin-top: 15px; text-align: center; font-weight: bold; display: none;"></div>
-
-    <!-- The result panel where content and theme will be applied -->
-    <div id="result-panel" class="result-panel">
-      <p style="text-align:center; opacity: 0.6; padding: 100px 0;">INITIATING SEQUENCE... READY FOR QUERY INPUT.</p>
-    </div>
-
-    <div id="history-panel">
-      <h2>// SYSTEM LOG [HISTORY]</h2>
-      <div id="history-list">
-        <p style="text-align: center; opacity: 0.6;">No recent protocols detected.</p>
+      <!-- Result Panel -->
+      <div id="result-panel" class="result-panel">
+        <p style="text-align:center;color:var(--text-color);">// AWAITING INSTRUCTION</p>
       </div>
     </div>
   </div>
-
+  
   <script>
-    // Configuration
-    const API_BASE = "https://justice.ai-n.workers.dev";
-    const TTS_MODEL = "gemini-2.5-flash-preview-tts";
-    const apiKey = ""; // API key is provided by the environment
-
-    const elements = {
-      truthInput: document.getElementById('truth-input'),
-      searchBtn: document.getElementById('search-btn'),
-      resultPanel: document.getElementById('result-panel'),
-      historyList: document.getElementById('history-list'),
-      statusMessage: document.getElementById('status-message'),
-      copyBtn: document.getElementById('copy-btn'),
-      speakBtn: document.getElementById('speak-btn'),
-      speakIcon: document.getElementById('speak-icon'),
-      audioPlayer: document.getElementById('audio-player'),
-    };
+    // Configuration for the CUSTOM AI SERVICE (ai-n.org)
+    const API_BASE = 'https://justice.ai-n.workers.dev'; 
     
+    // Element map
+    const elements = {
+        truthInput: document.getElementById('truth-input'),
+        searchBtn: document.getElementById('search-btn'),
+        terminalHistory: document.getElementById('terminal-history'),
+        resultPanel: document.getElementById('result-panel'),
+        statusMessage: document.getElementById('status-message'),
+        copyBtn: document.getElementById('copy-btn'),
+        speakBtn: document.getElementById('speak-btn'),
+        speakIcon: document.getElementById('speak-icon'),
+        audioPlayer: document.getElementById('audio-player'),
+    };
+
+    // TTS API details (Standard Gemini TTS is used to generate audio data)
+    const TTS_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
+    const TTS_MODEL = "gemini-2.5-flash-preview-tts";
+    const apiKey = ""; 
+
     // --- Utility Functions ---
+
+    function showStatus(message, duration = 3000) {
+        elements.statusMessage.textContent = message;
+        elements.statusMessage.style.display = 'block';
+        setTimeout(() => elements.statusMessage.style.display = 'none', duration);
+    }
 
     function copyToClipboard(text) {
         const tempElement = document.createElement('textarea');
@@ -327,7 +298,7 @@
         document.body.appendChild(tempElement);
         tempElement.select();
         try {
-            document.execCommand('copy');
+            document.execCommand('copy'); 
             return true;
         } catch (err) {
             console.error('Copy failed:', err);
@@ -337,42 +308,19 @@
         }
     }
 
-    function showStatus(message, duration = 3000) {
-        elements.statusMessage.textContent = message;
-        elements.statusMessage.style.display = 'block';
-        setTimeout(() => elements.statusMessage.style.display = 'none', duration);
+    function addTerminalLine(line, isUser = false) {
+      const p = document.createElement('p');
+      p.innerHTML = isUser
+        ? `&gt; <span class="user-input">${escapeHTML(line)}</span>`
+        : `&gt; ${escapeHTML(line)}`;
+      elements.terminalHistory.appendChild(p);
+      elements.terminalHistory.scrollTop = elements.terminalHistory.scrollHeight;
     }
-
-    // Converts raw PCM data (Int16Array) to a playable WAV Blob
-    function pcmToWav(pcm16, sampleRate) {
-        const buffer = new ArrayBuffer(44 + pcm16.length * 2);
-        const view = new DataView(buffer);
-        
-        // RIFF chunk descriptor
-        writeString(view, 0, 'RIFF');
-        view.setUint32(4, 36 + pcm16.length * 2, true);
-        writeString(view, 8, 'WAVE');
-        
-        // FMT sub-chunk
-        writeString(view, 12, 'fmt ');
-        view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true); // PCM format (1)
-        view.setUint16(22, 1, true); // Mono (1 channel)
-        view.setUint32(24, sampleRate, true);
-        view.setUint32(28, sampleRate * 2, true); // Byte rate (SampleRate * Channels * BitsPerSample/8)
-        view.setUint16(32, 2, true); // Block align (Channels * BitsPerSample/8)
-        view.setUint16(34, 16, true); // Bits per sample (16)
-        
-        // DATA sub-chunk
-        writeString(view, 36, 'data');
-        view.setUint32(40, pcm16.length * 2, true);
-        
-        // Write PCM data
-        for (let i = 0; i < pcm16.length; i++) {
-            view.setInt16(44 + i * 2, pcm16[i], true);
-        }
-        
-        return new Blob([buffer], { type: 'audio/wav' });
+    
+    function escapeHTML(str) {
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[m]);
     }
     
     function writeString(view, offset, string) {
@@ -381,21 +329,55 @@
         }
     }
 
-    // Function to handle TTS generation
+    function pcmToWav(pcm16, sampleRate) {
+        const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+        const view = new DataView(buffer);
+        
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + pcm16.length * 2, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true); 
+        view.setUint16(22, 1, true); 
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true); 
+        view.setUint16(32, 2, true); 
+        view.setUint16(34, 16, true); 
+        writeString(view, 36, 'data');
+        view.setUint32(40, pcm16.length * 2, true);
+        
+        for (let i = 0; i < pcm16.length; i++) {
+            view.setInt16(44 + i * 2, pcm16[i], true);
+        }
+        
+        return new Blob([buffer], { type: 'audio/wav' });
+    }
+    
+    function base64ToArrayBuffer(base64) {
+        const binaryString = atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes.buffer;
+    }
+
+    /** Handles TTS generation and playback */
     async function fetchTTS(htmlContent) {
         elements.audioPlayer.style.display = 'none';
         elements.audioPlayer.pause();
-        elements.speakIcon.innerHTML = '...'; // Show generating state
+        elements.speakIcon.textContent = '...'; 
         elements.speakBtn.disabled = true;
 
-        // Clean up text
         const cleanText = htmlContent.replace(/<[^>]+>/g, '').replace(/[\*\_#]/g, '').trim();
         if (!cleanText) {
-             elements.speakIcon.innerHTML = '🔊';
+             elements.speakIcon.textContent = '🔊';
              elements.speakBtn.disabled = false;
-             return showStatus('Protocol failure: No content detected for speech.', 3000);
+             return showStatus('// PROTOCOL FAILURE: NO CONTENT TO TRANSMIT.', 3000);
         }
-
+        
         const payload = {
             contents: [{ parts: [{ text: cleanText }] }],
             generationConfig: {
@@ -409,14 +391,16 @@
             model: TTS_MODEL
         };
         
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${TTS_MODEL}:generateContent?key=${apiKey}`;
+        const apiUrl = `${TTS_API_BASE}/models/${TTS_MODEL}:generateContent?key=${apiKey}`;
 
         try {
-            const response = await fetchWithRetry(apiUrl, {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+            
+            if (!response.ok) throw new Error("TTS API call failed with status: " + response.status);
             
             const result = await response.json();
             const part = result?.candidates?.[0]?.content?.parts?.[0];
@@ -434,201 +418,97 @@
                 
                 elements.audioPlayer.src = audioUrl;
                 elements.audioPlayer.style.display = 'block';
-                elements.speakIcon.innerHTML = '🎧'; // Playing icon
+                elements.speakIcon.textContent = '▶️';
                 elements.speakBtn.disabled = false;
                 elements.audioPlayer.play();
                 elements.audioPlayer.onended = () => {
-                    elements.speakIcon.innerHTML = '🔊'; // Reset to speaker icon
+                    elements.speakIcon.textContent = '🔊';
                 };
             } else {
-                throw new Error("Invalid audio data format received.");
+                throw new Error("Invalid audio data format received or generation failed.");
             }
         } catch (error) {
             console.error("TTS Error:", error);
-            showStatus('TTS system error. Could not generate audio file.', 5000);
-            elements.speakIcon.innerHTML = '🔊'; // Reset to speaker icon
+            showStatus('// TTS SYSTEM ERROR. COULD NOT GENERATE AUDIO.', 5000);
+            elements.speakIcon.textContent = '🔊';
             elements.speakBtn.disabled = false;
         }
     }
-    
-    function base64ToArrayBuffer(base64) {
-        const binaryString = atob(base64);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        return bytes.buffer;
-    }
 
-    // Function to handle API calls with exponential backoff
-    async function fetchWithRetry(url, options, retries = 3) {
-        for (let i = 0; i < retries; i++) {
-            try {
-                const response = await fetch(url, options);
-                if (response.status !== 429) return response;
-                
-                // Exponential backoff for rate limiting (429)
-                const delay = Math.pow(2, i) * 1000;
-                await new Promise(resolve => setTimeout(resolve, delay));
-            } catch (error) {
-                if (i === retries - 1) throw error;
-                console.warn(`[PROTOCOL] Fetch attempt ${i+1} failed. Retrying...`);
-            }
-        }
-        throw new Error('All fetch retries failed. System offline.');
-    }
-    
+
     // --- Core Logic ---
 
-    function saveHistory(query) {
-      let history = JSON.parse(localStorage.getItem('truthEngineHistory') || '[]');
-      history = [query, ...history.filter(q => q !== query)];
-      history = history.slice(0, 10);
-      localStorage.setItem('truthEngineHistory', JSON.stringify(history));
-      renderHistory(history);
-    }
-
-    function renderHistory(history) {
-      if (history.length === 0) {
-        elements.historyList.innerHTML = '<p style="text-align: center; opacity: 0.6;">No recent protocols detected.</p>';
-        return;
-      }
-      elements.historyList.innerHTML = '';
-      history.forEach(q => {
-        const item = document.createElement('div');
-        item.className = 'history-item';
-        // Use an anchor tag with data-q for re-running the query
-        item.innerHTML = `<span style="opacity:0.6;">QUERY ></span> <a href="#" data-q="${encodeURIComponent(q)}">${q}</a>`;
-        elements.historyList.appendChild(item);
-      });
-    }
-    
-    elements.historyList.addEventListener('click', function(e) {
-        if (e.target.tagName === 'A' && e.target.hasAttribute('data-q')) {
-            e.preventDefault();
-            const q = decodeURIComponent(e.target.getAttribute('data-q'));
-            elements.truthInput.value = q;
-            runQuery(q);
-        }
-    });
-
-    /**
-     * Finds theme instruction and applies CSS class, then renders content.
-     */
-    function renderContentWithTheme(markdownContent) {
-        elements.resultPanel.className = 'result-panel'; // Reset class
-        
-        let content = markdownContent;
-        let themeClass = '';
-
-        // 1. Check for theme instruction (e.g., <!-- theme:glitch -->)
-        const themeMatch = content.match(/<!--\s*theme:(\w+)\s*-->/i);
-        if (themeMatch) {
-            const theme = themeMatch[1].toLowerCase();
-            if (['glitch', 'dossier', 'system'].includes(theme)) {
-                themeClass = `theme-${theme}`;
-                // Remove the theme instruction from the content before rendering
-                content = content.replace(themeMatch[0], '').trim();
-            }
-        }
-
-        // Apply theme class to the result panel
-        if (themeClass) {
-            elements.resultPanel.classList.add(themeClass);
-        }
-
-        // 2. Render Markdown/HTML
-        elements.resultPanel.innerHTML = marked.parse(content);
-        
-        // 3. Highlight code blocks
-        document.querySelectorAll('#result-panel pre code').forEach(block => {
-            hljs.highlightElement(block);
-        });
-
-        // 4. Check and handle embedded link behavior inside the rendered content
-        handleEmbeddedLinks(elements.resultPanel);
-    }
-
-    function handleEmbeddedLinks(container) {
-        container.querySelectorAll('a').forEach(link => {
-            try {
-                const url = new URL(link.href);
-                // Handle local query links (e.g., ?q=...)
-                if (url.pathname === window.location.pathname && url.searchParams.has('q')) {
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const q = url.searchParams.get('q');
-                        if (q) {
-                            elements.truthInput.value = q;
-                            runQuery(q);
-                        }
-                    });
-                }
-                // Handle custom search links (e.g., data-search/...)
-                if (link.getAttribute('href') && link.getAttribute('href').startsWith('data-search/')) {
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const q = decodeURIComponent(link.getAttribute('href').slice('data-search/'.length));
-                        if (q) {
-                            elements.truthInput.value = q;
-                            runQuery(q);
-                        }
-                    });
-                }
-            } catch(e) {}
-        });
-    }
-
-    async function runQuery(query) {
-      if (!query) return;
-
-      saveHistory(query);
-      elements.resultPanel.innerHTML = '<p style="text-align:center;">// EXECUTING PROTOCOL: SEARCHING FOR TRUTH...</p>';
-      elements.resultPanel.classList.add('loading');
+    async function runQuery(queryText) {
+      if (!queryText || !queryText.trim()) return;
+      
+      const query = queryText.trim();
+      addTerminalLine(query, true);
+      elements.truthInput.value = '';
+      elements.resultPanel.style.display = 'block';
+      
+      elements.resultPanel.innerHTML = `<p style="text-align:center;color:#FFF;">// EXECUTING PROTOCOL: SEARCHING FOR TRUTH...</p>`;
       elements.audioPlayer.style.display = 'none';
       elements.audioPlayer.pause();
-      elements.speakIcon.innerHTML = '🔊'; // Reset speak icon
-
+      elements.speakIcon.textContent = '🔊';
+      
       try {
-        const resp = await fetchWithRetry(`${API_BASE}/api/ai/truth`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query })
+        // CORRECTED: Using the user's custom endpoint and payload structure
+        const response = await fetch(`${API_BASE}/api/ai/truth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query })
         });
 
-        if (!resp.ok) {
-            elements.resultPanel.innerHTML = '<p style="text-align:center;color:var(--secondary-accent);">// ERROR [CODE: ' + resp.status + ']: CONNECTION TERMINATED.</p>';
+        if (!response.ok) {
+            elements.resultPanel.innerHTML = '<p style="text-align:center;color:red;">// ERROR [CODE: ' + response.status + ']: CUSTOM API CONNECTION FAILED. Status is not 200 OK.</p>';
             return;
         }
 
-        const data = await resp.json();
+        const data = await response.json();
         
         if (data.answer) {
-            renderContentWithTheme(data.answer);
+          let html = marked.parse(data.answer);
+          
+          let sourcesHtml = '';
+          if (data.citations && Array.isArray(data.citations) && data.citations.length > 0) {
+              sourcesHtml = `<div style="margin-top:20px; border-top: 1px dotted rgba(255, 192, 0, 0.3); padding-top: 10px;">
+                  <strong>// Sources Found:</strong><ul style="margin-bottom:0; padding-left: 20px;">` +
+                  data.citations.map(c =>
+                      `<li><a href="${c.url}" target="_blank" rel="noopener noreferrer">${escapeHTML(c.title || c.url)}</a></li>`
+                  ).join('') +
+                  `</ul></div>`;
+          }
+          
+          elements.resultPanel.innerHTML = html + sourcesHtml;
+
+          if (window.hljs) {
+            elements.resultPanel.querySelectorAll('pre code').forEach(block => { hljs.highlightElement(block); });
+          }
         } else {
-            elements.resultPanel.innerHTML = '<p style="text-align:center;color:var(--secondary-accent);">// WARNING [CODE: 404]: TRUTH NOT FOUND.</p>';
+            elements.resultPanel.innerHTML = `<p style="text-align:center;color:red;">// WARNING: TRUTH NOT FOUND. Custom API returned no answer content.</p>`;
         }
 
       } catch (error) {
         console.error('API Error:', error);
-        elements.resultPanel.innerHTML = `<p style="text-align:center;color:var(--secondary-accent);">// FATAL ERROR: ${error.message.toUpperCase()}<br>VERIFY NETWORK STATUS.</p>`;
-      } finally {
-        elements.resultPanel.classList.remove('loading');
+        elements.resultPanel.innerHTML = `<p style="text-align:center;color:red;">// FATAL ERROR: ${error.message.toUpperCase()}<br>VERIFY NETWORK STATUS AND CUSTOM API ENDPOINT.</p>`;
       }
     }
 
     // --- Event Listeners ---
+    
     elements.searchBtn.addEventListener('click', () => {
-      runQuery(elements.truthInput.value.trim());
+      runQuery(elements.truthInput.value);
     });
     
     elements.truthInput.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter') runQuery(elements.truthInput.value.trim());
+      if (event.key === 'Enter') runQuery(elements.truthInput.value);
     });
 
     elements.copyBtn.addEventListener('click', () => {
         const textToCopy = elements.resultPanel.textContent.trim();
+        if (textToCopy.includes('// EXECUTING PROTOCOL') || textToCopy.includes('// WARNING') || textToCopy.includes('// FATAL ERROR') || textToCopy.includes('// AWAITING INSTRUCTION')) {
+             return showStatus("// INSTRUCTION DENIED: NO VALID OUTPUT DETECTED.", 3000);
+        }
         if (copyToClipboard(textToCopy)) {
             showStatus("// ACTION COMPLETE: OUTPUT COPIED TO CLIPBOARD.");
         } else {
@@ -638,7 +518,7 @@
 
     elements.speakBtn.addEventListener('click', () => {
         const contentHtml = elements.resultPanel.innerHTML;
-        const isDefaultMessage = contentHtml.includes('INITIATING SEQUENCE') || contentHtml.includes('EXECUTING PROTOCOL') || contentHtml.includes('ERROR');
+        const isDefaultMessage = contentHtml.includes('// AWAITING INSTRUCTION') || contentHtml.includes('// EXECUTING PROTOCOL') || contentHtml.includes('// ERROR') || contentHtml.includes('// WARNING');
         
         if (contentHtml && !isDefaultMessage) {
             fetchTTS(contentHtml);
@@ -656,18 +536,6 @@
         highlight: (code, lang) => lang && hljs.getLanguage(lang)
             ? hljs.highlight(code, { language: lang }).value
             : hljs.highlightAuto(code).value,
-    });
-    
-    window.addEventListener('DOMContentLoaded', () => {
-      const history = JSON.parse(localStorage.getItem('truthEngineHistory') || '[]');
-      renderHistory(history);
-
-      const params = new URLSearchParams(window.location.search);
-      const q = params.get('q');
-      if (q) {
-        elements.truthInput.value = q;
-        runQuery(q);
-      }
     });
   </script>
 </body>
