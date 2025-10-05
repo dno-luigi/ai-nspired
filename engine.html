@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Truth-Engine | Yellow Mode</title>
+  <title>Truth-Engine | Yellow Mode (OpenAI TTS)</title>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
@@ -172,14 +172,16 @@
         width: 100%;
         height: 40px;
         margin-top: 5px;
-        filter: hue-rotate(90deg) saturate(2); 
+        /* Reverted filter for general compatibility, MP3 players should look normal */
+        filter: none;
+        display: none; 
     }
     
     .result-panel {
       background: var(--input-bg);
       border: 1px dashed var(--text-color);
       border-radius: 8px;
-      color: #FFF; /* Changed to white for better readability against yellow theme */
+      color: #FFF; 
       font-size: 1.1rem;
       min-width: 0;
       flex: 1 1 0%;
@@ -227,7 +229,6 @@
 </head>
 <body>
   <div class="terminal-container">
-    <!-- Restored the header from your provided code -->
     <div class="terminal-header">ai-nspired://>root@TRUTH-ENGINE</div>
     <div class="terminal-body">
       <div id="status-message"></div>
@@ -254,7 +255,7 @@
               </svg>
           </button>
       </div>
-      <!-- Removed style="display:none" to ensure the player is visible when audio loads -->
+      <!-- Note: We removed the `display:none` style here in CSS and manage visibility in JS -->
       <audio id="audio-player" controls></audio> 
 
       <!-- Result Panel -->
@@ -268,6 +269,13 @@
     // Configuration for the CUSTOM AI SERVICE (ai-n.org)
     const API_BASE = 'https://justice.ai-n.workers.dev'; 
     
+    // --- OPENAI TTS CONFIGURATION ---
+    // NOTE: Please replace "YOUR_OPENAI_API_KEY_HERE" with your actual key.
+    const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY_HERE"; 
+    const TTS_API_BASE = "https://api.openai.com/v1/audio/speech";
+    const TTS_MODEL = "tts-1"; // Using standard model (fastest).
+    const TTS_VOICE = "nova"; // Requested voice from your example.
+
     // Element map
     const elements = {
         truthInput: document.getElementById('truth-input'),
@@ -280,11 +288,6 @@
         speakIcon: document.getElementById('speak-icon'),
         audioPlayer: document.getElementById('audio-player'),
     };
-
-    // TTS API details (Standard Gemini TTS is used to generate audio data)
-    const TTS_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
-    const TTS_MODEL = "gemini-2.5-flash-preview-tts";
-    const apiKey = ""; 
 
     // --- Utility Functions ---
 
@@ -325,70 +328,21 @@
       })[m]);
     }
     
-    /**
-     * Helper to write a string into a DataView at a given offset.
+    /** * Handles TTS generation and playback using the OpenAI API.
+     * Generates an MP3 file and loads it directly into the audio player.
      */
-    function writeString(view, offset, string) {
-        for (let i = 0; i < string.length; i++) {
-            view.setUint8(offset + i, string.charCodeAt(i));
-        }
-    }
-
-    /**
-     * Converts Int16Array PCM audio data to a WAV Blob.
-     */
-    function pcmToWav(pcm16, sampleRate) {
-        // RIFF header (44 bytes) + data (2 bytes per sample)
-        const buffer = new ArrayBuffer(44 + pcm16.length * 2);
-        const view = new DataView(buffer);
-        
-        // RIFF chunk descriptor
-        writeString(view, 0, 'RIFF');
-        view.setUint32(4, 36 + pcm16.length * 2, true); // Chunk size
-        writeString(view, 8, 'WAVE');
-        
-        // FMT sub-chunk
-        writeString(view, 12, 'fmt ');
-        view.setUint32(16, 16, true); // Sub-chunk 1 size (16 for PCM)
-        view.setUint16(20, 1, true); // Audio format (1 for PCM)
-        view.setUint16(22, 1, true); // Number of channels (1)
-        view.setUint32(24, sampleRate, true); // Sample rate
-        view.setUint32(28, sampleRate * 2, true); // Byte rate (SampleRate * NumChannels * BitsPerSample/8)
-        view.setUint16(32, 2, true); // Block align (NumChannels * BitsPerSample/8)
-        view.setUint16(34, 16, true); // Bits per sample (16)
-        
-        // Data sub-chunk
-        writeString(view, 36, 'data');
-        view.setUint32(40, pcm16.length * 2, true); // Sub-chunk 2 size (data size)
-        
-        // Write the PCM data
-        for (let i = 0; i < pcm16.length; i++) {
-            view.setInt16(44 + i * 2, pcm16[i], true);
-        }
-        
-        return new Blob([buffer], { type: 'audio/wav' });
-    }
-    
-    /**
-     * Converts a base64 string to an ArrayBuffer.
-     */
-    function base64ToArrayBuffer(base64) {
-        const binaryString = atob(base64);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        return bytes.buffer;
-    }
-
-    /** Handles TTS generation and playback using the Gemini API (Kore voice) */
     async function fetchTTS(htmlContent) {
-        // Stop and hide the player at the start of a new request
         elements.audioPlayer.style.display = 'none';
         elements.audioPlayer.pause();
         elements.speakIcon.textContent = '...'; 
         elements.speakBtn.disabled = true;
+
+        if (OPENAI_API_KEY === "YOUR_OPENAI_API_KEY_HERE") {
+             showStatus('// CONFIG ERROR: OpenAI API Key Missing.', 5000);
+             elements.speakIcon.textContent = '🔊';
+             elements.speakBtn.disabled = false;
+             return;
+        }
 
         const cleanText = htmlContent.replace(/<[^>]+>/g, '').replace(/[\*\_#]/g, '').trim();
         if (!cleanText) {
@@ -398,65 +352,55 @@
         }
         
         const payload = {
-            contents: [{ parts: [{ text: cleanText }] }],
-            generationConfig: {
-                responseModalities: ["AUDIO"],
-                speechConfig: {
-                    voiceConfig: {
-                        prebuiltVoiceConfig: { voiceName: "Kore" }
-                    }
-                }
-            },
-            model: TTS_MODEL
+            model: TTS_MODEL,
+            input: cleanText,
+            voice: TTS_VOICE,
+            response_format: 'mp3' 
         };
         
-        const apiUrl = `${TTS_API_BASE}/models/${TTS_MODEL}:generateContent?key=${apiKey}`;
-
         try {
-            const response = await fetch(apiUrl, {
+            const response = await fetch(TTS_API_BASE, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${OPENAI_API_KEY}` // Use OpenAI key for auth
+                },
                 body: JSON.stringify(payload)
             });
             
-            if (!response.ok) throw new Error("TTS API call failed with status: " + response.status);
-            
-            const result = await response.json();
-            const part = result?.candidates?.[0]?.content?.parts?.[0];
-            const audioData = part?.inlineData?.data;
-            const mimeType = part?.inlineData?.mimeType;
-
-            if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
-                const rateMatch = mimeType.match(/rate=(\d+)/);
-                const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
-                
-                const pcmData = base64ToArrayBuffer(audioData);
-                const pcm16 = new Int16Array(pcmData);
-                const wavBlob = pcmToWav(pcm16, sampleRate);
-                const audioUrl = URL.createObjectURL(wavBlob);
-                
-                elements.audioPlayer.src = audioUrl;
-                elements.audioPlayer.style.display = 'block';
-                elements.speakIcon.textContent = '▶️';
-                elements.speakBtn.disabled = false;
-                
-                // CRITICAL FIX: Use promise-based play() and catch failure due to autoplay restrictions
-                elements.audioPlayer.play().catch(e => {
-                    console.error("Autoplay prevented:", e);
-                    showStatus("// WARNING: AUTOPLAY BLOCKED. CLICK PLAY BUTTON ON AUDIO BAR.", 5000);
-                    elements.speakIcon.textContent = '🔊'; // Reset icon if play is blocked
-                });
-                
-                elements.audioPlayer.onended = () => {
-                    elements.speakIcon.textContent = '🔊';
-                };
-
-            } else {
-                throw new Error("Invalid audio data format received or generation failed.");
+            if (!response.ok) {
+                // Read the error message from OpenAI's JSON response if available
+                let errorDetails = `Status ${response.status}`;
+                try {
+                    const errorJson = await response.json();
+                    errorDetails += `: ${errorJson.error.message}`;
+                } catch (e) { /* ignore parse error if response isn't JSON */ }
+                throw new Error("OpenAI TTS API call failed: " + errorDetails);
             }
+            
+            // The response is an MP3 file stream (Blob)
+            const audioBlob = await response.blob(); 
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            elements.audioPlayer.src = audioUrl;
+            elements.audioPlayer.style.display = 'block';
+            elements.speakIcon.textContent = '▶️';
+            elements.speakBtn.disabled = false;
+            
+            // Promise-based play() to handle potential autoplay restrictions
+            elements.audioPlayer.play().catch(e => {
+                console.error("Autoplay prevented:", e);
+                showStatus("// WARNING: AUTOPLAY BLOCKED. CLICK PLAY BUTTON ON AUDIO BAR.", 5000);
+                elements.speakIcon.textContent = '🔊';
+            });
+            
+            elements.audioPlayer.onended = () => {
+                elements.speakIcon.textContent = '🔊';
+            };
+            
         } catch (error) {
             console.error("TTS Error:", error);
-            showStatus('// TTS SYSTEM ERROR. COULD NOT GENERATE AUDIO.', 5000);
+            showStatus('// TTS SYSTEM ERROR. COULD NOT GENERATE AUDIO: ' + error.message, 5000);
             elements.speakIcon.textContent = '🔊';
             elements.speakBtn.disabled = false;
         }
@@ -569,4 +513,3 @@
   </script>
 </body>
 </html>
-
