@@ -179,7 +179,7 @@
       background: var(--input-bg);
       border: 1px dashed var(--text-color);
       border-radius: 8px;
-      color: #ccffcc;
+      color: #FFF; /* Changed to white for better readability against yellow theme */
       font-size: 1.1rem;
       min-width: 0;
       flex: 1 1 0%;
@@ -227,6 +227,7 @@
 </head>
 <body>
   <div class="terminal-container">
+    <!-- Restored the header from your provided code -->
     <div class="terminal-header">ai-nspired://>root@TRUTH-ENGINE</div>
     <div class="terminal-body">
       <div id="status-message"></div>
@@ -253,7 +254,8 @@
               </svg>
           </button>
       </div>
-      <audio id="audio-player" controls style="display:none;"></audio>
+      <!-- Removed style="display:none" to ensure the player is visible when audio loads -->
+      <audio id="audio-player" controls></audio> 
 
       <!-- Result Panel -->
       <div id="result-panel" class="result-panel">
@@ -323,30 +325,43 @@
       })[m]);
     }
     
+    /**
+     * Helper to write a string into a DataView at a given offset.
+     */
     function writeString(view, offset, string) {
         for (let i = 0; i < string.length; i++) {
             view.setUint8(offset + i, string.charCodeAt(i));
         }
     }
 
+    /**
+     * Converts Int16Array PCM audio data to a WAV Blob.
+     */
     function pcmToWav(pcm16, sampleRate) {
+        // RIFF header (44 bytes) + data (2 bytes per sample)
         const buffer = new ArrayBuffer(44 + pcm16.length * 2);
         const view = new DataView(buffer);
         
+        // RIFF chunk descriptor
         writeString(view, 0, 'RIFF');
-        view.setUint32(4, 36 + pcm16.length * 2, true);
+        view.setUint32(4, 36 + pcm16.length * 2, true); // Chunk size
         writeString(view, 8, 'WAVE');
-        writeString(view, 12, 'fmt ');
-        view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true); 
-        view.setUint16(22, 1, true); 
-        view.setUint32(24, sampleRate, true);
-        view.setUint32(28, sampleRate * 2, true); 
-        view.setUint16(32, 2, true); 
-        view.setUint16(34, 16, true); 
-        writeString(view, 36, 'data');
-        view.setUint32(40, pcm16.length * 2, true);
         
+        // FMT sub-chunk
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true); // Sub-chunk 1 size (16 for PCM)
+        view.setUint16(20, 1, true); // Audio format (1 for PCM)
+        view.setUint16(22, 1, true); // Number of channels (1)
+        view.setUint32(24, sampleRate, true); // Sample rate
+        view.setUint32(28, sampleRate * 2, true); // Byte rate (SampleRate * NumChannels * BitsPerSample/8)
+        view.setUint16(32, 2, true); // Block align (NumChannels * BitsPerSample/8)
+        view.setUint16(34, 16, true); // Bits per sample (16)
+        
+        // Data sub-chunk
+        writeString(view, 36, 'data');
+        view.setUint32(40, pcm16.length * 2, true); // Sub-chunk 2 size (data size)
+        
+        // Write the PCM data
         for (let i = 0; i < pcm16.length; i++) {
             view.setInt16(44 + i * 2, pcm16[i], true);
         }
@@ -354,6 +369,9 @@
         return new Blob([buffer], { type: 'audio/wav' });
     }
     
+    /**
+     * Converts a base64 string to an ArrayBuffer.
+     */
     function base64ToArrayBuffer(base64) {
         const binaryString = atob(base64);
         const len = binaryString.length;
@@ -364,8 +382,9 @@
         return bytes.buffer;
     }
 
-    /** Handles TTS generation and playback */
+    /** Handles TTS generation and playback using the Gemini API (Kore voice) */
     async function fetchTTS(htmlContent) {
+        // Stop and hide the player at the start of a new request
         elements.audioPlayer.style.display = 'none';
         elements.audioPlayer.pause();
         elements.speakIcon.textContent = '...'; 
@@ -420,10 +439,18 @@
                 elements.audioPlayer.style.display = 'block';
                 elements.speakIcon.textContent = '▶️';
                 elements.speakBtn.disabled = false;
-                elements.audioPlayer.play();
+                
+                // CRITICAL FIX: Use promise-based play() and catch failure due to autoplay restrictions
+                elements.audioPlayer.play().catch(e => {
+                    console.error("Autoplay prevented:", e);
+                    showStatus("// WARNING: AUTOPLAY BLOCKED. CLICK PLAY BUTTON ON AUDIO BAR.", 5000);
+                    elements.speakIcon.textContent = '🔊'; // Reset icon if play is blocked
+                });
+                
                 elements.audioPlayer.onended = () => {
                     elements.speakIcon.textContent = '🔊';
                 };
+
             } else {
                 throw new Error("Invalid audio data format received or generation failed.");
             }
@@ -436,7 +463,7 @@
     }
 
 
-    // --- Core Logic ---
+    // --- Core Logic (Search) ---
 
     async function runQuery(queryText) {
       if (!queryText || !queryText.trim()) return;
@@ -452,7 +479,7 @@
       elements.speakIcon.textContent = '🔊';
       
       try {
-        // CORRECTED: Using the user's custom endpoint and payload structure
+        // Using the custom endpoint and payload structure you provided
         const response = await fetch(`${API_BASE}/api/ai/truth`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -506,7 +533,9 @@
 
     elements.copyBtn.addEventListener('click', () => {
         const textToCopy = elements.resultPanel.textContent.trim();
-        if (textToCopy.includes('// EXECUTING PROTOCOL') || textToCopy.includes('// WARNING') || textToCopy.includes('// FATAL ERROR') || textToCopy.includes('// AWAITING INSTRUCTION')) {
+        const isDefaultMessage = textToCopy.includes('// EXECUTING PROTOCOL') || textToCopy.includes('// WARNING') || textToCopy.includes('// FATAL ERROR') || textToCopy.includes('// AWAITING INSTRUCTION');
+        
+        if (isDefaultMessage) {
              return showStatus("// INSTRUCTION DENIED: NO VALID OUTPUT DETECTED.", 3000);
         }
         if (copyToClipboard(textToCopy)) {
