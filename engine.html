@@ -243,7 +243,6 @@
         <button class="matrix-btn" id="search-btn">RUN</button>
       </div>
       
-      <!-- TTS and Copy Buttons (Icon Only) -->
       <div class="action-row">
           <button id="speak-btn" class="action-btn icon-only" title="Read Response Aloud">
               <span id="speak-icon">🔊</span>
@@ -255,10 +254,8 @@
               </svg>
           </button>
       </div>
-      <!-- Note: We removed the `display:none` style here in CSS and manage visibility in JS -->
       <audio id="audio-player" controls></audio> 
 
-      <!-- Result Panel -->
       <div id="result-panel" class="result-panel">
         <p style="text-align:center;color:var(--text-color);">// AWAITING INSTRUCTION</p>
       </div>
@@ -270,11 +267,11 @@
     const API_BASE = 'https://justice.ai-n.workers.dev'; 
     
     // --- OPENAI TTS CONFIGURATION ---
-    // NOTE: Please replace "YOUR_OPENAI_API_KEY_HERE" with your actual key.
-    const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY_HERE"; 
-    const TTS_API_BASE = "https://api.openai.com/v1/audio/speech";
-    const TTS_MODEL = "tts-1"; // Using standard model (fastest).
-    const TTS_VOICE = "nova"; // Requested voice from your example.
+    // The previous code used OpenAI, but we are now using your Cloudflare Pages API.
+    // We will no longer need the OPENAI_API_KEY.
+    const TTS_API_BASE = "https://tts-cj6.pages.dev/v1/audio/speech";
+    const TTS_MODEL = "tts-1"; 
+    const TTS_VOICE = "alloy"; 
 
     // Element map
     const elements = {
@@ -328,7 +325,7 @@
       })[m]);
     }
     
-    /** * Handles TTS generation and playback using the OpenAI API.
+    /** * Handles TTS generation and playback using your Cloudflare Pages API.
      * Generates an MP3 file and loads it directly into the audio player.
      */
     async function fetchTTS(htmlContent) {
@@ -336,13 +333,6 @@
         elements.audioPlayer.pause();
         elements.speakIcon.textContent = '...'; 
         elements.speakBtn.disabled = true;
-
-        if (OPENAI_API_KEY === "YOUR_OPENAI_API_KEY_HERE") {
-             showStatus('// CONFIG ERROR: OpenAI API Key Missing.', 5000);
-             elements.speakIcon.textContent = '🔊';
-             elements.speakBtn.disabled = false;
-             return;
-        }
 
         const cleanText = htmlContent.replace(/<[^>]+>/g, '').replace(/[\*\_#]/g, '').trim();
         if (!cleanText) {
@@ -359,23 +349,25 @@
         };
         
         try {
+            // Updated fetch call to use your Cloudflare Pages API and remove the API key header
             const response = await fetch(TTS_API_BASE, {
                 method: 'POST',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${OPENAI_API_KEY}` // Use OpenAI key for auth
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
             });
             
             if (!response.ok) {
-                // Read the error message from OpenAI's JSON response if available
+                // Read the error message from the custom API's JSON response if available
                 let errorDetails = `Status ${response.status}`;
                 try {
                     const errorJson = await response.json();
-                    errorDetails += `: ${errorJson.error.message}`;
+                    if (errorJson.error) {
+                        errorDetails += `: ${errorJson.error.message}`;
+                    }
                 } catch (e) { /* ignore parse error if response isn't JSON */ }
-                throw new Error("OpenAI TTS API call failed: " + errorDetails);
+                throw new Error("Custom TTS API call failed: " + errorDetails);
             }
             
             // The response is an MP3 file stream (Blob)
