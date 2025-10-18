@@ -155,11 +155,10 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        /* Adjusted padding for icon-only button */
         padding: 10px 5px; 
     }
     .action-btn span, .action-btn svg {
-        font-size: 1.5em; /* Larger icon size */
+        font-size: 1.5em; 
     }
     .action-btn svg {
         width: 1.5em;
@@ -172,7 +171,6 @@
         width: 100%;
         height: 40px;
         margin-top: 5px;
-        /* Reverted filter for general compatibility, MP3 players should look normal */
         filter: none;
         display: none; 
     }
@@ -198,7 +196,10 @@
     }
 
     /* Result Panel Content Styling */
-    .result-panel h3, .result-panel strong { color: var(--secondary-text); }
+    .result-panel h3, .result-panel strong { 
+      color: #FFFFFF; 
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    }
     .result-panel a { color: #FFF; text-decoration: underline; cursor: pointer; }
     .result-panel a:hover { color: var(--text-color); }
     .result-panel code, .result-panel pre {
@@ -265,10 +266,6 @@
   <script>
     // Configuration for the CUSTOM AI SERVICE (ai-n.org)
     const API_BASE = 'https://justice.ai-n.workers.dev'; 
-    
-    // --- OPENAI TTS CONFIGURATION ---
-    // The previous code used OpenAI, but we are now using your Cloudflare Pages API.
-    // We will no longer need the OPENAI_API_KEY.
     const TTS_API_BASE = "https://tts-cj6.pages.dev/v1/audio/speech";
     const TTS_MODEL = "tts-1"; 
     const TTS_VOICE = "alloy"; 
@@ -325,9 +322,7 @@
       })[m]);
     }
     
-    /** * Handles TTS generation and playback using your Cloudflare Pages API.
-     * Generates an MP3 file and loads it directly into the audio player.
-     */
+    /** * Handles TTS generation and playback using your Cloudflare Pages API. */
     async function fetchTTS(htmlContent) {
         elements.audioPlayer.style.display = 'none';
         elements.audioPlayer.pause();
@@ -349,17 +344,13 @@
         };
         
         try {
-            // Updated fetch call to use your Cloudflare Pages API and remove the API key header
             const response = await fetch(TTS_API_BASE, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             
             if (!response.ok) {
-                // Read the error message from the custom API's JSON response if available
                 let errorDetails = `Status ${response.status}`;
                 try {
                     const errorJson = await response.json();
@@ -370,7 +361,6 @@
                 throw new Error("Custom TTS API call failed: " + errorDetails);
             }
             
-            // The response is an MP3 file stream (Blob)
             const audioBlob = await response.blob(); 
             const audioUrl = URL.createObjectURL(audioBlob);
             
@@ -379,7 +369,6 @@
             elements.speakIcon.textContent = '▶️';
             elements.speakBtn.disabled = false;
             
-            // Promise-based play() to handle potential autoplay restrictions
             elements.audioPlayer.play().catch(e => {
                 console.error("Autoplay prevented:", e);
                 showStatus("// WARNING: AUTOPLAY BLOCKED. CLICK PLAY BUTTON ON AUDIO BAR.", 5000);
@@ -415,7 +404,6 @@
       elements.speakIcon.textContent = '🔊';
       
       try {
-        // Using the custom endpoint and payload structure you provided
         const response = await fetch(`${API_BASE}/api/ai/truth`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -502,6 +490,30 @@
             ? hljs.highlight(code, { language: lang }).value
             : hljs.highlightAuto(code).value,
     });
+    
+    // Final, Robust Auto-Execution Logic for URL Query Parameter (?q=)
+    window.onload = function() {
+        const params = new URLSearchParams(window.location.search);
+        const q = params.get('q');
+        
+        if (q) {
+            // Use a short delay to ensure all JS/CSS is fully rendered before running
+            setTimeout(() => {
+                const decodedQuery = decodeURIComponent(q.replace(/\+/g, ' '));
+                elements.truthInput.value = decodedQuery;
+                
+                // Manually trigger the query to run the search
+                runQuery(decodedQuery);
+
+                // Cleanup terminal appearance after automated query
+                const typedTextElement = document.querySelector('.terminal-container .typed-text');
+                if (typedTextElement) {
+                   typedTextElement.style.borderRight = 'none';
+                   typedTextElement.style.animation = 'none';
+                }
+            }, 50); // 50ms delay for robustness
+        }
+    };
   </script>
 </body>
 </html>
