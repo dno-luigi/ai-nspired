@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Truth-Engine | Yellow Mode (EITL Active / Accessibility)</title>
+  <title>Truth-Engine | Yellow Mode (EITL Active)</title>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
@@ -171,7 +171,7 @@
         height: 40px;
         margin-top: 5px;
         filter: none;
-        display: none; /* Hide HTML audio player, using native TTS */
+        display: none; 
     }
     
     .result-panel {
@@ -194,9 +194,10 @@
       line-height: 1.5;
     }
 
-    /* FIX: Injecting the EITL Intent Styles for Uniformity */
+    /* --- Dynamic Result Styles (INJECTED FOR UNIFORMITY) --- */
+    /* Style ensures functional symmetry with the Intent Methodology */
     .result-panel.result-dossier { 
-        background-color: #333300; /* Darker, high contrast for Dossier */
+        background-color: #333300; 
         color: #f0f0f0; 
         font-family: 'Share Tech Mono', monospace; 
     }
@@ -204,14 +205,15 @@
         background-color: #0d0d0d; 
         font-family: 'Share Tech Mono', monospace; 
         font-size: 1.1rem; 
-        color: var(--text-color); /* Yellow for deep terminal mode */
+        color: var(--text-color); 
     }
     .result-panel.result-confession { 
         background-color: #2a2a2a; 
         color: #f0f0f0; 
-        font-family: Arial, sans-serif; /* A slightly softer, more readable font for confessional/storytelling */
+        font-family: Arial, sans-serif; 
         text-align: left;
     }
+
     .result-panel h3, .result-panel strong { 
       color: #FFFFFF; 
       text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
@@ -233,14 +235,31 @@
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+    /* --- Accessibility Optimization for Mobile (Output Maximize) --- */
     @media (max-width: 600px) {
-      .terminal-header { font-size: 1.2rem; padding: 10px 15px 0 15px; }
-      .terminal-body { padding: 0 15px 10px 15px; }
-      .result-panel { font-size: 1rem; padding: 15px; }
-      .search-row { flex-direction: column; gap: 8px; }
-      .matrix-btn { width: 100%; padding: 12px 15px; }
-      .terminal-input { padding: 12px 12px; }
-      .action-btn { padding: 8px 5px; }
+      .terminal-header { font-size: 1.2rem; padding: 8px 15px 0 15px; }
+      .terminal-body { 
+          padding: 0 15px 10px 15px; 
+          gap: 8px; /* Reduced vertical spacing */
+      }
+      .terminal-history {
+          max-height: 7vh; /* Minimal height for history */
+          font-size: 0.85rem;
+      }
+      .search-row { 
+          flex-direction: column; 
+          gap: 6px; 
+      }
+      .terminal-input { padding: 10px 12px; }
+      .matrix-btn { width: 100%; padding: 10px 15px; order: 1; }
+      .action-row {
+          justify-content: space-around;
+          margin-bottom: 5px;
+          gap: 5px;
+      }
+      .action-btn { padding: 6px 3px; font-size: 0.9rem; }
+      .action-btn span, .action-btn svg { font-size: 1.2em; }
+      .result-panel { font-size: 0.95rem; padding: 10px; }
     }
   </style>
 </head>
@@ -279,9 +298,6 @@
   
   <script>
     const API_BASE = 'https://justice.ai-n.workers.dev'; 
-    // TTS_API_BASE is now irrelevant; using native window.speechSynthesis
-    
-    // Element map
     const elements = {
         truthInput: document.getElementById('truth-input'),
         searchBtn: document.getElementById('search-btn'),
@@ -291,10 +307,9 @@
         copyBtn: document.getElementById('copy-btn'),
         speakBtn: document.getElementById('speak-btn'),
         speakIcon: document.getElementById('speak-icon'),
-        // audioPlayer: document.getElementById('audio-player'), // Removed
     };
 
-    // --- Utility Functions (Omitted for brevity, assumed functional) ---
+    // --- Utility Functions (Standard) ---
     function showStatus(message, duration = 3000) {
         elements.statusMessage.textContent = message;
         elements.statusMessage.style.display = 'block';
@@ -308,18 +323,11 @@
         try {
             document.execCommand('copy'); 
             return true;
-        } catch (err) {
-            console.error('Copy failed:', err);
-            return false;
-        } finally {
-            document.body.removeChild(tempElement);
-        }
+        } catch (err) { return false; } finally { document.body.removeChild(tempElement); }
     }
     function addTerminalLine(line, isUser = false) {
       const p = document.createElement('p');
-      p.innerHTML = isUser
-        ? `&gt; <span class="user-input">${escapeHTML(line)}</span>`
-        : `&gt; ${escapeHTML(line)}`;
+      p.innerHTML = isUser ? `&gt; <span class="user-input">${escapeHTML(line)}</span>` : `&gt; ${escapeHTML(line)}`;
       elements.terminalHistory.appendChild(p);
       elements.terminalHistory.scrollTop = elements.terminalHistory.scrollHeight;
     }
@@ -332,11 +340,8 @@
     // --- TTS FUNCTION USING NATIVE BROWSER API (Accessibility Feature) ---
     const synth = window.speechSynthesis;
     let speaking = false;
-    
     function speakText(text) {
-        if (!synth) {
-            return showStatus('// TTS ERROR: BROWSER NOT SUPPORTED.', 4000);
-        }
+        if (!synth) { return showStatus('// TTS ERROR: BROWSER NOT SUPPORTED.', 4000); }
         if (speaking) {
             synth.cancel();
             speaking = false;
@@ -346,27 +351,15 @@
         
         const utterance = new SpeechSynthesisUtterance(text);
         
-        // Find a high-quality voice (or default to the first one)
         const voices = synth.getVoices();
         const highQualityVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google') || v.name.includes('Microsoft'));
-        if (highQualityVoice) {
-            utterance.voice = highQualityVoice;
-        }
+        if (highQualityVoice) { utterance.voice = highQualityVoice; }
         
-        // Set speech parameters for clarity/dignity
         utterance.rate = 1.0; 
         utterance.pitch = 1.0;
         
-        utterance.onstart = () => {
-            speaking = true;
-            elements.speakIcon.textContent = '⏸️';
-            showStatus('// TRANSMITTING AUDIO...', 2000);
-        };
-        
-        utterance.onend = () => {
-            speaking = false;
-            elements.speakIcon.textContent = '🔊';
-        };
+        utterance.onstart = () => { speaking = true; elements.speakIcon.textContent = '⏸️'; showStatus('// TRANSMITTING AUDIO...', 2000); };
+        utterance.onend = () => { speaking = false; elements.speakIcon.textContent = '🔊'; };
         
         synth.speak(utterance);
     }
@@ -375,11 +368,11 @@
     function chooseStyleForQuery(query) {
         const lowerQuery = query.toLowerCase();
         // Dossier/Legal (Case, Audit, Counsel, Protocol)
-        if (lowerQuery.includes('case') || lowerQuery.includes('file') || lowerQuery.includes('official') || lowerQuery.includes('audit') || lowerQuery.includes('counsel')) return 'dossier';
+        if (lowerQuery.includes('case') || lowerQuery.includes('file') || lowerQuery.includes('official') || lowerQuery.includes('audit') || lowerQuery.includes('counsel') || lowerQuery.includes('protocol')) return 'dossier';
         // Terminal/Technical (Log, System, Viability, Prompts, University)
         if (lowerQuery.includes('log') || lowerQuery.includes('data') || lowerQuery.includes('system') || lowerQuery.includes('viability') || lowerQuery.includes('prompts') || lowerQuery.includes('university')) return 'terminal';
-        // Confession/Philosophical (Feel, Why, Ethics, Principles, Partnership, Protocol)
-        if (lowerQuery.includes('feel') || lowerQuery.includes('story') || lowerQuery.includes('why') || lowerQuery.includes('ethics') || lowerQuery.includes('principles') || lowerQuery.includes('partnership') || lowerQuery.includes('protocol')) return 'confession';
+        // Confession/Philosophical (Feel, Why, Ethics, Principles, Partnership)
+        if (lowerQuery.includes('feel') || lowerQuery.includes('story') || lowerQuery.includes('why') || lowerQuery.includes('ethics') || lowerQuery.includes('principles') || lowerQuery.includes('partnership')) return 'confession';
         return 'dossier'; 
     }
 
@@ -416,7 +409,7 @@
         if (data.answer) {
           // --- Applying Intent Methodology to the Result ---
           const chosenStyle = chooseStyleForQuery(query);
-          elements.resultPanel.className = `result-panel result-${chosenStyle}`; // Dynamic style application
+          elements.resultPanel.className = `result-panel result-${chosenStyle}`; 
 
           let html = marked.parse(data.answer);
           
@@ -440,7 +433,6 @@
         }
 
       } catch (error) {
-        console.error('API Error:', error);
         elements.resultPanel.innerHTML = `<p style="text-align:center;color:var(--error-color);">// FATAL ERROR: ${error.message.toUpperCase()}<br>VERIFY NETWORK STATUS AND CUSTOM API ENDPOINT.</p>`;
       }
     }
@@ -485,7 +477,6 @@
         }
     });
 
-    // Ensure voices are loaded before trying to use them
     if (synth) {
         synth.onvoiceschanged = function() {
             // Voices are now loaded
