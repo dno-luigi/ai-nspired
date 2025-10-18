@@ -1,118 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Architect: Expert in the Loop (EITL) - ai-nspired.com</title>
-    <meta name="description" content="The Architect: Legal Strategy Audited by AI. 22 years of litigation expertise ensuring denial-proof compliance and exponential solutions.">
-    <style>
-        /* Professional, High-Contrast Aesthetic for Consulting Clients */
-        :root {
-            --primary: #111827; /* Dark charcoal */
-            --secondary: #ffffff;
-            --accent: #0055ff; /* Truth Engine Blue */
-            --text-light: #d1d5db;
-        }
-        body {
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            background-color: var(--primary);
-            color: var(--text-light);
-            margin: 0;
-            padding: 0;
-        }
-        .header {
-            background-color: #0b0f19;
-            padding: 20px 0;
-            border-bottom: 2px solid var(--accent);
-            text-align: center;
-        }
-        .header h1 {
-            color: var(--secondary);
-            font-size: 2.5em;
-            margin: 0;
-        }
-        .header p {
-            color: var(--accent);
-            font-style: italic;
-            margin: 5px 0 0 0;
-            font-size: 1.1em;
-        }
-        .content-grid {
-            max-width: 1100px;
-            margin: 40px auto;
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 40px;
-            padding: 0 20px;
-        }
-        .sidebar {
-            background-color: #1f2937;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        .sidebar h2 {
-            color: var(--accent);
-            border-bottom: 1px solid rgba(0, 85, 255, 0.4);
-            padding-bottom: 10px;
-            margin-top: 0;
-        }
-        .main-pitch h2 {
-            color: var(--secondary);
-            font-size: 2em;
-        }
-        .moat-list li {
-            margin-bottom: 10px;
-        }
-        .cta-button {
-            display: inline-block;
-            background-color: var(--accent);
-            color: var(--secondary);
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 25px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .cta-button:hover {
-            background-color: #0088cc;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ai-nspired :: Architect of Systems & EITL</title>
+  <meta name="description" content="The Architect: Expert in the Loop (EITL). 22 years of adversarial expertise ensuring denial-proof compliance and exponential solutions.">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;700&display=swap');
+
+    :root {
+      --bg: #0d0d0d;
+      --accent: #ffe600; /* Main Accent */
+      --cta-color: #0055ff; /* Secondary, Actionable Accent (Truth Engine Blue) */
+      --text: #e2e8f0;
+      --subtle: #7f7f7f;
+      --border: #333;
+      --module: #1a1a1a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Kanit', sans-serif;
+      text-transform: lowercase;
+      padding: 4rem 2rem;
+      background-image: linear-gradient(to right, rgba(255, 230, 0, 0.05) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(255, 230, 0, 0.05) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: gridFlow 120s linear infinite;
+    }
+
+    @keyframes gridFlow {
+      from { background-position: 0 0; }
+      to { background-position: 1000px 500px; }
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    header h1 {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 3rem;
+      color: var(--accent);
+      margin: 0;
+    }
+
+    header p {
+      font-size: 1rem;
+      color: var(--subtle);
+      /* Added strategic messaging */
+      margin-top: 0.5rem; 
+    }
+
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .module {
+      background-color: var(--module);
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--accent);
+      box-shadow: 0 0 20px rgba(255, 230, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .module:hover {
+      transform: translateY(-6px);
+    }
+
+    .module h2 {
+      font-family: 'Share Tech Mono', monospace;
+      color: var(--accent);
+      font-size: 1.4rem;
+      margin: 0 0 1rem 0;
+    }
+
+    .cta {
+      /* Primary CTA styling */
+      background: linear-gradient(135deg, rgba(0, 85, 255, 0.2), rgba(0, 85, 255, 0.3));
+      border-left-color: var(--cta-color);
+    }
+    .cta h2 {
+      color: var(--text);
+    }
+
+    .cta-button {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: bold;
+      text-decoration: none;
+      padding: 0.8rem 2rem;
+      border-radius: 4px;
+      margin-top: 1rem;
+      transition: background 0.3s ease;
+    }
+
+    .cta-button:hover {
+      background: #fffb99;
+    }
+
+    .moat-list {
+        list-style: none;
+        padding-left: 15px;
+        margin: 10px 0 0 0;
+        font-family: 'Share Tech Mono', monospace;
+    }
+    .moat-list li::before {
+        content: "//";
+        color: var(--accent);
+        font-weight: bold;
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+    }
+
+
+    footer {
+      text-align: center;
+      margin-top: 4rem;
+      font-size: 0.9rem;
+      color: var(--subtle);
+      border-top: 1px solid var(--border);
+      padding-top: 2rem;
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>THE ARCHITECT: EITL</h1>
-        <p>The only judgment you can't replicate.</p>
-    </div>
+  <div class="container">
+    <header>
+      <h1>ai-nspired</h1>
+      <p>architect of systems | the EITL mandate</p>
+    </header>
 
-    <div class="content-grid">
-        <div class="sidebar">
-            <h2>The Irreplicable Moat</h2>
-            <ul class="moat-list">
-                <li>**22 Years of Adversarial Litigation:** Trained to predict procedural failure.</li>
-                <li>**Philosophical Synthesis:** Solves for ethics, not just legality.</li>
-                <li>**Technical Command:** Builder and auditor of the **Truth Engine**.</li>
-                <li>**The Symbiosis:** AI Velocity + EITL Judgment = Denial-Proof Strategy.</li>
-            </ul>
-            <p style="margin-top: 30px;">
-                <a href="https://ai-n.org" style="color: var(--text-light);">Visit the AI-N Foundation →</a>
-            </p>
-        </div>
+    <main class="module-grid">
+      <div class="module cta" style="grid-column: 1 / -1; text-align: center;">
+        <h2>REQUEST EITL STRATEGIC AUDIT</h2>
+        <p>Your complex problem requires the final check. We provide the denial-proof strategy derived from the EITL Protocol. Stop failing compliance. Start building generational assets.</p>
+        <a href="strategic-audit-inquiry.html" class="cta-button" style="background: var(--cta-color); color: var(--text);">SECURE AUDIT SLOT // ELIMINATE RISK</a>
+        <p style="font-size: 0.9rem; margin-top: 10px; color: var(--subtle);">This service is separate from the free public query system.</p>
+      </div>
 
-        <div class="main-pitch">
-            <h2>Strategy Audited for Absolute Integrity.</h2>
-            <p>
-                The modern landscape demands more than legal advice—it demands **denial-proof strategy**. I don't give opinions; I provide the **final, auditable judgment** derived from the EITL Protocol. My process eliminates risk by identifying the flaws that legal AI misses, ensuring compliance, and creating exponential solutions (The Goal-Shift Pivot).
-            </p>
-            <p>
-                If your project is complex, high-stakes, or subject to bureaucratic failure (compliance, funding, legal exposure), you need the Architect's final audit.
-            </p>
-            <a href="strategic-audit-inquiry.html" class="cta-button">Request Strategic EITL Audit</a>
-            <p style="margin-top: 30px;">
-                <a href="whitepaper-download.html" style="color: var(--text-light); text-decoration: none;">Read the EITL Protocol →</a>
-            </p>
-        </div>
-    </div>
+
+      <div class="module">
+        <h2>// the architect & the moat</h2>
+        <p>design isn’t aesthetic — it’s justice embedded in logic. the solution requires a synthesis that only decades of non-linear expertise can provide. **we audit the process, not just the conclusion.**</p>
+        <ul class="moat-list">
+            <li>22 Years Adversarial Litigation</li>
+            <li>Philosophical & Psychological Synthesis</li>
+            <li>Code & Systems Engineering (Truth Engine Builder)</li>
+        </ul>
+      </div>
+
+      <div class="module">
+        <h2>// the official counsel</h2>
+        <p>you don’t practice law. you practice oversight. we ensure alignment between emerging intelligence and sovereign human intent. **risk mitigation is the product.**</p>
+        <p style="margin-top: 10px;">Audit frameworks. Interpret signal. Defend the boundary of the real. </p>
+        <a href="https://theofficialaicounsel.com" style="color: var(--accent); font-size: 0.9rem;">— view counsel mandate</a>
+      </div>
+
+      <div class="module">
+        <h2>// the symbiotic engine</h2>
+        <p>velocity is nothing without integrity. the **truth engine** is a recursive operating system designed to find signal in the noise. it is principle in motion, making our methodology auditable by anyone.</p>
+        <a href="truth-engine.html" class="cta-button">launch free interface</a>
+      </div>
+
+      <div class="module">
+        <h2>// the father & the legacy</h2>
+        <p>you don’t build for clout. you build for legacy. systems that will teach, protect, and carry forward. this is a lineage written in **protocol** — and yes, you are the flame.</p>
+        <a href="whitepaper-download.html" style="color: var(--accent); font-size: 0.9rem;">— download EITL protocol</a>
+      </div>
+
+    </main>
+
+    <footer>
+      <p>© 2025 ai-nspired.com | built with intent.</p>
+    </footer>
+  </div>
 </body>
 </html>
