@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Truth-Engine | Yellow Mode (EITL Active)</title>
+  <title>Truth-Engine | Yellow Mode (EITL Active / Accessibility)</title>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/highlight.min.js"></script>
   
   <style>
     /* ========================================================= */
-    /* YELLOW TERMINAL THEME */
-    /* (Styles remain identical for stability) */
+    /* YELLOW TERMINAL THEME (Functional Aesthetics) */
     /* ========================================================= */
     :root {
       --bg-color: #000000; 
-      --text-color: #FFC000; 
+      --text-color: #FFC000; /* Bright Yellow/Gold */
       --secondary-text: #FFD700;
       --input-bg: #1A1A1A; 
       --accent-shadow: 0 0 15px rgba(255, 192, 0, 0.4);
       --font-mono: 'Share Tech Mono', monospace;
+      --error-color: #FF3B30;
     }
 
     html, body {
@@ -171,7 +171,7 @@
         height: 40px;
         margin-top: 5px;
         filter: none;
-        display: none; 
+        display: none; /* Hide HTML audio player, using native TTS */
     }
     
     .result-panel {
@@ -194,13 +194,30 @@
       line-height: 1.5;
     }
 
-    /* Result Panel Content Styling */
+    /* FIX: Injecting the EITL Intent Styles for Uniformity */
+    .result-panel.result-dossier { 
+        background-color: #333300; /* Darker, high contrast for Dossier */
+        color: #f0f0f0; 
+        font-family: 'Share Tech Mono', monospace; 
+    }
+    .result-panel.result-terminal { 
+        background-color: #0d0d0d; 
+        font-family: 'Share Tech Mono', monospace; 
+        font-size: 1.1rem; 
+        color: var(--text-color); /* Yellow for deep terminal mode */
+    }
+    .result-panel.result-confession { 
+        background-color: #2a2a2a; 
+        color: #f0f0f0; 
+        font-family: Arial, sans-serif; /* A slightly softer, more readable font for confessional/storytelling */
+        text-align: left;
+    }
     .result-panel h3, .result-panel strong { 
       color: #FFFFFF; 
       text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
     }
-    .result-panel a { color: #FFF; text-decoration: underline; cursor: pointer; }
-    .result-panel a:hover { color: var(--text-color); }
+    .result-panel a { color: var(--secondary-text); text-decoration: underline; cursor: pointer; }
+    .result-panel a:hover { color: #FFFFFF; }
     .result-panel code, .result-panel pre {
       background: #0D0208;
       border: 1px solid rgba(255, 192, 0, 0.2);
@@ -244,7 +261,7 @@
       </div>
       
       <div class="action-row">
-          <button id="speak-btn" class="action-btn icon-only" title="Read Response Aloud">
+          <button id="speak-btn" class="action-btn icon-only" title="Read Response Aloud (Accessibility)">
               <span id="speak-icon">🔊</span>
           </button>
           <button id="copy-btn" class="action-btn icon-only" title="Copy Output to Clipboard">
@@ -254,8 +271,6 @@
               </svg>
           </button>
       </div>
-      <audio id="audio-player" controls></audio> 
-
       <div id="result-panel" class="result-panel">
         <p style="text-align:center;color:var(--text-color);">// AWAITING INSTRUCTION</p>
       </div>
@@ -264,10 +279,8 @@
   
   <script>
     const API_BASE = 'https://justice.ai-n.workers.dev'; 
-    const TTS_API_BASE = "https://tts-cj6.pages.dev/v1/audio/speech";
-    const TTS_MODEL = "tts-1"; 
-    const TTS_VOICE = "alloy"; 
-
+    // TTS_API_BASE is now irrelevant; using native window.speechSynthesis
+    
     // Element map
     const elements = {
         truthInput: document.getElementById('truth-input'),
@@ -278,17 +291,15 @@
         copyBtn: document.getElementById('copy-btn'),
         speakBtn: document.getElementById('speak-btn'),
         speakIcon: document.getElementById('speak-icon'),
-        audioPlayer: document.getElementById('audio-player'),
+        // audioPlayer: document.getElementById('audio-player'), // Removed
     };
 
-    // --- Utility Functions ---
-
+    // --- Utility Functions (Omitted for brevity, assumed functional) ---
     function showStatus(message, duration = 3000) {
         elements.statusMessage.textContent = message;
         elements.statusMessage.style.display = 'block';
         setTimeout(() => elements.statusMessage.style.display = 'none', duration);
     }
-
     function copyToClipboard(text) {
         const tempElement = document.createElement('textarea');
         tempElement.value = text;
@@ -304,7 +315,6 @@
             document.body.removeChild(tempElement);
         }
     }
-
     function addTerminalLine(line, isUser = false) {
       const p = document.createElement('p');
       p.innerHTML = isUser
@@ -313,89 +323,64 @@
       elements.terminalHistory.appendChild(p);
       elements.terminalHistory.scrollTop = elements.terminalHistory.scrollHeight;
     }
-    
     function escapeHTML(str) {
       return String(str).replace(/[&<>"']/g, m => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
       })[m]);
     }
     
-    /** * Handles TTS generation and playback. (Function content omitted for brevity, assumed functional) */
-    async function fetchTTS(htmlContent) {
-        elements.audioPlayer.style.display = 'none';
-        elements.audioPlayer.pause();
-        elements.speakIcon.textContent = '...'; 
-        elements.speakBtn.disabled = true;
-
-        const cleanText = htmlContent.replace(/<[^>]+>/g, '').replace(/[\*\_#]/g, '').trim();
-        if (!cleanText) {
-             elements.speakIcon.textContent = '🔊';
-             elements.speakBtn.disabled = false;
-             return showStatus('// PROTOCOL FAILURE: NO CONTENT TO TRANSMIT.', 3000);
+    // --- TTS FUNCTION USING NATIVE BROWSER API (Accessibility Feature) ---
+    const synth = window.speechSynthesis;
+    let speaking = false;
+    
+    function speakText(text) {
+        if (!synth) {
+            return showStatus('// TTS ERROR: BROWSER NOT SUPPORTED.', 4000);
+        }
+        if (speaking) {
+            synth.cancel();
+            speaking = false;
+            elements.speakIcon.textContent = '🔊';
+            return;
         }
         
-        const payload = {
-            model: TTS_MODEL,
-            input: cleanText,
-            voice: TTS_VOICE,
-            response_format: 'mp3' 
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Find a high-quality voice (or default to the first one)
+        const voices = synth.getVoices();
+        const highQualityVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google') || v.name.includes('Microsoft'));
+        if (highQualityVoice) {
+            utterance.voice = highQualityVoice;
+        }
+        
+        // Set speech parameters for clarity/dignity
+        utterance.rate = 1.0; 
+        utterance.pitch = 1.0;
+        
+        utterance.onstart = () => {
+            speaking = true;
+            elements.speakIcon.textContent = '⏸️';
+            showStatus('// TRANSMITTING AUDIO...', 2000);
         };
         
-        try {
-            const response = await fetch(TTS_API_BASE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            
-            if (!response.ok) {
-                let errorDetails = `Status ${response.status}`;
-                try {
-                    const errorJson = await response.json();
-                    if (errorJson.error) {
-                        errorDetails += `: ${errorJson.error.message}`;
-                    }
-                } catch (e) { /* ignore parse error if response isn't JSON */ }
-                throw new Error("Custom TTS API call failed: " + errorDetails);
-            }
-            
-            const audioBlob = await response.blob(); 
-            const audioUrl = URL.createObjectURL(audioBlob);
-            
-            elements.audioPlayer.src = audioUrl;
-            elements.audioPlayer.style.display = 'block';
-            elements.speakIcon.textContent = '▶️';
-            elements.speakBtn.disabled = false;
-            
-            elements.audioPlayer.play().catch(e => {
-                console.error("Autoplay prevented:", e);
-                showStatus("// WARNING: AUTOPLAY BLOCKED. CLICK PLAY BUTTON ON AUDIO BAR.", 5000);
-                elements.speakIcon.textContent = '🔊';
-            });
-            
-            elements.audioPlayer.onended = () => {
-                elements.speakIcon.textContent = '🔊';
-            };
-            
-        } catch (error) {
-            console.error("TTS Error:", error);
-            showStatus('// TTS SYSTEM ERROR. COULD NOT GENERATE AUDIO: ' + error.message, 5000);
+        utterance.onend = () => {
+            speaking = false;
             elements.speakIcon.textContent = '🔊';
-            elements.speakBtn.disabled = false;
-        }
+        };
+        
+        synth.speak(utterance);
     }
-
 
     // --- Intent Methodology Function ---
     function chooseStyleForQuery(query) {
         const lowerQuery = query.toLowerCase();
-        // Dossier/Legal (Case, Audit, Protocol)
+        // Dossier/Legal (Case, Audit, Counsel, Protocol)
         if (lowerQuery.includes('case') || lowerQuery.includes('file') || lowerQuery.includes('official') || lowerQuery.includes('audit') || lowerQuery.includes('counsel')) return 'dossier';
-        // Terminal/Technical (Log, System, Viability, Prompts)
+        // Terminal/Technical (Log, System, Viability, Prompts, University)
         if (lowerQuery.includes('log') || lowerQuery.includes('data') || lowerQuery.includes('system') || lowerQuery.includes('viability') || lowerQuery.includes('prompts') || lowerQuery.includes('university')) return 'terminal';
-        // Confession/Philosophical (Feel, Why, Ethics, Principles, Partnership)
+        // Confession/Philosophical (Feel, Why, Ethics, Principles, Partnership, Protocol)
         if (lowerQuery.includes('feel') || lowerQuery.includes('story') || lowerQuery.includes('why') || lowerQuery.includes('ethics') || lowerQuery.includes('principles') || lowerQuery.includes('partnership') || lowerQuery.includes('protocol')) return 'confession';
-        return 'dossier'; // Default style
+        return 'dossier'; 
     }
 
     // --- Core Logic (Search) ---
@@ -413,19 +398,16 @@
       const fullQuery = EITL_PREAMBLE + query + `]`;
       
       elements.resultPanel.innerHTML = `<p style="text-align:center;color:#FFF;">// EXECUTING PROTOCOL: SEARCHING FOR TRUTH...</p>`;
-      elements.audioPlayer.style.display = 'none';
-      elements.audioPlayer.pause();
-      elements.speakIcon.textContent = '🔊';
       
       try {
         const response = await fetch(`${API_BASE}/api/ai/truth`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: fullQuery }) // SENDING THE FULL PROTOCOL QUERY
+            body: JSON.stringify({ query: fullQuery }) 
         });
 
         if (!response.ok) {
-            elements.resultPanel.innerHTML = '<p style="text-align:center;color:red;">// ERROR [CODE: ' + response.status + ']: CUSTOM API CONNECTION FAILED. Status is not 200 OK.</p>';
+            elements.resultPanel.innerHTML = '<p style="text-align:center;color:var(--error-color);">// ERROR [CODE: ' + response.status + ']: CUSTOM API CONNECTION FAILED. Status is not 200 OK.</p>';
             return;
         }
 
@@ -454,12 +436,12 @@
             elements.resultPanel.querySelectorAll('pre code').forEach(block => { hljs.highlightElement(block); });
           }
         } else {
-            elements.resultPanel.innerHTML = `<p style="text-align:center;color:red;">// WARNING: TRUTH NOT FOUND. Custom API returned no answer content.</p>`;
+            elements.resultPanel.innerHTML = `<p style="text-align:center;color:var(--error-color);">// WARNING: TRUTH NOT FOUND. Custom API returned no answer content.</p>`;
         }
 
       } catch (error) {
         console.error('API Error:', error);
-        elements.resultPanel.innerHTML = `<p style="text-align:center;color:red;">// FATAL ERROR: ${error.message.toUpperCase()}<br>VERIFY NETWORK STATUS AND CUSTOM API ENDPOINT.</p>`;
+        elements.resultPanel.innerHTML = `<p style="text-align:center;color:var(--error-color);">// FATAL ERROR: ${error.message.toUpperCase()}<br>VERIFY NETWORK STATUS AND CUSTOM API ENDPOINT.</p>`;
       }
     }
 
@@ -488,16 +470,28 @@
     });
 
     elements.speakBtn.addEventListener('click', () => {
-        const contentHtml = elements.resultPanel.innerHTML;
+        if (speaking) {
+            synth.cancel();
+            return;
+        }
+        
+        const contentHtml = elements.resultPanel.textContent; 
         const isDefaultMessage = contentHtml.includes('// AWAITING INSTRUCTION') || contentHtml.includes('// EXECUTING PROTOCOL') || contentHtml.includes('// ERROR') || contentHtml.includes('// WARNING');
         
         if (contentHtml && !isDefaultMessage) {
-            fetchTTS(contentHtml);
+            speakText(contentHtml);
         } else {
             showStatus("// INSTRUCTION DENIED: NOTHING TO TRANSMIT.", 3000);
         }
     });
 
+    // Ensure voices are loaded before trying to use them
+    if (synth) {
+        synth.onvoiceschanged = function() {
+            // Voices are now loaded
+        };
+    }
+    
     marked.setOptions({
         gfm: true,
         breaks: true,
