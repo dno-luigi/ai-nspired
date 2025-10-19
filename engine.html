@@ -58,7 +58,7 @@
         .command-line {
             display: flex;
             align-items: center;
-            margin-top: 1.5rem;
+            margin-top: 0.5rem; /* Adjusted margin slightly */
         }
 
         .command-line::before {
@@ -132,7 +132,7 @@
         }
         .citation-block h3 {
             margin-top: 0;
-            color: var(--text-color); /* Updated to Yellow */
+            color: var(--text-color); /* Yellow */
             font-size: 1.2rem;
         }
         .citation-block ul {
@@ -149,6 +149,7 @@
         .citation-block a:hover {
             text-decoration: underline;
         }
+        
         /* --- Dynamic Result Styles --- */
         .result-dossier { background-color: #e8e6e1; color: #1a1a1a; font-family: 'Special Elite', cursive; }
         .result-dossier h2 { font-size: 2rem; text-align: center; margin: 0 0 2rem 0; color: #9a2a2a; }
@@ -160,10 +161,10 @@
         .result-terminal p { margin: 0.5rem 0; }
         .result-terminal p::before { 
             content: '>> '; 
-            color: var(--text-color); /* Updated to Yellow */
+            color: var(--text-color); /* Yellow */
         }
         .result-terminal .header { 
-            color: var(--text-color); /* Updated to Yellow */
+            color: var(--text-color); /* Yellow */
             margin-bottom: 1rem; 
         }
         .result-terminal .critical-error { color: #ff3b30; }
@@ -181,6 +182,9 @@
 
     <div class="terminal-window">
         <p class="typed-text">connected. truth-engine ready. all the funk yeahs.</p>
+        <p style="font-size: 1rem; color: #8b949e; margin-top: 0.5rem; border-top: 1px dotted #30363d;">
+            EITL Protocol: Objectivity • Scrutiny • Transparency • Limitations • Action
+        </p>
         <div class="command-line">
             <input type="text" class="search-input" id="queryInput" placeholder="if you want tb, type 'i want tb'" autofocus />
         </div>
@@ -194,6 +198,10 @@
             </div>
             <div class="result-container" id="resultContainer">
                 </div>
+            <div class="modal-footer" id="modalFooter" style="display: none; padding: 1rem; border-top: 1px solid var(--border-color); justify-content: flex-end; gap: 1rem;">
+                <button id="copyAnalysisBtn" style="background: none; border: 1px solid var(--text-color); color: var(--text-color); font-family: 'VT323', monospace; font-size: 1.2rem; cursor: pointer; padding: 0.5rem 1rem;">Copy Analysis</button>
+                <button id="ttsBtn" style="background: none; border: 1px solid var(--text-color); color: var(--text-color); font-family: 'VT323', monospace; font-size: 1.2rem; cursor: pointer; padding: 0.5rem 1rem;">TTS (Read Aloud)</button>
+            </div>
         </div>
     </div>
 
@@ -204,9 +212,17 @@
         const modalOverlay = document.getElementById('modal-overlay');
         const closeModalBtn = document.getElementById('close-modal');
         const resultContainer = document.getElementById('resultContainer');
+        
+        // NEW VARIABLES
+        const modalFooter = document.getElementById('modalFooter');
+        const copyAnalysisBtn = document.getElementById('copyAnalysisBtn');
+        const ttsBtn = document.getElementById('ttsBtn'); // Variable name remains consistent
+
 
         function openModal() {
             modalOverlay.classList.add('active');
+            // Hide footer on open (until results load)
+            modalFooter.style.display = 'none'; 
         }
 
         function closeModal() {
@@ -215,7 +231,6 @@
 
         /**
          * Selects the styling class based on keywords in the user's query.
-         * This aligns with the EITL (Evidence, Insight, Transparency, Logic) audit categories.
          */
         function chooseStyleForQuery(query) {
             const lowerQuery = query.toLowerCase();
@@ -224,6 +239,56 @@
             if (lowerQuery.includes('feel') || lowerQuery.includes('story') || lowerQuery.includes('why') || lowerQuery.includes('ethics') || lowerQuery.includes('principles') || lowerQuery.includes('partnership')) return 'confession';
             return 'dossier'; // Default style
         }
+        
+        /** * FUNCTION: Copies the clean text content of the result container.
+         */
+        function copyAnalysisToClipboard() {
+            const textToCopy = resultContainer.innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                copyAnalysisBtn.innerText = 'COPIED!';
+                setTimeout(() => copyAnalysisBtn.innerText = 'Copy Analysis', 2000);
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+                copyAnalysisBtn.innerText = 'Error!';
+                setTimeout(() => copyAnalysisBtn.innerText = 'Copy Analysis', 2000);
+            });
+        }
+        
+        /**
+         * FUNCTION: Uses the Web Speech API for Text-to-Speech (TTS).
+         * FIX: Ensures Utterance is created within the click handler for reliability.
+         */
+        function readAnalysisAloud() {
+            if ('speechSynthesis' in window) {
+                
+                // Stop if already speaking
+                if (window.speechSynthesis.speaking) {
+                    window.speechSynthesis.cancel();
+                    ttsBtn.innerText = 'TTS (Stopped)';
+                    setTimeout(() => ttsBtn.innerText = 'TTS (Read Aloud)', 1000);
+                    return;
+                }
+                
+                const textToSpeak = resultContainer.innerText.replace(/(\n|\t)/g, ' ');
+                const utterance = new SpeechSynthesisUtterance(textToSpeak); // CRITICAL FIX: Create utterance here
+                
+                utterance.rate = 1.1; 
+                
+                ttsBtn.innerText = 'TTS (Speaking...)';
+                utterance.onend = () => {
+                    ttsBtn.innerText = 'TTS (Read Aloud)';
+                };
+                
+                // A small delay sometimes helps with browser context and initialization
+                setTimeout(() => {
+                    window.speechSynthesis.speak(utterance);
+                }, 100);
+
+            } else {
+                alert('Text-to-Speech is not supported in this browser.');
+            }
+        }
+
 
         /**
          * The core function to send the query to the backend API and display results.
@@ -232,22 +297,18 @@
             if (!query) return;
 
             openModal();
-            // Update the modal title to indicate the protocol is active
             document.querySelector('.modal-title').innerHTML = 'DATA STREAM // ai-nspired | EITL PROTOCOL ACTIVE';
             
-            // Reset and show loading state
             resultContainer.className = 'result-container';
             resultContainer.innerHTML = '<p>⚡ Scanning truth matrix...</p>';
 
             try {
-                // The actual API call to Cloudflare
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ query }),
                 });
                 
-                // Check for HTTP errors
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -255,70 +316,63 @@
                 const data = await response.json();
                 
                 if (data.answer) {
-                    // Apply the correct dynamic style
                     const chosenStyle = chooseStyleForQuery(query);
                     resultContainer.className = 'result-container';
                     resultContainer.classList.add(`result-${chosenStyle}`);
                     
-                    // Convert markdown to HTML using marked.js
                     let resultHTML = marked.parse(data.answer);
 
-                    // Append the citation block if sources are provided
                     if (data.citations?.length) {
                         resultHTML += `<div class="citation-block"><h3>Source Verification (EITL Audit)</h3><ul>${data.citations.map(c => `<li><a href="${c.url}" target="_blank">${c.title}</a></li>`).join('')}</ul></div>`;
                     }
                     resultContainer.innerHTML = resultHTML;
+                    
+                    // CRITICAL: Show the button footer after successful load
+                    modalFooter.style.display = 'flex'; 
+
                 } else {
-                    // Handle case where API returns success but no answer
                     resultContainer.innerHTML = '<h3>Analysis Complete</h3><p>No definitive patterns found. Refine query parameters.</p>';
+                    modalFooter.style.display = 'none'; 
                 }
             } catch (error) {
-                // Display system-level error
                 resultContainer.innerHTML = `<h3>System Error (CRITICAL)</h3><p class="critical-error">Query failed: ${error.message}</p><p class="critical-error">Check API_URL and server status.</p>`;
+                modalFooter.style.display = 'none'; 
             }
         }
 
         // --- Event Listeners ---
 
-        // 1. Listen for the 'Enter' key in the input field
         queryInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 performTruthQuery(queryInput.value.trim());
             }
         });
 
-        // 2. Close modal buttons
         closeModalBtn.addEventListener('click', closeModal);
         modalOverlay.addEventListener('click', (e) => {
-            // Close the modal only if the click is on the backdrop (modal-overlay)
             if (e.target === modalOverlay) closeModal();
         });
+        
+        // ADDED LISTENERS FOR NEW BUTTONS
+        copyAnalysisBtn.addEventListener('click', copyAnalysisToClipboard);
+        ttsBtn.addEventListener('click', readAnalysisAloud);
 
 
-        // --- URL Parameter Initialization (The "CRITICAL FIX" logic) ---
-
-        /**
-         * Checks the URL for a 'q' parameter and automatically runs the query.
-         * This enables deep linking and external search integration.
-         */
+        // --- URL Parameter Initialization ---
         function initializeQueryFromURL() {
             const params = new URLSearchParams(window.location.search);
             const q = params.get('q');
             
             if (q) {
-                // 1. URL Decode the query (handles spaces encoded as '+' or '%20')
                 const decodedQuery = decodeURIComponent(q.replace(/\+/g, ' '));
                 
-                // 2. Populate the input field
                 const inputElement = document.getElementById('queryInput');
                 if (inputElement) {
                     inputElement.value = decodedQuery;
                 }
                 
-                // 3. Immediately perform the query.
                 performTruthQuery(decodedQuery);
                 
-                // 4. Clean up the terminal animation after auto-query
                 const typedTextElement = document.querySelector('.typed-text');
                 if (typedTextElement) {
                    typedTextElement.style.borderRight = 'none';
@@ -327,7 +381,6 @@
             }
         }
         
-        // Execute the URL check once the entire page has loaded
         window.addEventListener('load', initializeQueryFromURL); 
 
     </script>
