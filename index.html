@@ -4,17 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ai-nspired :: the architect (expert in the loop)</title>
-    <meta name="description" content="The Architect: Expert in the Loop. 22 years of adversarial expertise ensuring denial-proof compliance and exponential solutions.">
+    <meta name="description" content="the architect: expert in the loop. 22 years of adversarial expertise ensuring denial-proof compliance and exponential solutions.">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Merriweather:wght@300;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0d0d0d; /* Black background */
-            --primary-text: #f0f0f0; /* Light text for contrast */
-            --accent-slate: #1a1a1a; /* Dark slate for container */
-            --accent-yellow: #d4c4a8; /* Dulled yellow */
-            --block-bg: #1e1e1e; /* Dark block background */
+            --bg-color: #0d0d0d;
+            --primary-text: #f0f0f0;
+            --accent-slate: #1a1a1a;
+            --accent-yellow: #d4c4a8;
+            --block-bg: #1e1e1e;
             --border-dark: #2a2a2a;
-            --glow-color: rgba(212, 196, 168, 0.6); /* Muted yellow glow */
+            --glow-color: rgba(212, 196, 168, 0.8);
+            --strong-glow: rgba(212, 196, 168, 0.9);
         }
 
         * {
@@ -41,7 +42,7 @@
             width: 100%;
             padding: 3rem;
             background-color: var(--accent-slate);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 25px var(--glow-color);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 30px var(--glow-color);
             border-top: 5px solid var(--accent-yellow);
         }
 
@@ -54,14 +55,25 @@
 
         .header h1 {
             font-family: 'Cinzel', serif;
-            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-size: clamp(2.2rem, 5vw, 3.5rem);
             color: var(--accent-yellow);
             margin: 0.2rem 0;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            line-height: 1.2;
-            text-shadow: 0 0 15px var(--glow-color);
+            text-transform: none;
+            letter-spacing: 0.05em;
+            line-height: 1.1;
+            text-shadow: 0 0 20px var(--strong-glow), 0 0 30px var(--glow-color);
+        }
+
+        .header h2 {
+            font-family: 'Merriweather', serif;
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            color: var(--accent-yellow);
+            margin: 0.5rem 0 0 0;
+            font-weight: 300;
+            text-transform: none;
+            letter-spacing: 0.1em;
+            text-shadow: 0 0 10px var(--glow-color);
         }
 
         .funnel-link {
@@ -74,13 +86,13 @@
             font-family: 'Merriweather', serif;
             font-size: clamp(1.1rem, 2.5vw, 1.3rem);
             line-height: 1.8;
-            background-color: var(--block-bg); /* Dark block background */
+            background-color: var(--block-bg);
             border-left: 5px solid var(--accent-yellow);
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
         }
 
         .funnel-link:hover {
-            background-color: #2a2a2a; /* Slightly lighter on hover */
+            background-color: #2a2a2a;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
@@ -91,7 +103,7 @@
             display: block;
             font-family: 'Cinzel', serif;
             margin-bottom: 0.5rem;
-            text-transform: uppercase;
+            text-transform: none;
             letter-spacing: 1px;
             font-size: clamp(1.2rem, 3vw, 1.5rem);
         }
@@ -105,18 +117,18 @@
             font-family: 'Cinzel', serif;
             font-weight: 700;
             text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            text-transform: none;
+            letter-spacing: 1px;
             border: none;
             background-color: var(--accent-yellow);
             color: var(--bg-color);
-            box-shadow: 0 4px 15px rgba(212, 196, 168, 0.4);
+            box-shadow: 0 4px 15px rgba(212, 196, 168, 0.6);
         }
 
         .cta-button:hover {
             background-color: #c4b498;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(212, 196, 168, 0.6);
+            box-shadow: 0 6px 20px rgba(212, 196, 168, 0.8);
         }
 
         footer {
@@ -129,54 +141,53 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>
-                THE ARCHITECT (EXPERT IN THE LOOP)
-            </h1>
+            <h1>the architect</h1>
+            <h2>expert in the loop</h2>
         </header>
 
         <main>
             <a href="engine.html?q=the+architect+basis" class="funnel-link">
-                <strong>THE BASIS</strong>
-                Built to guarantee absolute, denial-proof integrity. Click to view the foundation.
+                <strong>the basis</strong>
+                built to guarantee absolute, denial-proof integrity. click to view the foundation.
             </a>
 
             <a href="engine.html?q=the+architect+expertise" class="funnel-link">
-                <strong>THE ARCHITECT’S DEFENSE</strong>
-                Design is justice embedded in logic. 22 years of adversarial expertise.
+                <strong>the architect’s defense</strong>
+                design is justice embedded in logic. 22 years of adversarial expertise.
             </a>
 
             <a href="theofficialaicounsel.com" class="funnel-link">
-                <strong>THE OFFICIAL AI COUNSEL</strong>
-                Ensures alignment with sovereign human intent. Risk mitigation is the final product.
+                <strong>the official ai counsel</strong>
+                ensures alignment with sovereign human intent. risk mitigation is the final product.
             </a>
 
             <a href="universallaws.com" class="funnel-link">
-                <strong>UNIVERSAL LAWS</strong>
-                Non-negotiable principles. Denial-proof governance starts here.
+                <strong>universal laws</strong>
+                non-negotiable principles. denial-proof governance starts here.
             </a>
 
             <a href="ai-nspired.org" class="funnel-link">
-                <strong>THE A.I. SPEAKEASY (.ORG)</strong>
-                Where philosophy and architecture intersect. Join the community.
+                <strong>the a.i. speakeasy (.org)</strong>
+                where philosophy and architecture intersect. join the community.
             </a>
 
             <a href="engine.html" class="funnel-link">
-                <strong>THE SYMBIOTIC ENGINE</strong>
-                Principle in motion. Auditable methodology for all.
+                <strong>the symbiotic engine</strong>
+                principle in motion. auditable methodology for all.
             </a>
 
             <a href="theofficialaiuniversity.com" class="funnel-link">
-                <strong>THE OFFICIAL AI UNIVERSITY</strong>
-                Build systems that live forever. You are the flame.
+                <strong>the official ai university</strong>
+                build systems that live forever. you are the flame.
             </a>
         </main>
 
         <div style="text-align: center;">
-            <a href="engine.html?q=EITL+Strategic+Audit+Inquiry" class="cta-button">SECURE STRATEGIC AUDIT SLOT</a>
+            <a href="engine.html?q=EITL+Strategic+Audit+Inquiry" class="cta-button">secure strategic audit slot</a>
         </div>
 
         <footer>
-            <p>© 2025 AI-NSPIRED.COM | BUILT WITH INTENT.</p>
+            <p>© 2025 ai-nspired.com | built with intent.</p>
         </footer>
     </div>
 </body>
