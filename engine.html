@@ -138,7 +138,7 @@
     .citation-block a:hover { text-decoration: underline; }
 
     .modal-footer { display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border-color); }
-    .modal-footer button { padding: 0.5rem 1rem; border: 1px solid var(--accent-color); background: none; color: var(--accent-color); font-weight: 700; cursor: pointer; }
+    .modal-footer button { padding: 0.5rem 1rem; border: 1px solid var(--accent-color); background: none; color: var(--accent-color); font-weight: 700; cursor: pointer; border-radius: 4px; }
     
     /* --- Mode Toggle Buttons --- */
     .mode-toggle { position: fixed; top: 1rem; right: 1rem; display: flex; gap: 0.5rem; }
@@ -171,6 +171,7 @@
         <div class="modal-footer" id="modalFooter">
             <button id="copyAnalysisBtn">Copy Analysis</button>
             <button id="ttsBtn">TTS (Read Aloud)</button>
+            <button id="followUpBtn">Follow-Up</button>
         </div>
     </div>
 </div>
@@ -183,7 +184,10 @@ const closeModalBtn = document.getElementById('close-modal');
 const resultContainer = document.getElementById('resultContainer');
 const copyAnalysisBtn = document.getElementById('copyAnalysisBtn');
 const ttsBtn = document.getElementById('ttsBtn');
+const followUpBtn = document.getElementById('followUpBtn');
 const body = document.body;
+
+let lastQuery = '';
 
 // --- Mode Functions ---
 function setMode(mode){
@@ -222,36 +226,62 @@ function readAnalysisAloud(){
 }
 
 // --- Query Function ---
-async function performTruthQuery(query){
+async function performTruthQuery(query, isFollowUp=false){
     if(!query) return;
+    lastQuery = query; // store for follow-up
     openModal();
-    resultContainer.className='result-container';
-    resultContainer.innerHTML='<p>⚡ Scanning truth matrix...</p>';
+    
+    if(!isFollowUp){
+        resultContainer.innerHTML='<p>⚡ Scanning truth matrix...</p>';
+        resultContainer.className='result-container';
+    }
+
     try{
-        const res = await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query})});
+        const res = await fetch(API_URL,{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({query})
+        });
         if(!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const data = await res.json();
-        const chosenStyle=chooseStyleForQuery();
+        const chosenStyle = chooseStyleForQuery();
         resultContainer.className='result-container result-'+chosenStyle;
+
         let html = data.answer ? marked.parse(data.answer) : '<p>No results found.</p>';
         if(data.citations?.length){
-            html+=`<div class="citation-block"><h3>Sources</h3><ul>${data.citations.map(c=>`<li><a href="${c.url}" target="_blank">${c.title}</a></li>`).join('')}</ul></div>`;
+            html += `<div class="citation-block"><h3>Sources</h3><ul>${data.citations.map(c=>`<li><a href="${c.url}" target="_blank">${c.title}</a></li>`).join('')}</ul></div>`;
         }
-        resultContainer.innerHTML=html;
+
+        if(isFollowUp){
+            resultContainer.innerHTML += `<hr>` + html; // append for follow-up
+        } else {
+            resultContainer.innerHTML = html;
+        }
     } catch(err){
         resultContainer.innerHTML=`<h3>System Error</h3><p>${err.message}</p>`;
     }
 }
 
 // --- Event Listeners ---
-queryInput.addEventListener('keypress',e=>{if(e.key==='Enter') performTruthQuery(queryInput.value.trim());});
+queryInput.addEventListener('keypress', e=>{
+    if(e.key==='Enter'){
+        const isFollowUp = queryInput.value.includes('→');
+        performTruthQuery(queryInput.value.trim(), isFollowUp);
+    }
+});
+
 closeModalBtn.addEventListener('click',closeModal);
-modalOverlay.addEventListener('click',e=>{if(e.target===modalOverlay) closeModal();});
+modalOverlay.addEventListener('click', e=>{if(e.target===modalOverlay) closeModal();});
 copyAnalysisBtn.addEventListener('click',copyAnalysisToClipboard);
 ttsBtn.addEventListener('click',readAnalysisAloud);
 
+followUpBtn.addEventListener('click', ()=>{
+    queryInput.focus();
+    queryInput.value = lastQuery ? lastQuery + ' → ' : '';
+});
+
 // Initialize query from URL
-window.addEventListener('load',()=>{
+window.addEventListener('load', ()=>{
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q');
     if(q){ queryInput.value = decodeURIComponent(q.replace(/\+/g,' ')); performTruthQuery(queryInput.value); }
