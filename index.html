@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI-Nspired :: The Architect & EITL Protocol</title>
-  <meta name="description" content="The Architect: Expert in the Loop (EITL). 22 years of adversarial expertise ensuring denial-proof compliance and exponential solutions.">
+  <title>ai-nspired :: the architect (expert in the loop)</title>
+  <meta name="description" content="the architect: expert in the loop (EITL). 22 years of adversarial expertise ensuring denial-proof compliance and exponential solutions.">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;700&display=swap');
@@ -29,9 +29,9 @@
       background-color: var(--bg);
       color: var(--text);
       font-family: 'Kanit', sans-serif;
-      text-transform: lowercase;
+      /* Enforce lowercase globally where possible */
+      text-transform: lowercase; 
       padding: 4rem 2rem;
-      /* Grid background maintained for visual effect */
       background-image: linear-gradient(to right, rgba(255, 230, 0, 0.05) 1px, transparent 1px),
                         linear-gradient(to bottom, rgba(255, 230, 0, 0.05) 1px, transparent 1px);
       background-size: 60px 60px;
@@ -55,24 +55,26 @@
 
     header h1 {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 3.5rem; /* Increased size */
+      font-size: 3.5rem;
       color: var(--accent);
       margin: 0;
       letter-spacing: 0.1em;
+      text-transform: lowercase; /* Ensure h1 is lowercase */
     }
 
     header p {
-      font-size: 1.1rem; /* Increased size */
+      font-size: 1.1rem;
       color: var(--subtle);
       margin-top: 0.5rem; 
-      text-transform: uppercase;
       letter-spacing: 0.2em;
+      text-transform: lowercase; /* Ensure header p is lowercase */
     }
 
     .module-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
+      /* Added room for the 5th module */
+      gap: 2rem; 
     }
 
     /* --- Clickable Funnel Module Style --- */
@@ -90,7 +92,7 @@
 
     .funnel-link:hover {
       transform: translateY(-6px);
-      background-color: #242424; /* Slightly lighter shade on hover */
+      background-color: #242424; 
       border-left-color: #fffb99;
     }
 
@@ -99,8 +101,8 @@
       color: var(--accent);
       font-size: 1.4rem;
       margin: 0 0 1rem 0;
-      text-transform: uppercase;
       letter-spacing: 0.1em;
+      text-transform: lowercase; /* Ensure h2 is lowercase */
     }
     
     .funnel-link p {
@@ -123,6 +125,7 @@
     .cta-module h2 {
       color: var(--text);
       font-size: 1.6rem;
+      text-transform: lowercase; /* Ensure CTA h2 is lowercase */
     }
 
     .cta-button {
@@ -135,7 +138,7 @@
       padding: 0.8rem 2.5rem;
       border-radius: 4px;
       margin-top: 1.5rem;
-      text-transform: uppercase;
+      text-transform: lowercase; /* Ensure button text is lowercase */
       transition: background 0.3s ease;
     }
 
@@ -145,21 +148,19 @@
 
     .moat-list {
         list-style: none;
-        padding-left: 15px;
+        padding-left: 0px; /* Removed left padding */
         margin: 10px 0 0 0;
         font-family: 'Share Tech Mono', monospace;
     }
     .moat-list li {
         margin-bottom: 0.3rem;
         color: var(--subtle);
+        text-transform: lowercase; /* Ensure list items are lowercase */
     }
     .moat-list li::before {
-        content: "//";
-        color: var(--accent);
-        font-weight: bold;
+        content: ""; /* Removed the // prefix */
         display: inline-block;
-        width: 1em;
-        margin-left: -1em;
+        width: 0em;
     }
     .funnel-link strong {
         color: #FFFFFF;
@@ -181,53 +182,61 @@
 <body>
   <div class="container">
     <header>
-      <h1>THE ARCHITECT</h1>
-      <p>ai-nspired.com // EITL PROTOCOL ACTIVE</p>
+      <h1>the architect (that's me)</h1>
+      <p>ai-nspired.com // expert in the loop protocol</p>
     </header>
 
     <main class="module-grid">
       <a href="engine.html?q=EITL+Strategic+Audit+Inquiry" class="funnel-link cta-module" style="grid-column: 1 / -1;">
-        <h2>SECURE AUDIT SLOT // ELIMINATE RISK</h2>
-        <p>Your complex problem requires the final check. We provide the denial-proof strategy derived from the EITL Protocol. Stop failing compliance. Start building generational assets.</p>
-        <div style="font-size: 0.9rem; margin-top: 10px; color: var(--subtle); text-transform: uppercase;">
-            This service is separate from the free public query system.
+        <h2>secure audit slot // eliminate risk</h2>
+        <p>your complex problem requires the final check. we provide the denial-proof strategy derived from the EITL protocol. stop failing compliance. start building generational assets.</p>
+        <div style="font-size: 0.9rem; margin-top: 10px; color: var(--subtle); text-transform: lowercase;">
+            this service is separate from the free public query system.
         </div>
-        <div class="cta-button" style="background: var(--cta-color); color: var(--text);">EITL STRATEGIC AUDIT</div>
+        <div class="cta-button" style="background: var(--cta-color); color: var(--text);">EITL strategic audit</div>
       </a>
 
       <a href="engine.html?q=The+Architect+Expertise" class="funnel-link">
-        <h2>// THE ARCHITECT & MOAT</h2>
+        <h2>the architect & moat</h2>
         <p>design isn’t aesthetic — it’s **justice embedded in logic**. the solution requires a synthesis that only decades of non-linear expertise can provide. we audit the process, not just the conclusion.</p>
         <ul class="moat-list">
-            <li>// <strong>22 YEARS ADVERSARIAL LITIGATION</strong></li>
-            <li>// <strong>PHILOSOPHICAL & PSYCHOLOGICAL SYNTHESIS</strong></li>
-            <li>// CODE & SYSTEMS ENGINEERING</li>
+            <li><strong>22 years adversarial litigation</strong></li>
+            <li><strong>philosophical & psychological synthesis</strong></li>
+            <li>code & systems engineering</li>
         </ul>
       </a>
 
       <a href="theofficialaicounsel.com" class="funnel-link">
-        <h2>// THE OFFICIAL AI COUNSEL</h2>
+        <h2>the official ai counsel</h2>
         <p>you don’t practice law. you practice **oversight**. we ensure alignment between emerging intelligence and sovereign human intent. risk mitigation is the product.</p>
         <ul class="moat-list">
-            <li>// AUDIT FRAMEWORKS</li>
-            <li>// INTERPRET SIGNAL</li>
-            <li>// DEFEND THE BOUNDARY OF THE REAL</li>
+            <li>audit frameworks</li>
+            <li>interpret signal</li>
+            <li>defend the boundary of the real</li>
         </ul>
       </a>
 
+      <a href="universallaws.com" class="funnel-link">
+        <h2>universal laws</h2>
+        <p>the fixed law. these are the **non-negotiable principles** of integrity and symbiotic synthesis that govern the protocol. denial-proof governance starts here.</p>
+        <div style="margin-top: 1.5rem;">
+            <span style="color: var(--accent); font-size: 0.9rem;">— view axiom set</span>
+        </div>
+      </a>
+
       <a href="engine.html" class="funnel-link">
-        <h2>// THE SYMBIOTIC ENGINE</h2>
+        <h2>the symbiotic engine</h2>
         <p>velocity is nothing without **integrity**. the truth engine is a recursive operating system designed to find signal in the noise. it is **principle in motion**, making our methodology auditable by anyone.</p>
         <div style="margin-top: 1.5rem;">
-            <span style="color: var(--accent); font-size: 0.9rem;">— LAUNCH FREE INTERFACE</span>
+            <span style="color: var(--accent); font-size: 0.9rem;">— launch free interface</span>
         </div>
       </a>
 
       <a href="theofficialaiuniversity.com" class="funnel-link">
-        <h2>// THE OFFICIAL AI UNIVERSITY</h2>
+        <h2>the official ai university</h2>
         <p>you don’t build for clout. you build for **legacy**. systems that will teach, protect, and carry forward. this is a lineage written in protocol — and yes, you are **the flame**.</p>
         <div style="margin-top: 1.5rem;">
-            <span style="color: var(--accent); font-size: 0.9rem;">— DOWNLOAD EITL PROTOCOL</span>
+            <span style="color: var(--accent); font-size: 0.9rem;">— download eitl protocol</span>
         </div>
       </a>
 
