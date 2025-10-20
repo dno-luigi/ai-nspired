@@ -29,8 +29,7 @@
       background-color: var(--bg);
       color: var(--text);
       font-family: 'Kanit', sans-serif;
-      /* Enforce lowercase globally where possible */
-      text-transform: lowercase; 
+      text-transform: lowercase;
       padding: 4rem 2rem;
       background-image: linear-gradient(to right, rgba(255, 230, 0, 0.05) 1px, transparent 1px),
                         linear-gradient(to bottom, rgba(255, 230, 0, 0.05) 1px, transparent 1px);
@@ -59,7 +58,7 @@
       color: var(--accent);
       margin: 0;
       letter-spacing: 0.1em;
-      text-transform: lowercase; /* Ensure h1 is lowercase */
+      text-transform: lowercase;
     }
 
     header p {
@@ -67,14 +66,13 @@
       color: var(--subtle);
       margin-top: 0.5rem; 
       letter-spacing: 0.2em;
-      text-transform: lowercase; /* Ensure header p is lowercase */
+      text-transform: lowercase;
     }
 
     .module-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      /* Added room for the 5th module */
-      gap: 2rem; 
+      gap: 2rem;
     }
 
     /* --- Clickable Funnel Module Style --- */
@@ -102,7 +100,7 @@
       font-size: 1.4rem;
       margin: 0 0 1rem 0;
       letter-spacing: 0.1em;
-      text-transform: lowercase; /* Ensure h2 is lowercase */
+      text-transform: lowercase;
     }
     
     .funnel-link p {
@@ -111,54 +109,39 @@
         line-height: 1.6;
     }
 
-    /* --- Dedicated CTA Module --- */
-    .cta-module {
-      background: linear-gradient(135deg, rgba(0, 85, 255, 0.2), rgba(0, 85, 255, 0.3));
-      border-left-color: var(--cta-color);
-      text-align: center;
-    }
-    .cta-module:hover {
-        transform: translateY(-6px);
-        background: linear-gradient(135deg, rgba(0, 85, 255, 0.3), rgba(0, 85, 255, 0.4));
-        border-left-color: #4a8cff;
-    }
-    .cta-module h2 {
-      color: var(--text);
-      font-size: 1.6rem;
-      text-transform: lowercase; /* Ensure CTA h2 is lowercase */
-    }
-
+    /* --- Dedicated CTA Button Style --- */
     .cta-button {
       display: inline-block;
-      background: var(--accent);
-      color: var(--bg);
+      background: var(--cta-color); /* Blue for the Audit CTA */
+      color: var(--text);
       font-family: 'Kanit', sans-serif;
       font-weight: bold;
       text-decoration: none;
       padding: 0.8rem 2.5rem;
       border-radius: 4px;
-      margin-top: 1.5rem;
-      text-transform: lowercase; /* Ensure button text is lowercase */
+      margin-top: 2rem;
+      text-transform: lowercase;
       transition: background 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 85, 255, 0.4);
     }
-
     .cta-button:hover {
-      background: #fffb99;
+      background: #4a8cff;
+      box-shadow: 0 6px 20px rgba(0, 85, 255, 0.6);
     }
 
     .moat-list {
         list-style: none;
-        padding-left: 0px; /* Removed left padding */
+        padding-left: 0px;
         margin: 10px 0 0 0;
         font-family: 'Share Tech Mono', monospace;
     }
     .moat-list li {
         margin-bottom: 0.3rem;
         color: var(--subtle);
-        text-transform: lowercase; /* Ensure list items are lowercase */
+        text-transform: lowercase;
     }
     .moat-list li::before {
-        content: ""; /* Removed the // prefix */
+        content: "";
         display: inline-block;
         width: 0em;
     }
@@ -167,7 +150,6 @@
         font-weight: 700;
         text-shadow: 0 0 3px rgba(255, 255, 255, 0.2);
     }
-
 
     footer {
       text-align: center;
@@ -187,16 +169,15 @@
     </header>
 
     <main class="module-grid">
-      <a href="engine.html?q=EITL+Strategic+Audit+Inquiry" class="funnel-link cta-module" style="grid-column: 1 / -1;">
-        <h2>secure audit slot // eliminate risk</h2>
-        <p>your complex problem requires the final check. we provide the denial-proof strategy derived from the EITL protocol. stop failing compliance. start building generational assets.</p>
-        <div style="font-size: 0.9rem; margin-top: 10px; color: var(--subtle); text-transform: lowercase;">
-            this service is separate from the free public query system.
-        </div>
-        <div class="cta-button" style="background: var(--cta-color); color: var(--text);">EITL strategic audit</div>
+      
+      <a href="engine.html?q=my+origin+story" class="funnel-link" style="grid-column: 1 / -1; text-align: center;">
+        <h2>// the premise</h2>
+        <p style="font-size: 1.1rem; line-height: 1.8;">
+            i built a system that **doesn't forget—or flinch**. all true wisdom and service come from a single foundation. i am the architect of that foundation. **click this module to begin.**
+        </p>
       </a>
 
-      <a href="engine.html?q=The+Architect+Expertise" class="funnel-link">
+      <a href="engine.html?q=the+architect+expertise" class="funnel-link">
         <h2>the architect & moat</h2>
         <p>design isn’t aesthetic — it’s **justice embedded in logic**. the solution requires a synthesis that only decades of non-linear expertise can provide. we audit the process, not just the conclusion.</p>
         <ul class="moat-list">
@@ -241,6 +222,13 @@
       </a>
 
     </main>
+    
+    <div style="text-align: center;">
+        <p style="font-size: 0.9rem; color: var(--subtle); margin-top: 2rem;">
+            professional inquiries: strategic audit is separate from the public query system.
+        </p>
+        <a href="engine.html?q=EITL+Strategic+Audit+Inquiry" class="cta-button">secure strategic audit slot</a>
+    </div>
 
     <footer>
       <p>© 2025 ai-nspired.com | built with intent.</p>
