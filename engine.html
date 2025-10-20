@@ -7,14 +7,16 @@
     <meta name="description" content="ai-nspired.com • truth-engine. memory keeper. Systems that don’t forget—or flinch.">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        /* (Styles remain identical to the functional version for stability) */
         @import url('https://fonts.googleapis.com/css2?family=VT323&family=Special+Elite&family=Crimson+Pro:wght@400;700&display=swap');
 
         :root {
             --bg-color: #010409;
-            --text-color: #fffa00; /* CRITICAL UPDATE: Yellow Terminal Color */
+            --text-color: #fffa00; 
             --border-color: #30363d;
             --modal-bg: #0d1117;
+            --silvery-bg: #f8f8f8;
+            --silvery-text: #1a1a1a;
+            --silvery-accent: #c0c0c0;
         }
 
         body {
@@ -58,13 +60,10 @@
         .command-line {
             display: flex;
             align-items: center;
-            margin-top: 0.5rem; /* Adjusted margin slightly */
+            margin-top: 0.5rem;
         }
 
-        .command-line::before {
-            content: '>';
-            margin-right: 1rem;
-        }
+        .command-line::before { content: '>'; margin-right: 1rem; }
 
         .search-input {
             background: transparent;
@@ -91,9 +90,8 @@
             z-index: 1000;
             animation: fadeIn 0.5s ease;
         }
-        .modal-overlay.active {
-            display: flex;
-        }
+        .modal-overlay.active { display: flex; }
+
         .modal-container {
             background-color: var(--modal-bg);
             border: 1px solid var(--border-color);
@@ -106,51 +104,13 @@
             display: flex;
             flex-direction: column;
         }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1.5rem; border-bottom: 1px solid var(--border-color); }
         .modal-title { color: #8b949e; }
         .close-modal { background: none; border: none; color: #8b949e; font-size: 2rem; cursor: pointer; }
-        .result-container {
-            padding: 2rem;
-            flex-grow: 1;
-            overflow-y: auto;
-            transition: background-color 0.5s ease, color 0.5s ease, font-family 0.5s ease;
-        }
+        .result-container { padding: 2rem; flex-grow: 1; overflow-y: auto; transition: background-color 0.5s ease, color 0.5s ease, font-family 0.5s ease; }
 
-        /* --- Citation Block Styles --- */
-        .citation-block {
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
-            font-size: 1rem;
-            color: #8b949e;
-        }
-        .citation-block h3 {
-            margin-top: 0;
-            color: var(--text-color); /* Yellow */
-            font-size: 1.2rem;
-        }
-        .citation-block ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        .citation-block li {
-            margin-bottom: 0.5rem;
-        }
-        .citation-block a {
-            color: #4a8cff;
-            text-decoration: none;
-        }
-        .citation-block a:hover {
-            text-decoration: underline;
-        }
-        
-        /* --- Dynamic Result Styles --- */
+        /* --- Output Styles --- */
         .result-dossier { background-color: #e8e6e1; color: #1a1a1a; font-family: 'Special Elite', cursive; }
         .result-dossier h2 { font-size: 2rem; text-align: center; margin: 0 0 2rem 0; color: #9a2a2a; }
         .result-dossier p { line-height: 1.8; }
@@ -159,230 +119,131 @@
 
         .result-terminal { background-color: #000; font-family: 'VT323', monospace; font-size: 1.2rem; color: #a0a0a0; }
         .result-terminal p { margin: 0.5rem 0; }
-        .result-terminal p::before { 
-            content: '>> '; 
-            color: var(--text-color); /* Yellow */
-        }
-        .result-terminal .header { 
-            color: var(--text-color); /* Yellow */
-            margin-bottom: 1rem; 
-        }
-        .result-terminal .critical-error { color: #ff3b30; }
+        .result-terminal p::before { content: '>> '; color: var(--text-color); }
 
         .result-confession { background-color: #f4f1ea; background-image: url('https://www.transparenttextures.com/patterns/paper.png'); color: #2a2a2a; font-family: 'Crimson Pro', serif; text-align: center; }
         .result-confession h2 { font-size: 2.5rem; }
         .result-confession .bleeding-text { cursor: pointer; transition: filter 1s ease-out, color 1s ease-out; }
         .result-confession .bleeding-text:hover { color: #000; filter: blur(1.5px) contrast(25); }
-        
+
+        .result-silvery { 
+            background-color: var(--silvery-bg); 
+            color: var(--silvery-text); 
+            font-family: 'Crimson Pro', serif; 
+            padding: 2rem; 
+            border-radius: 10px; 
+            line-height: 1.6;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .result-silvery h2 { font-size: 2rem; color: var(--silvery-accent); text-align: center; margin-bottom: 1rem; }
+        .result-silvery p { margin-bottom: 1rem; }
+
+        .citation-block { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 1rem; color: #8b949e; }
+        .citation-block h3 { margin-top: 0; color: var(--text-color); font-size: 1.2rem; }
+        .citation-block ul { list-style: none; padding-left: 0; }
+        .citation-block li { margin-bottom: 0.5rem; }
+        .citation-block a { color: #4a8cff; text-decoration: none; }
+        .citation-block a:hover { text-decoration: underline; }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes scaleUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
     </style>
 </head>
 <body>
 
-    <div class="terminal-window">
-        <p class="typed-text">connected. truth-engine ready. health yes.</p>
-        <p style="font-size: 1rem; color: #8b949e; margin-top: 0.5rem; border-top: 1px dotted #30363d;">
-            EITL Protocol: Objectivity • Scrutiny • Transparency • Limitations • Action
-        </p>
-        <div class="command-line">
-            <input type="text" class="search-input" id="queryInput" placeholder="get some" autofocus />
+<div class="terminal-window">
+    <p class="typed-text">connected. truth-engine ready. health yes.</p>
+    <p style="font-size: 1rem; color: #8b949e; margin-top: 0.5rem; border-top: 1px dotted #30363d;">
+        EITL Protocol: Objectivity • Scrutiny • Transparency • Limitations • Action
+    </p>
+    <div class="command-line">
+        <input type="text" class="search-input" id="queryInput" placeholder="get some" autofocus />
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <p class="modal-title">DATA STREAM // ai-nspired</p>
+            <button class="close-modal" id="close-modal">×</button>
+        </div>
+        <div class="result-container" id="resultContainer"></div>
+        <div class="modal-footer" id="modalFooter" style="display: none; padding: 1rem; border-top: 1px solid var(--border-color); justify-content: flex-end; gap: 1rem;">
+            <button id="copyAnalysisBtn" style="background: none; border: 1px solid var(--text-color); color: var(--text-color); font-family: 'VT323', monospace; font-size: 1.2rem; cursor: pointer; padding: 0.5rem 1rem;">Copy Analysis</button>
+            <button id="ttsBtn" style="background: none; border: 1px solid var(--text-color); color: var(--text-color); font-family: 'VT323', monospace; font-size: 1.2rem; cursor: pointer; padding: 0.5rem 1rem;">TTS (Read Aloud)</button>
         </div>
     </div>
+</div>
 
-    <div class="modal-overlay" id="modal-overlay">
-        <div class="modal-container">
-            <div class="modal-header">
-                <p class="modal-title">DATA STREAM // ai-nspired</p>
-                <button class="close-modal" id="close-modal">×</button>
-            </div>
-            <div class="result-container" id="resultContainer">
-                </div>
-            <div class="modal-footer" id="modalFooter" style="display: none; padding: 1rem; border-top: 1px solid var(--border-color); justify-content: flex-end; gap: 1rem;">
-                <button id="copyAnalysisBtn" style="background: none; border: 1px solid var(--text-color); color: var(--text-color); font-family: 'VT323', monospace; font-size: 1.2rem; cursor: pointer; padding: 0.5rem 1rem;">Copy Analysis</button>
-                <button id="ttsBtn" style="background: none; border: 1px solid var(--text-color); color: var(--text-color); font-family: 'VT323', monospace; font-size: 1.2rem; cursor: pointer; padding: 0.5rem 1rem;">TTS (Read Aloud)</button>
-            </div>
-        </div>
-    </div>
+<script>
+    const API_URL = 'https://justice.ai-n.workers.dev/api/ai/truth';
+    const queryInput = document.getElementById('queryInput');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const closeModalBtn = document.getElementById('close-modal');
+    const resultContainer = document.getElementById('resultContainer');
+    const modalFooter = document.getElementById('modalFooter');
+    const copyAnalysisBtn = document.getElementById('copyAnalysisBtn');
+    const ttsBtn = document.getElementById('ttsBtn');
 
-    <script>
-        // CRITICAL: This URL must point to your Cloudflare Worker/API endpoint
-        const API_URL = 'https://justice.ai-n.workers.dev/api/ai/truth'; 
-        const queryInput = document.getElementById('queryInput');
-        const modalOverlay = document.getElementById('modal-overlay');
-        const closeModalBtn = document.getElementById('close-modal');
-        const resultContainer = document.getElementById('resultContainer');
-        
-        // NEW VARIABLES
-        const modalFooter = document.getElementById('modalFooter');
-        const copyAnalysisBtn = document.getElementById('copyAnalysisBtn');
-        const ttsBtn = document.getElementById('ttsBtn'); // Variable name remains consistent
+    function openModal() { modalOverlay.classList.add('active'); modalFooter.style.display = 'none'; }
+    function closeModal() { modalOverlay.classList.remove('active'); }
 
+    function chooseStyleForQuery(query) {
+        const lowerQuery = query.toLowerCase();
+        if (['speakeasy','official','compliance','foundation'].some(w => lowerQuery.includes(w))) return 'silvery';
+        if (lowerQuery.includes('case') || lowerQuery.includes('file') || lowerQuery.includes('audit') || lowerQuery.includes('protocol')) return 'dossier';
+        if (lowerQuery.includes('log') || lowerQuery.includes('data') || lowerQuery.includes('system') || lowerQuery.includes('viability')) return 'terminal';
+        if (lowerQuery.includes('feel') || lowerQuery.includes('story') || lowerQuery.includes('ethics') || lowerQuery.includes('principles')) return 'confession';
+        return 'dossier';
+    }
 
-        function openModal() {
-            modalOverlay.classList.add('active');
-            // Hide footer on open (until results load)
-            modalFooter.style.display = 'none'; 
-        }
+    async function performTruthQuery(query) {
+        if (!query) return;
+        openModal();
+        document.querySelector('.modal-title').innerHTML = 'DATA STREAM // ai-nspired | EITL PROTOCOL ACTIVE';
+        resultContainer.className = 'result-container';
+        resultContainer.innerHTML = '<p>⚡ Scanning truth matrix...</p>';
 
-        function closeModal() {
-            modalOverlay.classList.remove('active');
-        }
-
-        /**
-         * Selects the styling class based on keywords in the user's query.
-         */
-        function chooseStyleForQuery(query) {
-            const lowerQuery = query.toLowerCase();
-            if (lowerQuery.includes('case') || lowerQuery.includes('file') || lowerQuery.includes('official') || lowerQuery.includes('audit') || lowerQuery.includes('protocol')) return 'dossier';
-            if (lowerQuery.includes('log') || lowerQuery.includes('data') || lowerQuery.includes('system') || lowerQuery.includes('viability') || lowerQuery.includes('prompts')) return 'terminal';
-            if (lowerQuery.includes('feel') || lowerQuery.includes('story') || lowerQuery.includes('why') || lowerQuery.includes('ethics') || lowerQuery.includes('principles') || lowerQuery.includes('partnership')) return 'confession';
-            return 'dossier'; // Default style
-        }
-        
-        /** * FUNCTION: Copies the clean text content of the result container.
-         */
-        function copyAnalysisToClipboard() {
-            const textToCopy = resultContainer.innerText;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                copyAnalysisBtn.innerText = 'COPIED!';
-                setTimeout(() => copyAnalysisBtn.innerText = 'Copy Analysis', 2000);
-            }).catch(err => {
-                console.error('Could not copy text: ', err);
-                copyAnalysisBtn.innerText = 'Error!';
-                setTimeout(() => copyAnalysisBtn.innerText = 'Copy Analysis', 2000);
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query }),
             });
-        }
-        
-        /**
-         * FUNCTION: Uses the Web Speech API for Text-to-Speech (TTS).
-         * FIX: Ensures Utterance is created within the click handler for reliability.
-         */
-        function readAnalysisAloud() {
-            if ('speechSynthesis' in window) {
-                
-                // Stop if already speaking
-                if (window.speechSynthesis.speaking) {
-                    window.speechSynthesis.cancel();
-                    ttsBtn.innerText = 'TTS (Stopped)';
-                    setTimeout(() => ttsBtn.innerText = 'TTS (Read Aloud)', 1000);
-                    return;
-                }
-                
-                const textToSpeak = resultContainer.innerText.replace(/(\n|\t)/g, ' ');
-                const utterance = new SpeechSynthesisUtterance(textToSpeak); // CRITICAL FIX: Create utterance here
-                
-                utterance.rate = 1.1; 
-                
-                ttsBtn.innerText = 'TTS (Speaking...)';
-                utterance.onend = () => {
-                    ttsBtn.innerText = 'TTS (Read Aloud)';
-                };
-                
-                // A small delay sometimes helps with browser context and initialization
-                setTimeout(() => {
-                    window.speechSynthesis.speak(utterance);
-                }, 100);
 
-            } else {
-                alert('Text-to-Speech is not supported in this browser.');
-            }
-        }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-
-        /**
-         * The core function to send the query to the backend API and display results.
-         */
-        async function performTruthQuery(query) {
-            if (!query) return;
-
-            openModal();
-            document.querySelector('.modal-title').innerHTML = 'DATA STREAM // ai-nspired | EITL PROTOCOL ACTIVE';
-            
+            const data = await response.json();
+            const chosenStyle = chooseStyleForQuery(query);
             resultContainer.className = 'result-container';
-            resultContainer.innerHTML = '<p>⚡ Scanning truth matrix...</p>';
+            resultContainer.classList.add(`result-${chosenStyle}`);
 
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query }),
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.answer) {
-                    const chosenStyle = chooseStyleForQuery(query);
-                    resultContainer.className = 'result-container';
-                    resultContainer.classList.add(`result-${chosenStyle}`);
-                    
-                    let resultHTML = marked.parse(data.answer);
-
-                    if (data.citations?.length) {
-                        resultHTML += `<div class="citation-block"><h3>Source Verification (EITL Audit)</h3><ul>${data.citations.map(c => `<li><a href="${c.url}" target="_blank">${c.title}</a></li>`).join('')}</ul></div>`;
-                    }
-                    resultContainer.innerHTML = resultHTML;
-                    
-                    // CRITICAL: Show the button footer after successful load
-                    modalFooter.style.display = 'flex'; 
-
-                } else {
-                    resultContainer.innerHTML = '<h3>Analysis Complete</h3><p>No definitive patterns found. Refine query parameters.</p>';
-                    modalFooter.style.display = 'none'; 
-                }
-            } catch (error) {
-                resultContainer.innerHTML = `<h3>System Error (CRITICAL)</h3><p class="critical-error">Query failed: ${error.message}</p><p class="critical-error">Check API_URL and server status.</p>`;
-                modalFooter.style.display = 'none'; 
+            let resultHTML = data.answer ? marked.parse(data.answer) : '<p>No definitive patterns found. Refine query.</p>';
+            if (data.citations?.length) {
+                resultHTML += `<div class="citation-block"><h3>Source Verification (EITL Audit)</h3><ul>${data.citations.map(c => `<li><a href="${c.url}" target="_blank">${c.title}</a></li>`).join('')}</ul></div>`;
             }
+            resultContainer.innerHTML = resultHTML;
+            modalFooter.style.display = data.answer ? 'flex' : 'none';
+
+        } catch (error) {
+            resultContainer.innerHTML = `<h3>System Error (CRITICAL)</h3><p class="critical-error">Query failed: ${error.message}</p>`;
+            modalFooter.style.display = 'none';
         }
+    }
 
-        // --- Event Listeners ---
+    function copyAnalysisToClipboard() {
+        const textToCopy = resultContainer.innerText;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            copyAnalysisBtn.innerText = 'COPIED!';
+            setTimeout(() => copyAnalysisBtn.innerText = 'Copy Analysis', 2000);
+        }).catch(() => { copyAnalysisBtn.innerText = 'Error!'; setTimeout(() => copyAnalysisBtn.innerText = 'Copy Analysis', 2000); });
+    }
 
-        queryInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                performTruthQuery(queryInput.value.trim());
-            }
-        });
-
-        closeModalBtn.addEventListener('click', closeModal);
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) closeModal();
-        });
-        
-        // ADDED LISTENERS FOR NEW BUTTONS
-        copyAnalysisBtn.addEventListener('click', copyAnalysisToClipboard);
-        ttsBtn.addEventListener('click', readAnalysisAloud);
-
-
-        // --- URL Parameter Initialization ---
-        function initializeQueryFromURL() {
-            const params = new URLSearchParams(window.location.search);
-            const q = params.get('q');
-            
-            if (q) {
-                const decodedQuery = decodeURIComponent(q.replace(/\+/g, ' '));
-                
-                const inputElement = document.getElementById('queryInput');
-                if (inputElement) {
-                    inputElement.value = decodedQuery;
-                }
-                
-                performTruthQuery(decodedQuery);
-                
-                const typedTextElement = document.querySelector('.typed-text');
-                if (typedTextElement) {
-                   typedTextElement.style.borderRight = 'none';
-                   typedTextElement.style.animation = 'none';
-                }
-            }
-        }
-        
-        window.addEventListener('load', initializeQueryFromURL); 
-
-    </script>
-</body>
-</html>
+    function readAnalysisAloud() {
+        if ('speechSynthesis' in window) {
+            if (window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); ttsBtn.innerText = 'TTS (Stopped)'; setTimeout(() => ttsBtn.innerText = 'TTS (Read Aloud)', 1000); return; }
+            const utterance = new SpeechSynthesisUtterance(resultContainer.innerText.replace(/(\n|\t)/g, ' '));
+            utterance.rate = 1.1;
+            ttsBtn.innerText = 'TTS (Speaking...)';
+            utterance.onend = () => ttsBtn.innerText =
