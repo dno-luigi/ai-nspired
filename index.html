@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ai-nspired :: Architect of Systems & EITL</title>
+  <title>AI-Nspired :: The Architect & EITL Protocol</title>
   <meta name="description" content="The Architect: Expert in the Loop (EITL). 22 years of adversarial expertise ensuring denial-proof compliance and exponential solutions.">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
@@ -11,7 +11,7 @@
 
     :root {
       --bg: #0d0d0d;
-      --accent: #ffe600; /* Main Accent */
+      --accent: #ffe600; /* Main Accent (Yellow) */
       --cta-color: #0055ff; /* Secondary, Actionable Accent (Truth Engine Blue) */
       --text: #e2e8f0;
       --subtle: #7f7f7f;
@@ -21,6 +21,7 @@
 
     * {
       box-sizing: border-box;
+      transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
     }
 
     body {
@@ -30,6 +31,7 @@
       font-family: 'Kanit', sans-serif;
       text-transform: lowercase;
       padding: 4rem 2rem;
+      /* Grid background maintained for visual effect */
       background-image: linear-gradient(to right, rgba(255, 230, 0, 0.05) 1px, transparent 1px),
                         linear-gradient(to bottom, rgba(255, 230, 0, 0.05) 1px, transparent 1px);
       background-size: 60px 60px;
@@ -53,15 +55,18 @@
 
     header h1 {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 3rem;
+      font-size: 3.5rem; /* Increased size */
       color: var(--accent);
       margin: 0;
+      letter-spacing: 0.1em;
     }
 
     header p {
-      font-size: 1rem;
+      font-size: 1.1rem; /* Increased size */
       color: var(--subtle);
       margin-top: 0.5rem; 
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
     }
 
     .module-grid {
@@ -70,43 +75,67 @@
       gap: 2rem;
     }
 
-    .module {
+    /* --- Clickable Funnel Module Style --- */
+    .funnel-link {
+      display: block;
+      text-decoration: none;
+      color: var(--text);
       background-color: var(--module);
       padding: 2rem;
       border: 1px solid var(--border);
       border-left: 5px solid var(--accent);
       box-shadow: 0 0 20px rgba(255, 230, 0, 0.1);
-      transition: transform 0.3s ease;
+      transition: transform 0.3s ease, background-color 0.3s ease;
     }
 
-    .module:hover {
+    .funnel-link:hover {
       transform: translateY(-6px);
+      background-color: #242424; /* Slightly lighter shade on hover */
+      border-left-color: #fffb99;
     }
 
-    .module h2 {
+    .funnel-link h2 {
       font-family: 'Share Tech Mono', monospace;
       color: var(--accent);
       font-size: 1.4rem;
       margin: 0 0 1rem 0;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    
+    .funnel-link p {
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+        line-height: 1.6;
     }
 
-    .cta {
+    /* --- Dedicated CTA Module --- */
+    .cta-module {
       background: linear-gradient(135deg, rgba(0, 85, 255, 0.2), rgba(0, 85, 255, 0.3));
       border-left-color: var(--cta-color);
+      text-align: center;
     }
-    .cta h2 {
+    .cta-module:hover {
+        transform: translateY(-6px);
+        background: linear-gradient(135deg, rgba(0, 85, 255, 0.3), rgba(0, 85, 255, 0.4));
+        border-left-color: #4a8cff;
+    }
+    .cta-module h2 {
       color: var(--text);
+      font-size: 1.6rem;
     }
 
     .cta-button {
       display: inline-block;
       background: var(--accent);
       color: var(--bg);
+      font-family: 'Kanit', sans-serif;
       font-weight: bold;
       text-decoration: none;
-      padding: 0.8rem 2rem;
+      padding: 0.8rem 2.5rem;
       border-radius: 4px;
-      margin-top: 1rem;
+      margin-top: 1.5rem;
+      text-transform: uppercase;
       transition: background 0.3s ease;
     }
 
@@ -120,6 +149,10 @@
         margin: 10px 0 0 0;
         font-family: 'Share Tech Mono', monospace;
     }
+    .moat-list li {
+        margin-bottom: 0.3rem;
+        color: var(--subtle);
+    }
     .moat-list li::before {
         content: "//";
         color: var(--accent);
@@ -128,7 +161,7 @@
         width: 1em;
         margin-left: -1em;
     }
-    .module p strong, .moat-list strong {
+    .funnel-link strong {
         color: #FFFFFF;
         font-weight: 700;
         text-shadow: 0 0 3px rgba(255, 255, 255, 0.2);
@@ -148,47 +181,55 @@
 <body>
   <div class="container">
     <header>
-      <h1>ai-nspired</h1>
-      <p>architect of systems | the EITL mandate</p>
+      <h1>THE ARCHITECT</h1>
+      <p>ai-nspired.com // EITL PROTOCOL ACTIVE</p>
     </header>
 
     <main class="module-grid">
-      <div class="module cta" style="grid-column: 1 / -1; text-align: center;">
-        <h2>REQUEST EITL STRATEGIC AUDIT</h2>
+      <a href="engine.html?q=EITL+Strategic+Audit+Inquiry" class="funnel-link cta-module" style="grid-column: 1 / -1;">
+        <h2>SECURE AUDIT SLOT // ELIMINATE RISK</h2>
         <p>Your complex problem requires the final check. We provide the denial-proof strategy derived from the EITL Protocol. Stop failing compliance. Start building generational assets.</p>
-        <a href="engine.html?q=EITL+Strategic+Audit+Inquiry" class="cta-button" style="background: var(--cta-color); color: var(--text);">SECURE AUDIT SLOT // ELIMINATE RISK</a>
-        <p style="font-size: 0.9rem; margin-top: 10px; color: var(--subtle);">This service is separate from the free public query system.</p>
-      </div>
+        <div style="font-size: 0.9rem; margin-top: 10px; color: var(--subtle); text-transform: uppercase;">
+            This service is separate from the free public query system.
+        </div>
+        <div class="cta-button" style="background: var(--cta-color); color: var(--text);">EITL STRATEGIC AUDIT</div>
+      </a>
 
-
-      <div class="module">
-        <h2>// the architect & the moat</h2>
-        <p>design isn’t aesthetic — it’s justice embedded in logic. the solution requires a synthesis that only decades of non-linear expertise can provide. <strong>we audit the process, not just the conclusion.</strong></p>
+      <a href="engine.html?q=The+Architect+Expertise" class="funnel-link">
+        <h2>// THE ARCHITECT & MOAT</h2>
+        <p>design isn’t aesthetic — it’s **justice embedded in logic**. the solution requires a synthesis that only decades of non-linear expertise can provide. we audit the process, not just the conclusion.</p>
         <ul class="moat-list">
-            <li><strong>22 Years Adversarial Litigation</strong></li>
-            <li><strong>Philosophical & Psychological Synthesis</strong></li>
-            <li>Code & Systems Engineering (Truth Engine Builder)</li>
+            <li>// <strong>22 YEARS ADVERSARIAL LITIGATION</strong></li>
+            <li>// <strong>PHILOSOPHICAL & PSYCHOLOGICAL SYNTHESIS</strong></li>
+            <li>// CODE & SYSTEMS ENGINEERING</li>
         </ul>
-      </div>
+      </a>
 
-      <div class="module">
-        <h2>// the official AI counsel</h2>
-        <p>you don’t practice law. you practice oversight. we ensure alignment between emerging intelligence and sovereign human intent. <strong>risk mitigation is the product.</strong></p>
-        <p style="margin-top: 10px;">Audit frameworks. Interpret signal. Defend the boundary of the real. </p>
-        <a href="engine.html?q=Official+AI+Counsel+Mandate" style="color: var(--accent); font-size: 0.9rem;">— view counsel mandate</a>
-      </div>
+      <a href="theofficialaicounsel.com" class="funnel-link">
+        <h2>// THE OFFICIAL AI COUNSEL</h2>
+        <p>you don’t practice law. you practice **oversight**. we ensure alignment between emerging intelligence and sovereign human intent. risk mitigation is the product.</p>
+        <ul class="moat-list">
+            <li>// AUDIT FRAMEWORKS</li>
+            <li>// INTERPRET SIGNAL</li>
+            <li>// DEFEND THE BOUNDARY OF THE REAL</li>
+        </ul>
+      </a>
 
-      <div class="module">
-        <h2>// the symbiotic engine</h2>
-        <p>velocity is nothing without integrity. the <strong>truth engine</strong> is a recursive operating system designed to find signal in the noise. it is principle in motion, making our methodology auditable by anyone.</p>
-        <a href="engine.html" class="cta-button">launch free interface</a>
-      </div>
+      <a href="engine.html" class="funnel-link">
+        <h2>// THE SYMBIOTIC ENGINE</h2>
+        <p>velocity is nothing without **integrity**. the truth engine is a recursive operating system designed to find signal in the noise. it is **principle in motion**, making our methodology auditable by anyone.</p>
+        <div style="margin-top: 1.5rem;">
+            <span style="color: var(--accent); font-size: 0.9rem;">— LAUNCH FREE INTERFACE</span>
+        </div>
+      </a>
 
-      <div class="module">
-        <h2>// the official AI university</h2>
-        <p>you don’t build for clout. you build for legacy. systems that will teach, protect, and carry forward. this is a lineage written in <strong>protocol</strong> — and yes, you are the flame.</p>
-        <a href="engine.html?q=Download+EITL+Protocol+Whitepaper" style="color: var(--accent); font-size: 0.9rem;">— download EITL protocol</a>
-      </div>
+      <a href="theofficialaiuniversity.com" class="funnel-link">
+        <h2>// THE OFFICIAL AI UNIVERSITY</h2>
+        <p>you don’t build for clout. you build for **legacy**. systems that will teach, protect, and carry forward. this is a lineage written in protocol — and yes, you are **the flame**.</p>
+        <div style="margin-top: 1.5rem;">
+            <span style="color: var(--accent); font-size: 0.9rem;">— DOWNLOAD EITL PROTOCOL</span>
+        </div>
+      </a>
 
     </main>
 
