@@ -9,12 +9,35 @@
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&display=swap');
 
+    /* --- Mode Variables --- */
     :root {
+        /* Default Silvery Mode */
         --bg-color: #f8f8ff;
         --text-color: #1a1a1a;
         --border-color: #d0d0d0;
         --modal-bg: #ffffff;
         --accent-color: #1a2a3a;
+    }
+    [data-mode="dark"] {
+        --bg-color: #1a1a1a;
+        --text-color: #f0f0f0;
+        --border-color: #333333;
+        --modal-bg: #2a2a2a;
+        --accent-color: #c7a17a;
+    }
+    [data-mode="light"] {
+        --bg-color: #ffffff;
+        --text-color: #111111;
+        --border-color: #ccc;
+        --modal-bg: #f9f9f9;
+        --accent-color: #1a2a3a;
+    }
+    [data-mode="mystic"] {
+        --bg-color: #0f0f2a;
+        --text-color: #e0d0ff;
+        --border-color: #5a3f9a;
+        --modal-bg: #1a0f3f;
+        --accent-color: #a17ac7;
     }
 
     body {
@@ -28,6 +51,7 @@
         align-items: center;
         min-height: 100vh;
         box-sizing: border-box;
+        transition: background-color 0.3s, color 0.3s;
     }
 
     .terminal-window {
@@ -91,6 +115,7 @@
         display: flex;
         flex-direction: column;
         padding: 1rem 2rem;
+        transition: background-color 0.3s, color 0.3s;
     }
 
     .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
@@ -103,30 +128,31 @@
         overflow-y: auto;
         font-family: 'Crimson Pro', serif;
         color: var(--text-color);
+        transition: background-color 0.3s, color 0.3s;
     }
 
-    .result-silvery {
-        background-color: #f8f8ff;
-        border-left: 5px solid var(--accent-color);
-        padding: 1.5rem;
-        line-height: 1.8;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
+    .result-silvery { background-color: var(--bg-color); border-left: 5px solid var(--accent-color); padding: 1.5rem; line-height: 1.8; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
-    .citation-block {
-        margin-top: 2rem;
-        border-top: 1px solid var(--border-color);
-        padding-top: 1rem;
-        font-size: 0.9rem;
-    }
+    .citation-block { margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1rem; font-size: 0.9rem; }
     .citation-block a { color: var(--accent-color); text-decoration: none; }
     .citation-block a:hover { text-decoration: underline; }
 
     .modal-footer { display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border-color); }
     .modal-footer button { padding: 0.5rem 1rem; border: 1px solid var(--accent-color); background: none; color: var(--accent-color); font-weight: 700; cursor: pointer; }
+    
+    /* --- Mode Toggle Buttons --- */
+    .mode-toggle { position: fixed; top: 1rem; right: 1rem; display: flex; gap: 0.5rem; }
+    .mode-toggle button { padding: 0.5rem 1rem; cursor: pointer; border: 1px solid var(--accent-color); background: none; color: var(--accent-color); font-weight: 700; border-radius: 4px; }
 </style>
 </head>
-<body>
+<body data-mode="silvery">
+
+<div class="mode-toggle">
+    <button onclick="setMode('silvery')">Silvery</button>
+    <button onclick="setMode('dark')">Dark</button>
+    <button onclick="setMode('light')">Light</button>
+    <button onclick="setMode('mystic')">Mystic</button>
+</div>
 
 <div class="terminal-window">
     <p class="typed-text">connected. truth-engine ready.</p>
@@ -155,22 +181,38 @@ const queryInput = document.getElementById('queryInput');
 const modalOverlay = document.getElementById('modal-overlay');
 const closeModalBtn = document.getElementById('close-modal');
 const resultContainer = document.getElementById('resultContainer');
-const modalFooter = document.getElementById('modalFooter');
 const copyAnalysisBtn = document.getElementById('copyAnalysisBtn');
 const ttsBtn = document.getElementById('ttsBtn');
+const body = document.body;
 
+// --- Mode Functions ---
+function setMode(mode){
+    if(mode==='silvery'){ body.setAttribute('data-mode',''); } 
+    else { body.setAttribute('data-mode', mode); }
+}
+
+// --- Modal Functions ---
 function openModal(){ modalOverlay.classList.add('active'); }
 function closeModal(){ modalOverlay.classList.remove('active'); }
 
+// --- Utility Functions ---
 function chooseStyleForQuery(){ return 'silvery'; }
 
 function copyAnalysisToClipboard(){
-    navigator.clipboard.writeText(resultContainer.innerText).then(()=>{copyAnalysisBtn.innerText='COPIED!'; setTimeout(()=>copyAnalysisBtn.innerText='Copy Analysis',2000);});
+    navigator.clipboard.writeText(resultContainer.innerText).then(()=>{
+        copyAnalysisBtn.innerText='COPIED!';
+        setTimeout(()=>copyAnalysisBtn.innerText='Copy Analysis',2000);
+    });
 }
 
 function readAnalysisAloud(){
     if('speechSynthesis' in window){
-        if(window.speechSynthesis.speaking){ window.speechSynthesis.cancel(); ttsBtn.innerText='TTS (Stopped)'; setTimeout(()=>ttsBtn.innerText='TTS (Read Aloud)',1000); return; }
+        if(window.speechSynthesis.speaking){ 
+            window.speechSynthesis.cancel(); 
+            ttsBtn.innerText='TTS (Stopped)'; 
+            setTimeout(()=>ttsBtn.innerText='TTS (Read Aloud)',1000); 
+            return; 
+        }
         const utterance = new SpeechSynthesisUtterance(resultContainer.innerText.replace(/(\n|\t)/g,' '));
         utterance.rate=1.1;
         ttsBtn.innerText='TTS (Speaking...)';
@@ -179,6 +221,7 @@ function readAnalysisAloud(){
     } else alert('Text-to-Speech not supported.');
 }
 
+// --- Query Function ---
 async function performTruthQuery(query){
     if(!query) return;
     openModal();
@@ -191,13 +234,16 @@ async function performTruthQuery(query){
         const chosenStyle=chooseStyleForQuery();
         resultContainer.className='result-container result-'+chosenStyle;
         let html = data.answer ? marked.parse(data.answer) : '<p>No results found.</p>';
-        if(data.citations?.length){ html+=`<div class="citation-block"><h3>Sources</h3><ul>${data.citations.map(c=>`<li><a href="${c.url}" target="_blank">${c.title}</a></li>`).join('')}</ul></div>`; }
+        if(data.citations?.length){
+            html+=`<div class="citation-block"><h3>Sources</h3><ul>${data.citations.map(c=>`<li><a href="${c.url}" target="_blank">${c.title}</a></li>`).join('')}</ul></div>`;
+        }
         resultContainer.innerHTML=html;
     } catch(err){
         resultContainer.innerHTML=`<h3>System Error</h3><p>${err.message}</p>`;
     }
 }
 
+// --- Event Listeners ---
 queryInput.addEventListener('keypress',e=>{if(e.key==='Enter') performTruthQuery(queryInput.value.trim());});
 closeModalBtn.addEventListener('click',closeModal);
 modalOverlay.addEventListener('click',e=>{if(e.target===modalOverlay) closeModal();});
