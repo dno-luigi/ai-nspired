@@ -203,10 +203,9 @@ function closeModal(){ modalOverlay.classList.remove('active'); }
 function chooseStyleForQuery(){ return 'silvery'; }
 
 function copyAnalysisToClipboard(){
-    navigator.clipboard.writeText(resultContainer.innerText).then(()=>{
-        copyAnalysisBtn.innerText='COPIED!';
-        setTimeout(()=>copyAnalysisBtn.innerText='Copy Analysis',2000);
-    });
+    document.execCommand('copy', false, resultContainer.innerText); // using execCommand for broader compatibility in iframes
+    copyAnalysisBtn.innerText='COPIED!';
+    setTimeout(()=>copyAnalysisBtn.innerText='Copy Analysis',2000);
 }
 
 function readAnalysisAloud(){
@@ -221,19 +220,30 @@ function readAnalysisAloud(){
         utterance.rate=1.1;
         ttsBtn.innerText='TTS (Speaking...)';
         utterance.onend=()=>{ttsBtn.innerText='TTS (Read Aloud)';}
+        // Using setTimeout to ensure the utterance starts after a minimal delay
         setTimeout(()=>{window.speechSynthesis.speak(utterance);},100);
-    } else alert('Text-to-Speech not supported.');
+    } else console.error('Text-to-Speech not supported.');
 }
 
 // --- Query Function ---
 async function performTruthQuery(query, isFollowUp=false){
     if(!query) return;
-    lastQuery = query; // store for follow-up
+
+    // Only store the query as the root topic if it's the initial (non-follow-up) question.
+    if (!isFollowUp) {
+        lastQuery = query; // store only the original query
+    }
+
     openModal();
     
+    // Add loading indicator for all queries, but only clear the container for new, initial queries
     if(!isFollowUp){
         resultContainer.innerHTML='<p>⚡ Scanning truth matrix...</p>';
         resultContainer.className='result-container';
+    } else {
+        // Append a temporary loading message for follow-ups
+        resultContainer.innerHTML += `<hr><p>⚡ Scanning truth matrix for follow-up...</p>`;
+        resultContainer.scrollTo(0, resultContainer.scrollHeight); // scroll to bottom for follow-up
     }
 
     try{
@@ -253,9 +263,15 @@ async function performTruthQuery(query, isFollowUp=false){
         }
 
         if(isFollowUp){
+            // Remove the temporary loading message before appending the final result
+            const tempLoading = resultContainer.innerHTML.lastIndexOf('<hr><p>⚡');
+            if(tempLoading !== -1){
+                resultContainer.innerHTML = resultContainer.innerHTML.substring(0, tempLoading);
+            }
             resultContainer.innerHTML += `<hr>` + html; // append for follow-up
+            resultContainer.scrollTo(0, resultContainer.scrollHeight); // scroll to show new result
         } else {
-            resultContainer.innerHTML = html;
+            resultContainer.innerHTML = html; // replace for initial query
         }
     } catch(err){
         resultContainer.innerHTML=`<h3>System Error</h3><p>${err.message}</p>`;
@@ -265,8 +281,13 @@ async function performTruthQuery(query, isFollowUp=false){
 // --- Event Listeners ---
 queryInput.addEventListener('keypress', e=>{
     if(e.key==='Enter'){
-        const isFollowUp = queryInput.value.includes('→');
-        performTruthQuery(queryInput.value.trim(), isFollowUp);
+        const query = queryInput.value.trim();
+        const isFollowUp = query.includes('→');
+        
+        // UX Improvement: Clear the input after submission
+        queryInput.value = '';
+
+        performTruthQuery(query, isFollowUp);
     }
 });
 
@@ -276,7 +297,11 @@ copyAnalysisBtn.addEventListener('click',copyAnalysisToClipboard);
 ttsBtn.addEventListener('click',readAnalysisAloud);
 
 followUpBtn.addEventListener('click', ()=>{
+    // FIX: Close the modal immediately so the input field becomes accessible.
+    closeModal(); 
+    
     queryInput.focus();
+    // Use the stored root query for the follow-up prompt
     queryInput.value = lastQuery ? lastQuery + ' → ' : '';
 });
 
@@ -289,3 +314,4 @@ window.addEventListener('load', ()=>{
 </script>
 </body>
 </html>
+
