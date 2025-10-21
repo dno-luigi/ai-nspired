@@ -11,39 +11,47 @@
 
     /* --- Mode Variables --- */
     :root {
-        /* Default Silvery Mode */
+        /* Default Mode (Silvery) - Moderate Contrast */
         --bg-color: #f8f8ff;
         --text-color: #1a1a1a;
         --border-color: #d0d0d0;
         --modal-bg: #ffffff;
+        --content-bg: #f8f8ff;
+        --content-text: #1a1a1a;
         --accent-color: #1a2a3a;
+        --secondary-text: #6c757d;
+        --shadow-color: rgba(0,0,0,0.05); /* Soft shadow for non-neo modes */
     }
     [data-mode="dark"] {
+        /* Dark Mode - Soft Contrast (Opposite of Default) */
         --bg-color: #1a1a1a;
         --text-color: #f0f0f0;
         --border-color: #333333;
         --modal-bg: #2a2a2a;
-        --accent-color: #c7a17a;
+        --content-bg: #111111;
+        --content-text: #f0f0f0;
+        --accent-color: #c7a17a; /* Warm beige/gold accent */
+        --secondary-text: #9fa8da;
+        --shadow-color: rgba(0,0,0,0.3);
     }
-    [data-mode="light"] {
-        --bg-color: #ffffff;
-        --text-color: #111111;
-        --border-color: #ccc;
-        --modal-bg: #f9f9f9;
-        --accent-color: #1a2a3a;
-    }
-    [data-mode="mystic"] {
-        --bg-color: #0f0f2a;
-        --text-color: #e0d0ff;
-        --border-color: #5a3f9a;
-        --modal-bg: #1a0f3f;
-        --accent-color: #a17ac7;
+    [data-mode="neo"] {
+        /* Neo Mode - HIGH CONTRAST (Matrix Style) */
+        --bg-color: #000000;            /* Pure black background */
+        --text-color: #00FF00;          /* Neon green for terminal/main text */
+        --border-color: #008800;        /* Darker green border */
+        --modal-bg: #0d0d0d;            /* Near black modal frame */
+        --content-bg: #1a1a1a;          /* Very dark gray for content background */
+        --content-text: #00FF00;        /* NEON GREEN for result text */
+        --accent-color: #00FF00;        /* BRIGHT GREEN for accents/borders/buttons */
+        --secondary-text: #00AA00;      /* Slightly darker green for headers/secondary text */
+        --shadow-color: transparent; /* Shadow will be custom glow */
     }
 
     body {
         margin: 0;
-        padding: 2rem;
+        padding: 1.5rem 1rem;
         font-family: 'Crimson Pro', serif;
+        font-size: 1.1rem;
         background-color: var(--bg-color);
         color: var(--text-color);
         display: flex;
@@ -52,6 +60,10 @@
         min-height: 100vh;
         box-sizing: border-box;
         transition: background-color 0.3s, color 0.3s;
+        width: 100%;
+    }
+    @media (max-width: 600px) {
+        body { padding: 1rem 0.5rem; }
     }
 
     .terminal-window {
@@ -60,18 +72,36 @@
         text-align: left;
     }
 
+    /* TYPING EFFECT: Initial state (hidden text, visible caret, blinking) */
     .typed-text {
         font-weight: 700;
         font-size: 1.5rem;
         display: inline-block;
         overflow: hidden;
         white-space: nowrap;
+        /* Start with text hidden */
+        width: 0; 
+        /* Start with caret blinking */
         border-right: 3px solid var(--accent-color);
-        animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        animation: blink-caret .75s step-end infinite;
+    }
+
+    /* TYPING EFFECT: State during the typing animation */
+    .typed-text.is-typing {
+        /* Run typing animation once, then stay at 100% width (forwards) */
+        animation: typing 3.5s steps(40, end) forwards, blink-caret .75s step-end infinite;
+    }
+    
+    /* TYPING EFFECT: State after the typing animation is finished */
+    .typed-text.is-done {
+        /* Stop all animations and hide the blinking caret */
+        animation: none;
+        border-right: none; 
+        width: auto; /* Ensure full visibility */
     }
 
     @keyframes typing { from { width: 0 } to { width: 100% } }
-    @keyframes blink-caret { 50% { border-color: var(--accent-color); } }
+    @keyframes blink-caret { 50% { border-color: transparent; } }
 
     .command-line {
         display: flex;
@@ -89,6 +119,11 @@
         font-size: 1.5rem;
         flex-grow: 1;
         outline: none;
+    }
+    .search-input:focus {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 4px;
+        border-radius: 2px;
     }
 
     /* --- Modal Styles --- */
@@ -108,22 +143,30 @@
         background-color: var(--modal-bg);
         border: 1px solid var(--border-color);
         border-radius: 8px;
-        width: 90%;
+        width: 95%; 
         max-width: 900px;
-        height: 90vh;
+        height: 95vh;
         box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         display: flex;
         flex-direction: column;
-        padding: 1rem 2rem;
+        padding: 1rem 1rem;
         transition: background-color 0.3s, color 0.3s;
     }
+    @media (min-width: 600px) {
+        .modal-container {
+            width: 90%;
+            height: 90vh;
+            padding: 1rem 2rem;
+        }
+    }
+
 
     .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
     .modal-title { font-weight: 700; color: var(--accent-color); }
     .close-modal { background: none; border: none; color: var(--accent-color); font-size: 2rem; cursor: pointer; }
 
     .result-container {
-        padding: 2rem 0;
+        padding: 1rem 0;
         flex-grow: 1;
         overflow-y: auto;
         font-family: 'Crimson Pro', serif;
@@ -131,31 +174,123 @@
         transition: background-color 0.3s, color 0.3s;
     }
 
-    .result-silvery { background-color: var(--bg-color); border-left: 5px solid var(--accent-color); padding: 1.5rem; line-height: 1.8; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    /* Conversation Block Styling */
+    .conversation-block {
+        margin-bottom: 1.5rem;
+        padding: 1rem 0;
+    }
+    .conversation-block h4 {
+        margin: 0;
+        padding: 0 0 0.5rem 0;
+        color: var(--secondary-text);
+        font-size: 0.9rem;
+        font-weight: 400;
+        border-bottom: 1px dashed var(--border-color);
+    }
+    .conversation-block .content {
+        background-color: var(--content-bg);
+        color: var(--content-text);
+        border-left: 5px solid var(--accent-color);
+        padding: 1.5rem;
+        line-height: 1.8;
+        box-shadow: 0 4px 10px var(--shadow-color); /* Use general shadow variable */
+        margin-top: 1rem;
+        transition: box-shadow 0.3s;
+    }
 
+    /* --- Neo Mode specific Content Glow --- */
+    [data-mode="neo"] .conversation-block .content {
+        /* Custom neon shadow effect using the accent color */
+        box-shadow: 0 0 10px rgba(0, 255, 0, 0.6), 
+                    0 0 20px rgba(0, 255, 0, 0.4), 
+                    inset 0 0 5px rgba(0, 255, 0, 0.3);
+    }
+    
     .citation-block { margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1rem; font-size: 0.9rem; }
     .citation-block a { color: var(--accent-color); text-decoration: none; }
     .citation-block a:hover { text-decoration: underline; }
 
     .modal-footer { display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border-color); }
-    .modal-footer button { padding: 0.5rem 1rem; border: 1px solid var(--accent-color); background: none; color: var(--accent-color); font-weight: 700; cursor: pointer; border-radius: 4px; }
+    .modal-footer button { 
+        padding: 0.5rem 1rem; 
+        border: 1px solid var(--accent-color); 
+        background: none; 
+        color: var(--accent-color); 
+        font-weight: 700; 
+        cursor: pointer; 
+        border-radius: 4px;
+        transition: background-color 0.2s, color 0.2s;
+    }
+    .modal-footer button:focus,
+    .mode-toggle button:focus {
+        background-color: var(--accent-color);
+        color: var(--bg-color); 
+        outline: 4px solid var(--accent-color);
+        outline-offset: -2px;
+    }
     
     /* --- Mode Toggle Buttons --- */
-    .mode-toggle { position: fixed; top: 1rem; right: 1rem; display: flex; gap: 0.5rem; }
-    .mode-toggle button { padding: 0.5rem 1rem; cursor: pointer; border: 1px solid var(--accent-color); background: none; color: var(--accent-color); font-weight: 700; border-radius: 4px; }
+    .mode-toggle { 
+        position: fixed; 
+        top: 1rem; 
+        right: 1rem; 
+        display: flex; 
+        gap: 0.5rem; 
+        flex-wrap: wrap;
+    }
+    .mode-toggle button { 
+        padding: 0.5rem 0.5rem;
+        cursor: pointer; 
+        border: 1px solid var(--accent-color); 
+        background: none; 
+        color: var(--accent-color); 
+        font-weight: 700; 
+        border-radius: 4px; 
+        font-size: 0.8rem;
+    }
+    @media (max-width: 600px) {
+        .mode-toggle { top: 0.5rem; right: 0.5rem; }
+    }
+
+    /* --- Custom Message/Toast Styles --- */
+    #customMessage {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        /* Custom message background will use the accent color */
+        background: var(--accent-color); 
+        color: var(--bg-color); /* Use the body background for max contrast */
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        pointer-events: none;
+        z-index: 1001;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+    /* Special override for Neo mode's message box for black text on neon green */
+    [data-mode="neo"] #customMessage {
+        color: #000000;
+    }
+    #customMessage.visible {
+        opacity: 1;
+        transform: translate(-50%, -10px);
+    }
 </style>
 </head>
 <body data-mode="silvery">
 
 <div class="mode-toggle">
-    <button onclick="setMode('silvery')">Silvery</button>
+    <button onclick="setMode('silvery')">Default</button>
     <button onclick="setMode('dark')">Dark</button>
-    <button onclick="setMode('light')">Light</button>
-    <button onclick="setMode('mystic')">Mystic</button>
+    <button onclick="setMode('neo')">Neo</button>
 </div>
 
 <div class="terminal-window">
-    <p class="typed-text">connected. truth-engine ready.</p>
+    <p class="typed-text" id="typedText">connected. truth-engine ready.</p>
     <div class="command-line">
         <input type="text" class="search-input" id="queryInput" placeholder="Enter query..." autofocus>
     </div>
@@ -167,7 +302,9 @@
             <p class="modal-title">DATA STREAM // ai-nspired</p>
             <button class="close-modal" id="close-modal">×</button>
         </div>
-        <div class="result-container" id="resultContainer"></div>
+        <div class="result-container" id="resultContainer">
+            <!-- Content will be injected here -->
+        </div>
         <div class="modal-footer" id="modalFooter">
             <button id="copyAnalysisBtn">Copy Analysis</button>
             <button id="ttsBtn">TTS (Read Aloud)</button>
@@ -175,6 +312,9 @@
         </div>
     </div>
 </div>
+
+<!-- Custom Message/Toast Box -->
+<div id="customMessage"></div>
 
 <script>
 const API_URL = 'https://justice.ai-n.workers.dev/api/ai/truth';
@@ -186,65 +326,101 @@ const copyAnalysisBtn = document.getElementById('copyAnalysisBtn');
 const ttsBtn = document.getElementById('ttsBtn');
 const followUpBtn = document.getElementById('followUpBtn');
 const body = document.body;
+const customMessage = document.getElementById('customMessage');
+const typedTextEl = document.getElementById('typedText');
 
-let lastQuery = '';
+let lastQuery = ''; 
+let queryCount = 0; 
 
 // --- Mode Functions ---
 function setMode(mode){
-    if(mode==='silvery'){ body.setAttribute('data-mode',''); } 
-    else { body.setAttribute('data-mode', mode); }
+    if(mode==='silvery'){ 
+        body.setAttribute('data-mode',''); 
+    } else { 
+        body.setAttribute('data-mode', mode); 
+    }
 }
 
 // --- Modal Functions ---
 function openModal(){ modalOverlay.classList.add('active'); }
-function closeModal(){ modalOverlay.classList.remove('active'); }
+function closeModal(){ 
+    modalOverlay.classList.remove('active'); 
+    // Stop speaking when modal is closed
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        ttsBtn.innerText='TTS (Read Aloud)';
+    }
+}
 
 // --- Utility Functions ---
-function chooseStyleForQuery(){ return 'silvery'; }
+function chooseStyleForQuery(){ return 'silvery'; } 
+
+function showMessage(message, duration=2000){
+    customMessage.innerText = message;
+    customMessage.classList.add('visible');
+    setTimeout(() => {
+        customMessage.classList.remove('visible');
+    }, duration);
+}
 
 function copyAnalysisToClipboard(){
-    document.execCommand('copy', false, resultContainer.innerText); // using execCommand for broader compatibility in iframes
-    copyAnalysisBtn.innerText='COPIED!';
-    setTimeout(()=>copyAnalysisBtn.innerText='Copy Analysis',2000);
+    document.execCommand('copy', false, resultContainer.innerText);
+    showMessage('Analysis Copied to Clipboard!');
 }
 
 function readAnalysisAloud(){
-    if('speechSynthesis' in window){
-        if(window.speechSynthesis.speaking){ 
-            window.speechSynthesis.cancel(); 
-            ttsBtn.innerText='TTS (Stopped)'; 
-            setTimeout(()=>ttsBtn.innerText='TTS (Read Aloud)',1000); 
-            return; 
-        }
-        const utterance = new SpeechSynthesisUtterance(resultContainer.innerText.replace(/(\n|\t)/g,' '));
-        utterance.rate=1.1;
-        ttsBtn.innerText='TTS (Speaking...)';
-        utterance.onend=()=>{ttsBtn.innerText='TTS (Read Aloud)';}
-        // Using setTimeout to ensure the utterance starts after a minimal delay
-        setTimeout(()=>{window.speechSynthesis.speak(utterance);},100);
-    } else console.error('Text-to-Speech not supported.');
+    if(!('speechSynthesis' in window)){ 
+        showMessage('Text-to-Speech not supported in this browser.');
+        return; 
+    }
+    
+    if(window.speechSynthesis.speaking){ 
+        window.speechSynthesis.cancel(); 
+        ttsBtn.innerText='TTS (Stopped)'; 
+        setTimeout(()=>ttsBtn.innerText='TTS (Read Aloud)',1000); 
+        return; 
+    }
+    
+    const conversationText = Array.from(resultContainer.querySelectorAll('.content')).map(el => el.innerText).join('\n---\n');
+    
+    const utterance = new SpeechSynthesisUtterance(conversationText.replace(/(\n|\t)/g,' '));
+    utterance.rate=1.1;
+    ttsBtn.innerText='TTS (Speaking...)';
+    
+    utterance.onend=()=>{
+        ttsBtn.innerText='TTS (Read Aloud)';
+        showMessage('Read-aloud complete.');
+    }
+    setTimeout(()=>{window.speechSynthesis.speak(utterance);},100);
 }
 
 // --- Query Function ---
 async function performTruthQuery(query, isFollowUp=false){
     if(!query) return;
 
-    // Only store the query as the root topic if it's the initial (non-follow-up) question.
     if (!isFollowUp) {
-        lastQuery = query; // store only the original query
+        lastQuery = query; 
+        queryCount = 1; 
+        resultContainer.innerHTML=''; 
+    } else {
+        queryCount++;
     }
 
     openModal();
     
-    // Add loading indicator for all queries, but only clear the container for new, initial queries
-    if(!isFollowUp){
-        resultContainer.innerHTML='<p>⚡ Scanning truth matrix...</p>';
-        resultContainer.className='result-container';
-    } else {
-        // Append a temporary loading message for follow-ups
-        resultContainer.innerHTML += `<hr><p>⚡ Scanning truth matrix for follow-up...</p>`;
-        resultContainer.scrollTo(0, resultContainer.scrollHeight); // scroll to bottom for follow-up
-    }
+    const tempLoadingId = `loading-${Date.now()}`;
+    const queryLabel = isFollowUp ? `Follow-up ${queryCount - 1} on "${lastQuery}"` : `Initial Query: "${query}"`;
+
+    const loadingHtml = `
+        <div class="conversation-block" id="${tempLoadingId}">
+            <h4>${queryLabel}</h4>
+            <div class="content">
+                <p>⚡ Scanning truth matrix...</p>
+            </div>
+        </div>`;
+
+    resultContainer.innerHTML += loadingHtml;
+    resultContainer.scrollTo(0, resultContainer.scrollHeight); 
 
     try{
         const res = await fetch(API_URL,{
@@ -254,27 +430,39 @@ async function performTruthQuery(query, isFollowUp=false){
         });
         if(!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const data = await res.json();
-        const chosenStyle = chooseStyleForQuery();
-        resultContainer.className='result-container result-'+chosenStyle;
+        
+        const loadingBlock = document.getElementById(tempLoadingId);
+        if(loadingBlock) loadingBlock.remove();
 
-        let html = data.answer ? marked.parse(data.answer) : '<p>No results found.</p>';
+        let htmlContent = data.answer ? marked.parse(data.answer) : '<p>No results found.</p>';
         if(data.citations?.length){
-            html += `<div class="citation-block"><h3>Sources</h3><ul>${data.citations.map(c=>`<li><a href="${c.url}" target="_blank">${c.title}</a></li>`).join('')}</ul></div>`;
+            htmlContent += `<div class="citation-block"><h3>Sources</h3><ul>${data.citations.map(c=>`<li><a href="${c.url}" target="_blank">${c.title}</a></li>`).join('')}</ul></div>`;
         }
 
-        if(isFollowUp){
-            // Remove the temporary loading message before appending the final result
-            const tempLoading = resultContainer.innerHTML.lastIndexOf('<hr><p>⚡');
-            if(tempLoading !== -1){
-                resultContainer.innerHTML = resultContainer.innerHTML.substring(0, tempLoading);
-            }
-            resultContainer.innerHTML += `<hr>` + html; // append for follow-up
-            resultContainer.scrollTo(0, resultContainer.scrollHeight); // scroll to show new result
-        } else {
-            resultContainer.innerHTML = html; // replace for initial query
-        }
+        const finalBlock = `
+            <div class="conversation-block">
+                <h4>${isFollowUp ? `Response ${queryCount} (Follow-up)` : `Response ${queryCount} (Initial)`}</h4>
+                <div class="content">
+                    ${htmlContent}
+                </div>
+            </div>`;
+        
+        resultContainer.innerHTML += finalBlock;
+        resultContainer.scrollTo(0, resultContainer.scrollHeight);
+
     } catch(err){
-        resultContainer.innerHTML=`<h3>System Error</h3><p>${err.message}</p>`;
+        const loadingBlock = document.getElementById(tempLoadingId);
+        if(loadingBlock) loadingBlock.remove();
+        
+        resultContainer.innerHTML += `
+            <div class="conversation-block">
+                <h4>System Error</h4>
+                <div class="content" style="border-left-color: red; color: red;">
+                    <h3>System Error</h3><p>Could not connect to Truth Engine: ${err.message}</p>
+                </div>
+            </div>`;
+        resultContainer.scrollTo(0, resultContainer.scrollHeight); 
+        console.error("API Fetch Error:", err);
     }
 }
 
@@ -282,12 +470,12 @@ async function performTruthQuery(query, isFollowUp=false){
 queryInput.addEventListener('keypress', e=>{
     if(e.key==='Enter'){
         const query = queryInput.value.trim();
+        if (query === '') return;
         const isFollowUp = query.includes('→');
         
-        // UX Improvement: Clear the input after submission
-        queryInput.value = '';
-
         performTruthQuery(query, isFollowUp);
+        
+        queryInput.value = '';
     }
 });
 
@@ -297,19 +485,32 @@ copyAnalysisBtn.addEventListener('click',copyAnalysisToClipboard);
 ttsBtn.addEventListener('click',readAnalysisAloud);
 
 followUpBtn.addEventListener('click', ()=>{
-    // FIX: Close the modal immediately so the input field becomes accessible.
     closeModal(); 
-    
-    queryInput.focus();
-    // Use the stored root query for the follow-up prompt
     queryInput.value = lastQuery ? lastQuery + ' → ' : '';
+    queryInput.focus();
 });
 
-// Initialize query from URL
+// Initialize query from URL and start typing animation
 window.addEventListener('load', ()=>{
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q');
-    if(q){ queryInput.value = decodeURIComponent(q.replace(/\+/g,' ')); performTruthQuery(queryInput.value); }
+    if(q){ 
+        queryInput.value = decodeURIComponent(q.replace(/\+/g,' ')).trim(); 
+        performTruthQuery(queryInput.value); 
+        queryInput.value = '';
+    }
+    
+    // Start the typing animation regardless of URL query
+    typedTextEl.classList.add('is-typing');
+
+    // Wait for the typing animation to finish
+    typedTextEl.addEventListener('animationend', (e) => {
+        // Only trigger on the 'typing' animation, not the 'blink-caret'
+        if (e.animationName === 'typing') {
+            typedTextEl.classList.remove('is-typing');
+            typedTextEl.classList.add('is-done');
+        }
+    }, { once: true });
 });
 </script>
 </body>
