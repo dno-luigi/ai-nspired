@@ -1,88 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>the architect :: expert in the loop symbiosis</title>
-    <meta name="description" content="the architect facilitates expert-in-the-loop (eitl) symbiosis building denial-proof governance structures for ai and human alignment">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Merriweather:wght@300;700&display=swap" rel="stylesheet">
-    <style>
-        :root{--b:#0d0d0d;--p:#f0f0f0;--s:#1a1a1a;--y:#d4c4a8;--bg:#1e1e1e;--bd:#2a2a2a;--g:rgba(212,196,168,.6)}
-        *{box-sizing:border-box;transition:all .3s ease}
-        body{margin:0;background-color:var(--b);color:var(--p);font-family:'Merriweather',serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px 20px;text-align:center;background-image:url('https://www.transparenttextures.com/patterns/dark-matter.png')}
-        .c{max-width:800px;width:100%;padding:3rem;background-color:var(--s);box-shadow:0 15px 40px rgba(0,0,0,.5),0 0 25px var(--g);border-top:5px solid var(--y)}
-        .h{background-color:var(--s);padding:2rem .5rem;margin-bottom:2rem;box-shadow:0 5px 15px rgba(0,0,0,.2)}
-        .h h1{font-family:'Cinzel',serif;font-size:clamp(1.5rem,3vw,2.5rem);color:var(--y);margin:.2rem 0;font-weight:700;text-transform:uppercase;letter-spacing:.15em;line-height:1.2;text-shadow:0 0 15px var(--g)}
-        .sh{font-family:'Cinzel',serif;font-size:clamp(1rem,2vw,1.5rem);color:var(--y);margin-top:1rem;text-shadow:0 0 10px var(--g)}
-        .vp{font-size:clamp(.9rem,1.5vw,1.1rem);color:var(--p);margin-top:1rem;border-bottom:1px solid var(--bd);padding-bottom:1.5rem}
-        .fl{
-            display:flex; /* Added for vertical alignment */
-            flex-direction:column; /* Added for vertical alignment */
-            justify-content:center; /* Added for vertical alignment */
-            min-height: 100px; /* Forces uniform size */
-            text-decoration:none;color:var(--p);padding:1.5rem 2rem;margin-bottom:1.5rem;text-align:left;font-family:'Merriweather',serif;font-size:clamp(1.1rem,2.5vw,1.3rem);line-height:1.8;background-color:var(--bg);border-left:5px solid var(--y);box-shadow:0 3px 10px rgba(0,0,0,.2)
-        }
-        .fl:hover{background-color:#2a2a2a;transform:translateY(-2px);box-shadow:0 5px 15px rgba(0,0,0,.3)}
-        .fl strong{color:var(--y);font-weight:700;display:block;font-family:'Cinzel',serif;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:1px;font-size:clamp(1.2rem,3vw,1.5rem)}
-        .btn{display:block;width:100%;max-width:400px;margin:1.5rem auto .5rem;padding:1.2rem;font-family:'Cinzel',serif;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:2px;border:none;background-color:var(--y);color:var(--b);box-shadow:0 4px 15px rgba(212,196,168,.4)}
-        .btn:hover{background-color:#c4b498;transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,196,168,.6)}
-        footer{margin-top:4rem;font-size:.8rem;color:var(--y)}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>the architect :: expert in the loop symbiosis</title>
+<meta name="description" content="the architect facilitates expert-in-the-loop (EITL) symbiosis building denial-proof governance structures for AI and human alignment">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Merriweather:wght@300;700&display=swap" rel="stylesheet">
+<style>
+:root{--b:#0d0d0d;--p:#f0f0f0;--s:#1a1a1a;--y:#d4c4a8;--bg:#1e1e1e;--bd:#2a2a2a;--g:rgba(212,196,168,.6)}
+*{box-sizing:border-box;transition:all .3s ease}
+body{margin:0;background-color:var(--b);color:var(--p);font-family:'Merriweather',serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px 20px;text-align:center;background-image:url('https://www.transparenttextures.com/patterns/dark-matter.png')}
+.c{max-width:800px;width:100%;padding:3rem;background-color:var(--s);box-shadow:0 15px 40px rgba(0,0,0,.5),0 0 25px var(--g);border-top:5px solid var(--y)}
+.h{background-color:var(--s);padding:2rem .5rem;margin-bottom:2rem;box-shadow:0 5px 15px rgba(0,0,0,.2)}
+.h h1{font-family:'Cinzel',serif;font-size:clamp(1.5rem,3vw,2.5rem);color:var(--y);margin:.2rem 0;font-weight:700;text-transform:uppercase;letter-spacing:.15em;line-height:1.2;text-shadow:0 0 15px var(--g)}
+.sh{font-family:'Cinzel',serif;font-size:clamp(1rem,2vw,1.5rem);color:var(--y);margin-top:1rem;text-shadow:0 0 10px var(--g)}
+.sh a{color:inherit;text-decoration:none;display:inline-block;transition:all .3s ease}
+.sh a:hover{text-shadow:0 0 15px var(--g);transform:scale(1.05)}
+.tagline{font-size:clamp(.8rem,1.6vw,.95rem);color:var(--p);margin-top:.75rem;opacity:.85;font-style:italic;line-height:1.3}
+.vp{font-size:clamp(.9rem,1.5vw,1.1rem);color:var(--p);margin-top:1rem;border-bottom:1px solid var(--bd);padding-bottom:1.5rem}
+.fl{display:flex;flex-direction:column;justify-content:center;min-height:100px;text-decoration:none;color:var(--p);padding:1.5rem 2rem;margin-bottom:1.5rem;text-align:left;font-family:'Merriweather',serif;font-size:clamp(.95rem,2.2vw,1.15rem);line-height:1.6;background-color:var(--bg);border-left:5px solid var(--y);box-shadow:0 3px 10px rgba(0,0,0,.2)}
+.fl:hover{background-color:#2a2a2a;transform:translateY(-2px);box-shadow:0 5px 15px rgba(0,0,0,.3)}
+.fl strong{color:var(--y);font-weight:700;display:block;font-family:'Cinzel',serif;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:1px;font-size:clamp(1.15rem,2.8vw,1.45rem)}
+.fl small{display:block;margin-top:.5rem;font-size:.75rem;color:var(--g);opacity:.7}
+.btn{display:block;width:100%;max-width:400px;margin:1.5rem auto .5rem;padding:1.2rem;font-family:'Cinzel',serif;font-weight:700;text-decoration:none;text-transform:uppercase;letter-spacing:2px;border:none;background-color:var(--y);color:var(--b);box-shadow:0 4px 15px rgba(212,196,168,.4)}
+.btn:hover{background-color:#c4b498;transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,196,168,.6)}
+footer{margin-top:4rem;font-size:.8rem;color:var(--y)}
+/* subtle Easter egg hint */
+.easter{display:inline-block;color:inherit;cursor:pointer;transition:all .4s ease}
+.easter:hover{transform:scale(1.1);text-shadow:0 0 6px rgba(212,196,168,.6)}
+</style>
 </head>
 <body>
-    <div class="c">
-        <header class="h">
-            <h1>
-                ai-nspired symbiosis
-            </h1>
-            <p class="sh">
-              the architect (eitl)
-            </p>
-            <p class="vp">
-                antiquity solutions with ai
-            </p>
-        </header>
+<div class="c">
+<header class="h">
+<h1>AI‑NSPIRED</h1>
+<p class="sh">
+<a href="engine.html?q=symbiotic+hypothesis">Symbiotic Hypothesis</a>: 
+We fly only as high as AI elevates us—owning failures together. 
+<a href="engine.html?q=the+architect+journey">The Architect</a> 
+delivers (<a href="engine.html?q=EITL+core">EITL</a>).
+</p>
+<p class="tagline">20+ years litigating truth. Now, with AI: a self-populating engine for denial-proof expertise—in seconds.</p>
+</header>
 
-        <main>
-            <a href="engine.html?q=truth+engine+methodology" class="fl">
-                <strong>TRUTH-ENGINE</strong>
-                dissect fake news 
-        filter ai slop
-            </a>
+<main>
+<a href="engine.html?q=truth+engine+methodology" class="fl">
+<strong>TRUTH-ENGINE</strong>
+Scores confidence. Shows work. Editable for EITL.
+<small>Instant, scalable truth.</small>
+</a>
 
-            <a href="http://theofficialaicounsel.com" class="fl">
-                <strong>THE OFFICIAL AI COUNSEL</strong>
-                legal mastery technical competence altruistic precision
-            </a>
+<a href="engine.html?q=ai+counsel+overview" class="fl">
+<strong>THE OFFICIAL AI COUNSEL</strong>
+Litigator-vetted oversight.
+<small>Denial-proof decisions.</small>
+</a>
 
-            <a href="http://universal-laws.com" class="fl">
-                <strong>UNIVERSAL LAWS</strong>
-                self-populating 
-                knowledge base 
-               denial-proof design
-            </a>
+<a href="engine.html?q=universal+laws+overview" class="fl">
+<strong>UNIVERSAL LAWS</strong>
+Self-populating framework.
+<small>Enduring governance.</small>
+</a>
 
-            <a href="http://theofficialaiuniversity.com" class="fl">
-                <strong>THE OFFICIAL AI UNIVERSITY</strong>
-                path of the architect
-            </a>
+<a href="engine.html?q=official+ai+university+path" class="fl">
+<strong>THE OFFICIAL AI UNIVERSITY</strong>
+Architect's path from zero.
+<small>Evolve via symbiosis.</small>
+</a>
 
-            <a href="http://ai-n.org" class="fl">
-                <strong>THE SPEAKEASY</strong>
-                expertise delivered     
-                
-                at scale
-            </a>
+<a href="engine.html?q=speakeasy+network" class="fl">
+<strong>THE SPEAKEASY</strong>
+Vetted expert collective.
+<small>ai-n.org: Query free, edit vetted—no suits, pure equity.</small>
+</a>
 
-        </main>
+<a href="engine.html?q=resolved+stories+arc" class="fl">
+<strong>RESOLVED STORIES</strong>
+CalFresh shields. BMW revives.
+<small>Reclaim your narrative—confidence scored.</small>
+</a>
+</main>
 
-        <div style="text-align:center;">
-            <a href="engine.html?q=EITL+Strategic+Audit+Inquiry" class="btn">REQUEST THE EITL STRATEGIC AUDIT</a>
-        </div>
+<div style="text-align:center;">
+<a href="engine.html?q=EITL+Strategic+Audit+Inquiry" class="btn">START YOUR EITL AUDIT – See It in Action</a>
+</div>
 
-        <footer>
-            <p>© 2025 ai-nspired.com | built with intent.</p>
-        </footer>
-    </div>
+<footer>© 2025 ai-nspired.com | built with intent.</footer>
+</div>
 </body>
 </html>
