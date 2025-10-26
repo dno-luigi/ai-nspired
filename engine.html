@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Nspired :: Truth Engine Interface</title>
+    <meta name="description" content="ai-nspired.com • truth-engine. memory keeper. Systems that don’t forget—or flinch.">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #f8f8ff;
+            --text-color: #1a1a1a;
+            --border-color: #d0d0d0;
+            --modal-bg: #ffffff;
+            --content-bg: #f8f8ff;
+            --content-text: #1a1a1a;
+            --accent-color: #1a2a3a;
+            --secondary-text: #6c757d;
+            --shadow-color: rgba(0,0,0,0.05);
+            --accent-color-rgb: 26, 42, 58;
+            --grid-bg: #e8e8e8;
+            --grid-cell-off: #cccccc;
+            --grid-cell-on: #1a2a3a;
+        }
+        [data-mode="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #f0f0f0;
+            --border-color: #333333;
+            --modal-bg: #2a2a2a;
+            --content-bg: #111111;
+            --content-text: #f0f0f0;
+            --accent-color: #c7a17a;
+            --secondary-text: #9fa8da;
+            --shadow-color: rgba(0,0,0,0.3);
+            --accent-color-rgb: 199, 161, 122;
+            --grid-bg: #1a1a1a;
+            --grid-cell-off: #333333;
+            --grid-cell-on: #c7a17a;
+        }
+        [data-mode="neo"] {
+            --bg-color: #000000;
+            --text-color: #00FF00;
+            --border-color: #008800;
+            --modal-bg: #0d0d0d;
+            --content-bg: #1a1a1a;
+            --content-text: #00FF00;
+            --accent-color: #00FF00;
+            --secondary-text: #00AA00;
+            --shadow-color: transparent;
+            --accent-color-rgb: 0, 255, 0;
+            --grid-bg: #0d0d0d;
+            --grid-cell-off: #1a1a1a;
+            --grid-cell-on: #00FF00;
+        }
+
+        body {
+            margin: 0;
+            padding: 1.5rem 1rem;
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.1rem;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+            width: 100%;
+            position: relative;
+        }
+        @media (max-width: 600px) { body { padding: 1rem 0.5rem; } }
+
+        .terminal-window {
+            width: 100%;
+            max-width: 800px;
+            text-align: left;
+        }
+
+        .typed-text {
+            font-weight: 700;
+            font-size: 1.5rem;
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            width: 0;
+            border-right: 3px solid var(--accent-color);
+            animation: blink-caret .75s step-end infinite;
+        }
+        .typed-text.is-typing {
+            animation: typing 3.5s steps(40, end) forwards, blink-caret .75s step-end infinite;
+        }
+        .typed-text.is-done {
+            animation: none;
+            border-right: none;
+            width: auto;
+        }
+
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+        @keyframes blink-caret { 50% { border-color: transparent; } }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        .command-line {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+        .command-line::before { content: '>'; margin-right: 1rem; font-weight: bold; }
+
+        .search-input {
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.5rem;
+            flex-grow: 1;
+            outline: none;
+            padding-right: 1rem;
+        }
+        .search-input:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 4px;
+            border-radius: 2px;
+        }
+        .history-toggle {
+            padding: 0.5rem 1rem;
+            margin-left: 1rem;
+            border: 1px solid var(--accent-color);
+            background: none;
+            color: var(--accent-color);
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            min-width: 80px;
+        }
+        .history-toggle:hover, .history-toggle:focus {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-container {
+            background-color: var(--modal-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 95%;
+            max-width: 900px;
+            height: 95vh;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            transition: background-color 0.3s, color 0.3s;
+            overflow: hidden;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .modal-title { font-weight: 700; color: var(--accent-color); }
+        .close-modal { background: none; border: none; color: var(--accent-color); font-size: 2rem; cursor: pointer; }
+        .close-modal:hover { color: var(--bg-color); background: var(--accent-color); border-radius: 50%; }
+        .result-container {
+            padding: 1rem 0;
+            flex-grow: 1;
+            overflow-y: auto;
+            font-family: 'Crimson Pro', serif;
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            scroll-behavior: smooth;
+        }
+        .conversation-block .content {
+            box-shadow: 0 4px 10px var(--shadow-color);
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+            transition: box-shadow 0.3s;
+        }
+        [data-mode="neo"] .conversation-block .content {
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+        }
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+        .modal-footer button {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--accent-color);
+            background: none;
+            color: var(--accent-color);
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px;
+            min-width: 100px;
+        }
+        .modal-footer button:hover, .modal-footer button:focus {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .mode-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .mode-toggle button, .mode-toggle select {
+            padding: 0.5rem;
+            border: 1px solid var(--accent-color);
+            background: none;
+            color: var(--accent-color);
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            min-width: 100px;
+        }
+        .mode-toggle select { background: var(--modal-bg); }
+        .mode-toggle button:hover, .mode-toggle select:focus {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+        @media (max-width: 600px) { .mode-toggle { top: 0.5rem; right: 0.5rem; } }
+
+        #historyPanel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 300px;
+            max-width: 80vw;
+            background-color: var(--modal-bg);
+            border-right: 1px solid var(--border-color);
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            touch-action: pan-y;
+        }
+        #historyPanel.open { transform: translateX(0); }
+        .history-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .history-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .history-actions button, .history-actions input {
+            background: none;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            min-width: 60px;
+        }
+        .history-actions button:hover, .history-actions input:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+        .close-history {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        #historyList {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem 0;
+            list-style: none;
+            margin: 0;
+        }
+        .history-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        .history-item:hover {
+            background-color: rgba(var(--accent-color-rgb), 0.1);
+        }
+        .history-item-content {
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .history-item-content p {
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 700;
+        }
+        .history-item-content small {
+            color: var(--secondary-text);
+            font-size: 0.75rem;
+            display: block;
+            margin-top: 2px;
+        }
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-text);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1rem;
+            line-height: 1;
+        }
+        .copy-btn:hover { color: var(--accent-color); }
+
+        #customMessage {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-color);
+            color: var(--bg-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            pointer-events: none;
+            z-index: 1001;
+            font-weight: 700;
+            font-size: 0.9rem;
+            max-width: 90vw;
+        }
+        [data-mode="neo"] #customMessage { color: #000000; }
+        #customMessage.visible {
+            opacity: 1;
+            transform: translate(-50%, -10px);
+        }
+        #exportPrompt {
+            display: none;
+            position: fixed;
+            bottom: 4rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-color);
+            color: var(--bg-color);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1001;
+            font-weight: 700;
+            font-size: 0.9rem;
+            max-width: 90vw;
+            text-align: center;
+        }
+        #exportPrompt button {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--bg-color);
+            background: var(--bg-color);
+            color: var(--accent-color);
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        #exportPrompt button:hover {
+            background: var(--modal-bg);
+        }
+        #exportPrompt.visible {
+            display: block;
+        }
+        .disclaimer {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--secondary-text);
+            font-size: 0.8rem;
+            text-align: center;
+            max-width: 90vw;
+        }
+    </style>
+</head>
+<body data-mode="silvery">
+    <div class="mode-toggle">
+        <button data-mode="silvery">Silvery</button>
+        <button data-mode="dark">Dark</button>
+        <button data-mode="neo">Neo</button>
+        <select id="modelSelector" aria-label="Select AI Model">
+            <option value="WORKERS_AI">Workers AI (LLaMA 3, 8K)</option>
+            <option value="dolphin-mistral-24b">Dolphin Mistral 24B (Free, 32K)</option>
+            <option value="grok-3">Grok-3 (Free, 128K)</option>
+            <option value="gemini-flash">Gemini Flash 2.0 (Free, 32K)</option>
+            <option value="deepseek-v3">DeepSeek V3 (Free, 128K)</option>
+            <option value="mistral-nemo">Mistral Nemo (Easter Egg Unlock)</option>
+            <option value="qwen2.5-7b-instruct">Qwen 2.5 7B (Easter Egg Unlock)</option>
+            <option value="gpt-oss-20b">GPT OSS 20B (Easter Egg Unlock)</option>
+        </select>
+    </div>
+
+    <div class="terminal-window">
+        <p class="typed-text" id="typedText">connected. truth-engine ready.</p>
+        <div class="input-row">
+            <div class="command-line">
+                <input type="text" class="search-input" id="queryInput" placeholder="Enter query..." autofocus aria-label="Enter query">
+            </div>
+            <button class="history-toggle" id="historyToggle" aria-label="Toggle history">History</button>
+        </div>
+    </div>
+
+    <div id="historyPanel">
+        <div class="history-header">
+            <p>History</p>
+            <div class="history-actions">
+                <button id="exportHistory" aria-label="Export history">Export</button>
+                <input type="file" id="importHistory" accept=".json" aria-label="Import history">
+                <button id="clearHistory" aria-label="Clear history">Clear</button>
+            </div>
+            <button class="close-history" id="closeHistory" aria-label="Close history">×</button>
+        </div>
+        <ul id="historyList" role="list"></ul>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <p class="modal-title">DATA STREAM // ai-nspired</p>
+                <button class="close-modal" id="close-modal" aria-label="Close modal">×</button>
+            </div>
+            <div class="result-container" id="resultContainer" role="log" aria-live="polite"></div>
+            <div class="modal-footer">
+                <button id="copyResult" aria-label="Copy result">Copy</button>
+                <button id="ttsBtn" aria-label="Read aloud">TTS</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customMessage"></div>
+    <div id="exportPrompt">
+        Your shit’s gonna self-destruct in 2 hours—export now to keep your context free!
+        <button id="exportPromptBtn" aria-label="Export conversation">Export Now</button>
+    </div>
+    <div class="disclaimer">
+        Free tier uses shared conversation history. Export to save your context. By using this system, you agree to our terms of service.
+    </div>
+
+    <script>
+        const API_URL = 'https://truthengine.ai-n.workers.dev/';
+        const STORAGE_KEY = 'LOCAL_TRUTH_HISTORY';
+        let localHistory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        let MODEL = localStorage.getItem('truth-model') || 'gemini-flash';
+
+        // Utils
+        function showMessage(msg, duration = 3000) {
+            const el = document.getElementById('customMessage');
+            el.textContent = msg;
+            el.classList.add('visible');
+            setTimeout(() => el.classList.remove('visible'), duration);
+        }
+
+        function showExportPrompt() {
+            const prompt = document.getElementById('exportPrompt');
+            prompt.classList.add('visible');
+            setTimeout(() => prompt.classList.remove('visible'), 5000);
+        }
+
+        async function loadMarked() {
+            try {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+                document.head.appendChild(script);
+                return new Promise(resolve => {
+                    script.onload = () => resolve(window.marked.parse);
+                });
+            } catch {
+                return text => text; // Fallback plain text
+            }
+        }
+
+        function copyToClipboard(text, msg = 'Copied!') {
+            navigator.clipboard.writeText(text).then(() => showMessage(msg));
+        }
+
+        async function promptForPassphrase(challengeQuestion) {
+            return new Promise((resolve) => {
+                const passphrase = prompt(challengeQuestion || 'What is the passphrase?');
+                resolve(passphrase || '');
+            });
+        }
+
+        // Modal/History
+        function openModal() {
+            document.getElementById('modal-overlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+            speechSynthesis.cancel();
+            if (localHistory.length > 0) showExportPrompt();
+        }
+
+        function toggleHistory() {
+            const panel = document.getElementById('historyPanel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) fetchHistory();
+        }
+
+        async function fetchHistory() {
+            try {
+                const res = await fetch(`${API_URL}/conversation/history`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const history = await res.json();
+                localHistory = history;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
+                renderHistory();
+            } catch (error) {
+                showMessage('Failed to fetch history.');
+                renderHistory(); // Fallback to local storage
+            }
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = localHistory.slice(-20).reverse().map(item => `
+                <li class="history-item" role="button" tabindex="0" data-query="${item.query.replace(/"/g, '&quot;')}">
+                    <div class="history-item-content">
+                        <p>${item.query.slice(0, 50)}${item.query.length > 50 ? '...' : ''}</p>
+                        <small>${item.model} • ${new Date(item.timestamp).toLocaleString()}</small>
+                    </div>
+                    <button class="copy-btn" aria-label="Copy query and answer">📋</button>
+                </li>
+            `).join('');
+            document.querySelectorAll('.history-item').forEach(item => {
+                item.addEventListener('click', e => {
+                    if (e.target.classList.contains('copy-btn')) {
+                        copyToClipboard(`Query: ${item.dataset.query}\nAnswer: ${localHistory.find(h => h.query === item.dataset.query).answer}`);
+                    } else {
+                        performTruthQuery(item.dataset.query);
+                    }
+                });
+                item.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') performTruthQuery(item.dataset.query);
+                });
+            });
+        }
+
+        async function exportHistory() {
+            try {
+                const res = await fetch(`${API_URL}/conversation/export`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'conversation.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                showMessage('History exported. Save it to continue later!');
+            } catch (error) {
+                showMessage('Failed to export history.');
+            }
+        }
+
+        async function importHistory(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async () => {
+                try {
+                    const imported = JSON.parse(reader.result);
+                    const res = await fetch(`${API_URL}/conversation/import`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(imported)
+                    });
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        localHistory = imported.history;
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
+                        await fetchHistory();
+                        showMessage('History imported. Context restored!');
+                    } else {
+                        throw new Error(data.error);
+                    }
+                } catch (error) {
+                    showMessage('Invalid JSON or import failed.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Query
+        async function performTruthQuery(query, challengeResponse = '') {
+            if (!query.trim()) return showMessage('Enter a query.');
+            openModal();
+            const container = document.getElementById('resultContainer');
+            const loadingId = `loading-${Date.now()}`;
+            container.innerHTML = `
+                <div class="conversation-block" id="${loadingId}">
+                    <h4>Query: ${query}</h4>
+                    <div class="content">Scanning...</div>
+                </div>
+            `;
+
+            try {
+                const parse = await loadMarked();
+                const payload = {
+                    task: 'generate',
+                    input: query,
+                    model: MODEL,
+                    challengeResponse: challengeResponse
+                };
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    if (data.error === 'CHALLENGE_REQUIRED') {
+                        const passphrase = await promptForPassphrase(data.challengeQuestion);
+                        return performTruthQuery(query, passphrase);
+                    }
+                    throw new Error(data.error || `HTTP ${res.status}`);
+                }
+
+                container.innerHTML = `
+                    <div class="conversation-block">
+                        <h4>Query: ${query}</h4>
+                        <div class="content">${parse(data.answer)}</div>
+                        <small>Model: ${data.model} • ${new Date(data.timestamp).toLocaleString()}</small>
+                    </div>
+                `;
+                localHistory.push({ query, answer: data.answer, model: data.model, timestamp: data.timestamp });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
+                await fetchHistory();
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="conversation-block">
+                        <h4>Query: ${query}</h4>
+                        <div class="content">Error: ${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('queryInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') performTruthQuery(e.target.value);
+        });
+        document.getElementById('historyToggle').addEventListener('click', toggleHistory);
+        document.getElementById('closeHistory').addEventListener('click', toggleHistory);
+        document.getElementById('close-modal').addEventListener('click', closeModal);
+        document.getElementById('copyResult').addEventListener('click', () => {
+            const content = document.querySelector('.conversation-block .content').textContent;
+            copyToClipboard(content);
+        });
+        document.getElementById('ttsBtn').addEventListener('click', () => {
+            const content = document.querySelector('.conversation-block .content').textContent;
+            const utterance = new SpeechSynthesisUtterance(content);
+            speechSynthesis.speak(utterance);
+        });
+        document.getElementById('exportHistory').addEventListener('click', exportHistory);
+        document.getElementById('importHistory').addEventListener('change', importHistory);
+        document.getElementById('clearHistory').addEventListener('click', async () => {
+            try {
+                const res = await fetch(`${API_URL}/conversation/import`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ history: [] })
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                localHistory = [];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
+                renderHistory();
+                showMessage('History cleared.');
+            } catch (error) {
+                showMessage('Failed to clear history.');
+            }
+        });
+        document.getElementById('modelSelector').addEventListener('change', (e) => {
+            MODEL = e.target.value;
+            localStorage.setItem('truth-model', MODEL);
+            showMessage(`Model set to ${e.target.options[e.target.selectedIndex].text}`);
+        });
+        document.querySelectorAll('.mode-toggle button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.body.dataset.mode = btn.dataset.mode;
+                localStorage.setItem('theme', btn.dataset.mode);
+            });
+        });
+        document.getElementById('exportPromptBtn').addEventListener('click', exportHistory);
+
+        // Initialize
+        document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
+        document.getElementById('modelSelector').value = MODEL;
+        fetchHistory(); // Load initial history
+        setTimeout(() => {
+            const typedText = document.getElementById('typedText');
+            typedText.classList.add('is-typing');
+            setTimeout(() => {
+                typedText.classList.remove('is-typing');
+                typedText.classList.add('is-done');
+            }, 3500);
+        }, 100);
+    </script>
+</body>
+</html>
