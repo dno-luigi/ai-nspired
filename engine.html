@@ -111,7 +111,8 @@
             align-items: center;
             flex-grow: 1;
         }
-        .command-line::before { content: '>'; margin-right: 1rem; font-weight: bold; }
+        .command-line::before { content: '>'; margin-right: 1rem;
+            font-weight: bold; }
 
         .search-input {
             background: transparent;
@@ -183,6 +184,14 @@
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
             scroll-behavior: smooth;
+        }
+        .conversation-block {
+            margin-top: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        .conversation-block:last-child {
+            border-bottom: none;
         }
         .conversation-block .content {
             box-shadow: 0 4px 10px var(--shadow-color);
@@ -469,6 +478,7 @@
             <div class="modal-footer">
                 <button id="copyResult" aria-label="Copy result">Copy</button>
                 <button id="ttsBtn" aria-label="Read aloud">TTS</button>
+                <button id="newChatBtn" aria-label="New Chat">New Chat</button>
             </div>
         </div>
     </div>
@@ -526,6 +536,24 @@
             });
         }
 
+        async function clearChatSession() {
+            try {
+                const res = await fetch(`${API_URL}/conversation/import`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ history: [] })
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                localHistory = [];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
+                renderHistory(); // Update side panel
+                document.getElementById('resultContainer').innerHTML = ''; // Clear modal
+                showMessage('New chat started. Context cleared.');
+            } catch (error) {
+                showMessage('Failed to clear session.');
+            }
+        }
+
         // Modal/History
         function openModal() {
             document.getElementById('modal-overlay').classList.add('active');
@@ -534,7 +562,6 @@
         function closeModal() {
             document.getElementById('modal-overlay').classList.remove('active');
             speechSynthesis.cancel();
-            if (localHistory.length > 0) showExportPrompt();
         }
 
         function toggleHistory() {
@@ -562,7 +589,6 @@
 
         function renderHistory() {
             const list = document.getElementById('historyList');
-            // Make rendering robust to null/undefined queries
             list.innerHTML = (localHistory || []).slice(-20).reverse().map(item => {
                 const query = item.query || '';
                 const queryDisplay = query.slice(0, 50) || 'Empty Query';
@@ -582,16 +608,22 @@
                 item.addEventListener('click', e => {
                     const query = item.dataset.query;
                     if (e.target.classList.contains('copy-btn')) {
-                        // Make copy robust
                         const historyItem = localHistory.find(h => h.query === query);
                         const answer = historyItem ? historyItem.answer : '[Answer not found]';
                         copyToClipboard(`Query: ${query}\nAnswer: ${answer}`);
-                    } else if (query) { // Don't re-run empty queries
-                        performTruthQuery(query);
+                    } else if (query) { 
+                        // When clicking a history item, clear the chat and start new
+                        clearChatSession().then(() => {
+                            performTruthQuery(query);
+                        });
                     }
                 });
                 item.addEventListener('keydown', e => {
-                    if (e.key === 'Enter' && item.dataset.query) performTruthQuery(item.dataset.query);
+                    if (e.key === 'Enter' && item.dataset.query) {
+                        clearChatSession().then(() => {
+                            performTruthQuery(item.dataset.query);
+                        });
+                    }
                 });
             });
         }
@@ -639,6 +671,20 @@
                         localHistory = imported.history;
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
                         await fetchHistory();
+                        
+                        const container = document.getElementById('resultContainer');
+                        container.innerHTML = ''; // Clear it first
+                        const parse = await loadMarked();
+                        localHistory.forEach(item => {
+                            container.insertAdjacentHTML('beforeend', `
+                                <div class="conversation-block">
+                                    <h4>Query: ${item.query}</h4>
+                                    <div class="content">${parse(item.answer)}</div>
+                                    <small>Model: ${item.model} • ${new Date(item.timestamp).toLocaleString()}</small>
+                                </div>
+                            `);
+                        });
+                        container.scrollTop = container.scrollHeight; // Scroll to bottom
                         showMessage('History imported. Context restored!');
                     } else {
                         throw new Error(data.error);
@@ -648,24 +694,25 @@
                 }
             };
             reader.readAsText(file);
-            // Reset the file input value to allow importing the same file again
             e.target.value = null;
         }
 
         // Query
         async function performTruthQuery(query, challengeResponse = '') {
-            // Check for empty string query here in the frontend
             if (!query || !query.trim()) return showMessage('Enter a query.');
             
-            openModal();
+            openModal(); // Ensure modal is open
             const container = document.getElementById('resultContainer');
+Check for `memy` binding.
             const loadingId = `loading-${Date.now()}`;
-            container.innerHTML = `
+            
+            container.insertAdjacentHTML('beforeend', `
                 <div class="conversation-block" id="${loadingId}">
                     <h4>Query: ${query}</h4>
                     <div class="content">Scanning...</div>
                 </div>
-            `;
+            `);
+            container.scrollTop = container.scrollHeight;
 
             try {
                 const parse = await loadMarked();
@@ -684,13 +731,17 @@
 
                 if (!res.ok) {
                     if (data.error === 'CHALLENGE_REQUIRED') {
+                        const loadingEl = document.getElementById(loadingId);
+                        if (loadingEl) loadingEl.remove();
+
                         const passphrase = await promptForPassphrase(data.challengeQuestion);
                         return performTruthQuery(query, passphrase);
                     }
                     throw new Error(data.error || `HTTP ${res.status}`);
                 }
 
-                container.innerHTML = `
+                const loadingEl = document.getElementById(loadingId);
+                const resultHtml = `
                     <div class="conversation-block">
                         <h4>Query: ${query}</h4>
                         <div class="content">${parse(data.answer)}</div>
@@ -698,41 +749,60 @@
                         ${data.cached ? '<br><small><em>(Result from cache)</em></small>' : ''}
                     </div>
                 `;
-                
-                // Only add to history if it's not a cached result to avoid duplicates
-                if (!data.cached) {
-                    localHistory.push({ query, answer: data.answer, model: data.model, timestamp: data.timestamp });
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
-                    // We might not need to fetchHistory() here, just renderHistory()
-                    // But fetchHistory() keeps the DO and local in sync, which is good.
-                    await fetchHistory();
+                if (loadingEl) {
+                    loadingEl.outerHTML = resultHtml;
+                } else {
+                    container.insertAdjacentHTML('beforeend', resultHtml);
                 }
 
+                await fetchHistory();
+
             } catch (error) {
-                container.innerHTML = `
+                const loadingEl = document.getElementById(loadingId);
+                const errorHtml = `
                     <div class="conversation-block">
                         <h4>Query: ${query}</h4>
                         <div class="content">Error: ${error.message}</div>
                     </div>
                 `;
+                if (loadingEl) {
+                    loadingEl.outerHTML = errorHtml;
+                } else {
+                    container.insertAdjacentHTML('beforeend', errorHtml);
+                }
             }
+            container.scrollTop = container.scrollHeight;
         }
 
         // Event Listeners
         document.getElementById('queryInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') performTruthQuery(e.target.value);
+            if (e.key === 'Enter') {
+                performTruthQuery(e.target.value);
+                e.target.value = ''; // Clear input after sending
+            }
         });
         document.getElementById('historyToggle').addEventListener('click', toggleHistory);
         document.getElementById('closeHistory').addEventListener('click', toggleHistory);
         document.getElementById('close-modal').addEventListener('click', closeModal);
         document.getElementById('copyResult').addEventListener('click', () => {
-            const content = document.querySelector('.conversation-block .content').textContent;
-            copyToClipboard(content);
+            const allContent = Array.from(document.querySelectorAll('.conversation-block .content'));
+            const lastContent = allContent.length ? allContent[allContent.length - 1].textContent : '';
+            if (lastContent) {
+                copyToClipboard(lastContent);
+            } else {
+                showMessage('No result to copy.');
+            }
         });
         document.getElementById('ttsBtn').addEventListener('click', () => {
-            const content = document.querySelector('.conversation-block .content').textContent;
-            const utterance = new SpeechSynthesisUtterance(content);
-            speechSynthesis.speak(utterance);
+            const allContent = Array.from(document.querySelectorAll('.conversation-block .content'));
+            const lastContent = allContent.length ? allContent[allContent.length - 1].textContent : '';
+            if (lastContent) {
+                speechSynthesis.cancel(); // Stop any previous speech
+                const utterance = new SpeechSynthesisUtterance(lastContent);
+                speechSynthesis.speak(utterance);
+            } else {
+                showMessage('No result to read.');
+            }
         });
         document.getElementById('exportHistory').addEventListener('click', exportHistory);
         
@@ -742,22 +812,9 @@
         
         document.getElementById('importHistory').addEventListener('change', importHistory);
         
-        document.getElementById('clearHistory').addEventListener('click', async () => {
-            try {
-                const res = await fetch(`${API_URL}/conversation/import`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ history: [] })
-                });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                localHistory = [];
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
-                renderHistory();
-                showMessage('History cleared.');
-            } catch (error) {
-                showMessage('Failed to clear history.');
-            }
-        });
+        document.getElementById('newChatBtn').addEventListener('click', clearChatSession);
+        document.getElementById('clearHistory').addEventListener('click', clearChatSession);
+        
         document.getElementById('modelSelector').addEventListener('change', (e) => {
             MODEL = e.target.value;
             localStorage.setItem('truth-model', MODEL);
@@ -769,17 +826,19 @@
                 localStorage.setItem('theme', btn.dataset.mode);
             });
         });
-        document.getElementById('exportPromptBtn').addEventListener('click', exportHistory);
+        document.getElementById('exportPromptBtn').addEventListener('click', () => {
+            exportHistory();
+            document.getElementById('exportPrompt').classList.remove('visible');
+        });
 
         // Initialize
         document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
-        // Check if the saved model is still in the list, otherwise reset
         const savedModel = localStorage.getItem('truth-model');
         if (savedModel && Array.from(document.getElementById('modelSelector').options).some(o => o.value === savedModel)) {
             document.getElementById('modelSelector').value = savedModel;
             MODEL = savedModel;
         } else {
-            document.getElementById('modelSelector').value = MODEL; // MODEL already has a sane default (WORKERS_AI)
+            document.getElementById('modelSelector').value = MODEL; 
             localStorage.setItem('truth-model', MODEL);
         }
         
