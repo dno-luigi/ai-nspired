@@ -287,6 +287,11 @@
             background-color: var(--accent-color);
             color: var(--bg-color);
         }
+        
+        #importHistory {
+            display: none;
+        }
+
         .close-history {
             background: none;
             border: none;
@@ -416,14 +421,17 @@
         <button data-mode="dark">Dark</button>
         <button data-mode="neo">Neo</button>
         <select id="modelSelector" aria-label="Select AI Model">
-            <option value="WORKERS_AI">Workers AI (LLaMA 3, 8K)</option>
-            <option value="dolphin-mistral-24b">Dolphin Mistral 24B (Free, 32K)</option>
-            <option value="grok-3">Grok-3 (Free, 128K)</option>
-            <option value="gemini-flash">Gemini Flash 2.0 (Free, 32K)</option>
-            <option value="deepseek-v3">DeepSeek V3 (Free, 128K)</option>
-            <option value="mistral-nemo">Mistral Nemo (Easter Egg Unlock)</option>
-            <option value="qwen2.5-7b-instruct">Qwen 2.5 7B (Easter Egg Unlock)</option>
-            <option value="gpt-oss-20b">GPT OSS 20B (Easter Egg Unlock)</option>
+            <!-- Updated Model List -->
+            <option value="WORKERS_AI">Workers AI (Free)</option>
+            <option value="dolphin-mistral-24b-venice-edition">Dolphin 24B (Free, 32K)</option>
+            <option value="llama-3-8b">Llama 3 8B (Free)</option>
+            <option value="gemma-7b">Gemma 7B (Free)</option>
+            <option value="mistral-7b">Mistral 7B (Free)</option>
+            <option value="gemini-flash-1.5">Gemini Flash 1.5 (Cheap)</option>
+            <option value="llama-3.2-1b">Llama 3.2 1B (Cheap, 131K)</option>
+            <option value="mistral-nemo">Mistral Nemo (Easter Egg)</option>
+            <option value="qwen2.5-7b-instruct">Qwen 2.5 7B (Easter Egg)</option>
+            <option value="gpt-oss-20b">GPT OSS 20B (Easter Egg)</option>
         </select>
     </div>
 
@@ -442,6 +450,7 @@
             <p>History</p>
             <div class="history-actions">
                 <button id="exportHistory" aria-label="Export history">Export</button>
+                <button id="importTrigger" aria-label="Import history">Import</button>
                 <input type="file" id="importHistory" accept=".json" aria-label="Import history">
                 <button id="clearHistory" aria-label="Clear history">Clear</button>
             </div>
@@ -477,7 +486,7 @@
         const API_URL = 'https://truthengine.ai-n.workers.dev/';
         const STORAGE_KEY = 'LOCAL_TRUTH_HISTORY';
         let localHistory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        let MODEL = localStorage.getItem('truth-model') || 'gemini-flash';
+        let MODEL = localStorage.getItem('truth-model') || 'WORKERS_AI'; // Default to reliable Workers AI
 
         // Utils
         function showMessage(msg, duration = 3000) {
@@ -553,25 +562,36 @@
 
         function renderHistory() {
             const list = document.getElementById('historyList');
-            list.innerHTML = localHistory.slice(-20).reverse().map(item => `
-                <li class="history-item" role="button" tabindex="0" data-query="${item.query.replace(/"/g, '&quot;')}">
+            // Make rendering robust to null/undefined queries
+            list.innerHTML = (localHistory || []).slice(-20).reverse().map(item => {
+                const query = item.query || '';
+                const queryDisplay = query.slice(0, 50) || 'Empty Query';
+                const queryEllipsis = query.length > 50 ? '...' : '';
+                
+                return `
+                <li class="history-item" role="button" tabindex="0" data-query="${query.replace(/"/g, '&quot;')}">
                     <div class="history-item-content">
-                        <p>${item.query.slice(0, 50)}${item.query.length > 50 ? '...' : ''}</p>
-                        <small>${item.model} • ${new Date(item.timestamp).toLocaleString()}</small>
+                        <p>${queryDisplay}${queryEllipsis}</p>
+                        <small>${item.model || 'unknown'} • ${new Date(item.timestamp).toLocaleString()}</small>
                     </div>
                     <button class="copy-btn" aria-label="Copy query and answer">📋</button>
-                </li>
-            `).join('');
+                </li>`
+            }).join('');
+
             document.querySelectorAll('.history-item').forEach(item => {
                 item.addEventListener('click', e => {
+                    const query = item.dataset.query;
                     if (e.target.classList.contains('copy-btn')) {
-                        copyToClipboard(`Query: ${item.dataset.query}\nAnswer: ${localHistory.find(h => h.query === item.dataset.query).answer}`);
-                    } else {
-                        performTruthQuery(item.dataset.query);
+                        // Make copy robust
+                        const historyItem = localHistory.find(h => h.query === query);
+                        const answer = historyItem ? historyItem.answer : '[Answer not found]';
+                        copyToClipboard(`Query: ${query}\nAnswer: ${answer}`);
+                    } else if (query) { // Don't re-run empty queries
+                        performTruthQuery(query);
                     }
                 });
                 item.addEventListener('keydown', e => {
-                    if (e.key === 'Enter') performTruthQuery(item.dataset.query);
+                    if (e.key === 'Enter' && item.dataset.query) performTruthQuery(item.dataset.query);
                 });
             });
         }
@@ -603,12 +623,17 @@
             reader.onload = async () => {
                 try {
                     const imported = JSON.parse(reader.result);
+                    if (!imported.history) throw new Error("Invalid format: 'history' key missing.");
+
                     const res = await fetch(`${API_URL}/conversation/import`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(imported)
                     });
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    if (!res.ok) {
+                         const err = await res.json();
+                         throw new Error(err.error || `HTTP ${res.status}`);
+                    }
                     const data = await res.json();
                     if (data.success) {
                         localHistory = imported.history;
@@ -619,15 +644,19 @@
                         throw new Error(data.error);
                     }
                 } catch (error) {
-                    showMessage('Invalid JSON or import failed.');
+                    showMessage(`Import failed: ${error.message}`);
                 }
             };
             reader.readAsText(file);
+            // Reset the file input value to allow importing the same file again
+            e.target.value = null;
         }
 
         // Query
         async function performTruthQuery(query, challengeResponse = '') {
-            if (!query.trim()) return showMessage('Enter a query.');
+            // Check for empty string query here in the frontend
+            if (!query || !query.trim()) return showMessage('Enter a query.');
+            
             openModal();
             const container = document.getElementById('resultContainer');
             const loadingId = `loading-${Date.now()}`;
@@ -666,11 +695,19 @@
                         <h4>Query: ${query}</h4>
                         <div class="content">${parse(data.answer)}</div>
                         <small>Model: ${data.model} • ${new Date(data.timestamp).toLocaleString()}</small>
+                        ${data.cached ? '<br><small><em>(Result from cache)</em></small>' : ''}
                     </div>
                 `;
-                localHistory.push({ query, answer: data.answer, model: data.model, timestamp: data.timestamp });
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
-                await fetchHistory();
+                
+                // Only add to history if it's not a cached result to avoid duplicates
+                if (!data.cached) {
+                    localHistory.push({ query, answer: data.answer, model: data.model, timestamp: data.timestamp });
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
+                    // We might not need to fetchHistory() here, just renderHistory()
+                    // But fetchHistory() keeps the DO and local in sync, which is good.
+                    await fetchHistory();
+                }
+
             } catch (error) {
                 container.innerHTML = `
                     <div class="conversation-block">
@@ -698,7 +735,13 @@
             speechSynthesis.speak(utterance);
         });
         document.getElementById('exportHistory').addEventListener('click', exportHistory);
+        
+        document.getElementById('importTrigger').addEventListener('click', () => {
+            document.getElementById('importHistory').click();
+        });
+        
         document.getElementById('importHistory').addEventListener('change', importHistory);
+        
         document.getElementById('clearHistory').addEventListener('click', async () => {
             try {
                 const res = await fetch(`${API_URL}/conversation/import`, {
@@ -730,7 +773,16 @@
 
         // Initialize
         document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
-        document.getElementById('modelSelector').value = MODEL;
+        // Check if the saved model is still in the list, otherwise reset
+        const savedModel = localStorage.getItem('truth-model');
+        if (savedModel && Array.from(document.getElementById('modelSelector').options).some(o => o.value === savedModel)) {
+            document.getElementById('modelSelector').value = savedModel;
+            MODEL = savedModel;
+        } else {
+            document.getElementById('modelSelector').value = MODEL; // MODEL already has a sane default (WORKERS_AI)
+            localStorage.setItem('truth-model', MODEL);
+        }
+        
         fetchHistory(); // Load initial history
         setTimeout(() => {
             const typedText = document.getElementById('typedText');
@@ -743,3 +795,5 @@
     </script>
 </body>
 </html>
+
+
