@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-Nspired :: Local Truth Engine Interface</title>
+    <title>AI-Nspired :: Truth Engine Interface</title>
     <meta name="description" content="ai-nspired.com • truth-engine. memory keeper. Systems that don’t forget—or flinch.">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&display=swap');
 
@@ -140,6 +138,11 @@
             cursor: pointer;
             border-radius: 4px;
             font-size: 0.9rem;
+            min-width: 80px;
+        }
+        .history-toggle:hover, .history-toggle:focus {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
         }
 
         .modal-overlay {
@@ -164,12 +167,14 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
-            padding: 1rem 1rem;
+            padding: 1rem;
             transition: background-color 0.3s, color 0.3s;
+            overflow: hidden;
         }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
         .modal-title { font-weight: 700; color: var(--accent-color); }
         .close-modal { background: none; border: none; color: var(--accent-color); font-size: 2rem; cursor: pointer; }
+        .close-modal:hover { color: var(--bg-color); background: var(--accent-color); border-radius: 50%; }
         .result-container {
             padding: 1rem 0;
             flex-grow: 1;
@@ -177,10 +182,18 @@
             font-family: 'Crimson Pro', serif;
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
+            scroll-behavior: smooth;
         }
-        .citation-block { margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1rem; font-size: 0.9rem; }
-        .citation-block a { color: var(--accent-color); text-decoration: none; }
-        .citation-block a:hover { text-decoration: underline; }
+        .conversation-block .content {
+            box-shadow: 0 4px 10px var(--shadow-color);
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+            transition: box-shadow 0.3s;
+        }
+        [data-mode="neo"] .conversation-block .content {
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+        }
         .modal-footer {
             display: flex;
             gap: 1rem;
@@ -197,16 +210,13 @@
             font-weight: 700;
             cursor: pointer;
             border-radius: 4px;
-            transition: background-color 0.2s, color 0.2s;
+            min-width: 100px;
         }
-        .modal-footer button:focus,
-        .mode-toggle button:focus,
-        .history-toggle:focus {
+        .modal-footer button:hover, .modal-footer button:focus {
             background-color: var(--accent-color);
             color: var(--bg-color);
-            outline: 4px solid var(--accent-color);
-            outline-offset: -2px;
         }
+
         .mode-toggle {
             position: fixed;
             top: 1rem;
@@ -215,17 +225,124 @@
             gap: 0.5rem;
             flex-wrap: wrap;
         }
-        .mode-toggle button {
-            padding: 0.5rem 0.5rem;
-            cursor: pointer;
+        .mode-toggle button, .mode-toggle select {
+            padding: 0.5rem;
             border: 1px solid var(--accent-color);
             background: none;
             color: var(--accent-color);
             font-weight: 700;
+            cursor: pointer;
             border-radius: 4px;
             font-size: 0.8rem;
+            min-width: 100px;
+        }
+        .mode-toggle select { background: var(--modal-bg); }
+        .mode-toggle button:hover, .mode-toggle select:focus {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
         }
         @media (max-width: 600px) { .mode-toggle { top: 0.5rem; right: 0.5rem; } }
+
+        #historyPanel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 300px;
+            max-width: 80vw;
+            background-color: var(--modal-bg);
+            border-right: 1px solid var(--border-color);
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            touch-action: pan-y;
+        }
+        #historyPanel.open { transform: translateX(0); }
+        .history-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .history-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .history-actions button, .history-actions input {
+            background: none;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            min-width: 60px;
+        }
+        .history-actions button:hover, .history-actions input:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+        .close-history {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        #historyList {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem 0;
+            list-style: none;
+            margin: 0;
+        }
+        .history-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        .history-item:hover {
+            background-color: rgba(var(--accent-color-rgb), 0.1);
+        }
+        .history-item-content {
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .history-item-content p {
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 700;
+        }
+        .history-item-content small {
+            color: var(--secondary-text);
+            font-size: 0.75rem;
+            display: block;
+            margin-top: 2px;
+        }
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-text);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1rem;
+            line-height: 1;
+        }
+        .copy-btn:hover { color: var(--accent-color); }
+
         #customMessage {
             position: fixed;
             bottom: 2rem;
@@ -242,989 +359,272 @@
             z-index: 1001;
             font-weight: 700;
             font-size: 0.9rem;
+            max-width: 90vw;
         }
         [data-mode="neo"] #customMessage { color: #000000; }
         #customMessage.visible {
             opacity: 1;
             transform: translate(-50%, -10px);
         }
-        .conversation-block .content {
-            box-shadow: 0 4px 10px var(--shadow-color);
-            margin-top: 1rem;
-            transition: box-shadow 0.3s;
-        }
-        [data-mode="neo"] .conversation-block .content {
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.6), 0 0 20px rgba(0, 255, 0, 0.4), inset 0 0 5px rgba(0, 255, 0, 0.3);
-        }
-        #historyPanel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 300px;
-            max-width: 80vw;
-            background-color: var(--modal-bg);
-            border-right: 1px solid var(--border-color);
-            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
-            transform: translateX(-100%);
-            transition: transform 0.3s ease-in-out;
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-        }
-        #historyPanel.open { transform: translateX(0); }
-        .history-header {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        .history-actions {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .history-actions button {
-            background: none;
-            border: 1px solid var(--accent-color);
-            color: var(--accent-color);
-            font-size: 0.8rem;
-            padding: 0.25rem 0.5rem;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .history-actions button:hover {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-        }
-        .close-history {
-            background: none;
-            border: none;
-            color: var(--accent-color);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-        #historyList {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 1rem 0;
-        }
-        .history-item {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px dashed var(--border-color);
-            font-size: 0.9rem;
-            transition: background-color 0.2s;
-        }
-        .history-item:hover {
-            background-color: rgba(var(--accent-color-rgb), 0.1);
-        }
-        .history-item-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
-        .history-item-text {
-            flex-grow: 1;
-            overflow: hidden;
-            cursor: pointer;
-        }
-        .history-item-text p {
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-weight: 700;
-        }
-        .history-item-text small {
-            color: var(--secondary-text);
-            font-size: 0.75rem;
-            display: block;
-            margin-top: 2px;
-        }
-        .copy-query-btn {
-            background: none;
-            border: none;
-            color: var(--secondary-text);
-            cursor: pointer;
-            padding: 0.25rem;
-            font-size: 1rem;
-            line-height: 1;
-            transition: color 0.2s;
-            flex-shrink: 0;
-        }
-        .copy-query-btn:hover { color: var(--accent-color); }
-        .interface-melody-container {
-            padding: 1rem;
-            background: var(--grid-bg);
-            border: 1px solid var(--accent-color);
-            border-radius: 6px;
-            margin-bottom: 1rem;
-        }
-        .interface-melody-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-            gap: 4px;
-            width: 100%;
-            aspect-ratio: 2.2 / 1;
-            margin-top: 0.5rem;
-        }
-        .melody-cell {
-            background-color: var(--grid-cell-off);
-            border-radius: 2px;
-            cursor: pointer;
-            transition: background-color 0.15s ease, box-shadow 0.15s ease;
-        }
-        .melody-cell:hover { box-shadow: 0 0 5px rgba(var(--accent-color-rgb), 0.5); }
-        .melody-cell.active {
-            background-color: var(--grid-cell-on);
-            box-shadow: 0 0 8px rgba(var(--accent-color-rgb), 0.8);
-        }
-        #outputMelodyDisplay {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--accent-color);
-            text-align: center;
-            margin-top: 0.75rem;
-            margin-bottom: 0.75rem;
-            padding: 0.5rem;
-            border: 2px solid var(--accent-color);
-            border-radius: 4px;
-            background-color: rgba(var(--accent-color-rgb), 0.1);
-            font-family: monospace;
-            transition: outline 0.2s;
-        }
-        #outputMelodyDisplay.playing {
-            outline: 3px solid var(--accent-color);
-            outline-offset: 2px;
-        }
-        #melodyLockOutputModal .modal-container { max-width: 600px !important; }
     </style>
 </head>
 <body data-mode="silvery">
+    <div class="mode-toggle">
+        <button data-mode="silvery">Silvery</button>
+        <button data-mode="dark">Dark</button>
+        <button data-mode="neo">Neo</button>
+        <select id="modelSelector" aria-label="Select AI Model">
+            <option value="WORKERS_AI">Workers AI (Free, 8K)</option>
+            <option value="dolphin-mistral-24b-venice-edition:free">Dolphin Mistral Venice (Free, 32K)</option>
+            <option value="openai/gpt-oss-20b">GPT OSS 20B ($0.085/M, 131K)</option>
+            <option value="deepseek/deepseek-r1-0528-qwen3-8b">DeepSeek R1 Qwen3 8B ($0.21/M, 128K)</option>
+        </select>
+    </div>
+
+    <div class="terminal-window">
+        <p class="typed-text" id="typedText">connected. truth-engine ready.</p>
+        <div class="input-row">
+            <div class="command-line">
+                <input type="text" class="search-input" id="queryInput" placeholder="Enter query..." autofocus aria-label="Enter query">
+            </div>
+            <button class="history-toggle" id="historyToggle" aria-label="Toggle history">History</button>
+        </div>
+    </div>
+
+    <div id="historyPanel">
+        <div class="history-header">
+            <p>History</p>
+            <div class="history-actions">
+                <button id="exportHistory" aria-label="Export history">Export</button>
+                <input type="file" id="importHistory" accept=".json" aria-label="Import history">
+                <button id="clearHistory" aria-label="Clear history">Clear</button>
+            </div>
+            <button class="close-history" id="closeHistory" aria-label="Close history">×</button>
+        </div>
+        <ul id="historyList" role="list"></ul>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <p class="modal-title">DATA STREAM // ai-nspired</p>
+                <button class="close-modal" id="close-modal" aria-label="Close modal">×</button>
+            </div>
+            <div class="result-container" id="resultContainer" role="log" aria-live="polite"></div>
+            <div class="modal-footer">
+                <button id="copyResult" aria-label="Copy result">Copy</button>
+                <button id="ttsBtn" aria-label="Read aloud">TTS</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customMessage"></div>
+
     <script>
-        // Global Constants & State
-        const API_URL = 'https://justice.ai-n.workers.dev/api/ai/truth';
-        const LOCAL_STORAGE_KEY = 'LOCAL_TRUTH_HISTORY';
-        const MELODY_LOCK_PREFIX = 'MELODY_LOCK_V1::';
-        const MELODY_LOCK_SECRET_KEY = 'bbe9b82979c1fa4ba51c6dd9057bdb72505ae94cdd658e2badd14b64d8a97167';
-        let localHistory = [];
-        let currentSessionId = null;
-        let lastQuery = '';
-        const MAX_HISTORY_ITEMS = 50;
-        const GRID_NOTES = [48, 52, 55, 60];
-        const NUM_STEPS = 8;
-        let melodySequence = Array(NUM_STEPS).fill(0);
-        let synth;
+        const API_URL = 'https://truthengine.ai-n.workers.dev/';
+        const STORAGE_KEY = 'LOCAL_TRUTH_HISTORY';
+        let localHistory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        let MODEL = localStorage.getItem('truth-model') || 'dolphin3.0-mistral-24b:free';
 
-        // Tone.js Setup
-        async function initializeAudio() {
-            try {
-                if (Tone.context.state !== 'running') {
-                    await Tone.start();
-                    console.log("Tone.js audio context started");
-                }
-                if (!synth) {
-                    synth = new Tone.Synth({
-                        oscillator: { type: 'triangle' },
-                        envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }
-                    }).toDestination();
-                }
-                return true;
-            } catch (e) {
-                console.warn("Tone.js initialization failed:", e);
-                showMessage("Audio system failed to initialize.", 3000);
-                return false;
-            }
+        // Utils
+        function showMessage(msg, duration = 3000) {
+            const el = document.getElementById('customMessage');
+            el.textContent = msg;
+            el.classList.add('visible');
+            setTimeout(() => el.classList.remove('visible'), duration);
         }
 
-        // Melody Playback
-        async function playTappedMelody() {
-            const audioReady = await initializeAudio();
-            if (!audioReady) return showMessage("Audio system failed to initialize.", 3000);
-            if (Tone.Transport.state === 'started') {
-                Tone.Transport.stop();
-                showMessage("Playback stopped.", 1000);
-                return;
-            }
-            if (melodySequence.every(val => val === 0)) return showMessage("Tap a sequence on the grid first.", 3000);
-            showMessage("Playing Melody Lock Sequence...", 2000);
-            let time = Tone.now();
-            const stepDuration = 0.2;
-            Tone.Transport.bpm.value = 150;
-            for (let step = 0; step < NUM_STEPS; step++) {
-                const noteValue = melodySequence[step];
-                if (noteValue > 0) {
-                    const noteIndex = GRID_NOTES.length - noteValue;
-                    const midiNote = GRID_NOTES[noteIndex];
-                    synth.triggerAttackRelease(Tone.Midi(midiNote).toFrequency(), stepDuration, time);
-                    const cell = document.querySelector(`.melody-cell[data-step="${step}"][data-note-index="${noteIndex}"]`);
-                    if (cell) {
-                        Tone.Draw.schedule(() => {
-                            cell.style.transition = 'none';
-                            cell.style.outline = `3px solid var(--accent-color)`;
-                            cell.style.outlineOffset = '2px';
-                        }, time);
-                        Tone.Draw.schedule(() => {
-                            cell.style.outline = 'none';
-                            cell.style.outlineOffset = '0px';
-                        }, time + stepDuration * 0.9);
-                    }
-                }
-                time += stepDuration;
-            }
-            Tone.Transport.scheduleOnce(() => Tone.Transport.stop(), time);
-            Tone.Transport.start();
-        }
-
-        async function playMelodyCipher() {
-            const audioReady = await initializeAudio();
-            if (!audioReady) {
-                console.error("Audio initialization failed");
-                return showMessage("Audio system failed to initialize.", 3000);
-            }
-            const melodyString = document.getElementById('outputMelodyDisplay').innerText;
-            const notes = melodyString.split(' ').filter(n => n.length > 0 && n !== '...' && /^[A-G][#b]?\d$/.test(n));
-            if (notes.length === 0) {
-                console.error("No valid notes found in melody string:", melodyString);
-                return showMessage("Melody not generated yet or invalid.", 3000);
-            }
-            if (Tone.Transport.state === 'started') {
-                Tone.Transport.stop();
-                showMessage("Playback stopped.", 1000);
-                return;
-            }
-            showMessage("Playing Output Cipher Melody...", 2000);
-            const melodyDisplay = document.getElementById('outputMelodyDisplay');
-            melodyDisplay.classList.add('playing');
-            let time = Tone.now();
-            const stepDuration = 0.3; // Increased for better audibility
-            Tone.Transport.bpm.value = 120;
+        async function loadMarked() {
             try {
-                notes.forEach((note, index) => {
-                    console.log(`Playing note ${index + 1}: ${note}`);
-                    synth.triggerAttackRelease(note, stepDuration, time);
-                    time += stepDuration;
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+                document.head.appendChild(script);
+                return new Promise(resolve => {
+                    script.onload = () => resolve(window.marked.parse);
                 });
-                Tone.Transport.scheduleOnce(() => {
-                    Tone.Transport.stop();
-                    melodyDisplay.classList.remove('playing');
-                }, time);
-                Tone.Transport.start();
-            } catch (e) {
-                console.error("Playback error:", e);
-                melodyDisplay.classList.remove('playing');
-                showMessage("Error playing melody cipher.", 3000);
+            } catch {
+                return text => text; // Fallback plain text
             }
         }
 
-        // Hash from Cipher
-        async function generateHashFromCipher() {
-            const melodyString = document.getElementById('outputMelodyDisplay').innerText;
-            const notes = melodyString.split(' ').filter(n => n.length > 0 && n !== '...' && /^[A-G][#b]?\d$/.test(n));
-            if (notes.length === 0) {
-                showMessage("No valid melody sequence to hash.", 3000);
-                return;
-            }
-            try {
-                const noteValues = notes.map(note => {
-                    const baseNote = note.replace(/\d/, ''); // e.g., 'C' from 'C4'
-                    const octave = parseInt(note.match(/\d/)[0], 10);
-                    const midiNotes = GRID_NOTES.slice().reverse().map(n => Tone.Midi(n).toNote());
-                    const noteIndex = midiNotes.indexOf(baseNote + (octave - (3 + (notes.indexOf(note) % 2))));
-                    return noteIndex >= 0 ? noteIndex : 0;
-                });
-                const noteString = noteValues.join('');
-                const hash = await generateSha256Hash(noteString + MELODY_LOCK_SECRET_KEY);
-                document.getElementById('encryptedOutput').value = hash;
-                document.getElementById('encryptedOutput').select();
-                showMessage("Hash generated from melody cipher!", 3000);
-            } catch (e) {
-                console.error("Hash from cipher failed:", e);
-                showMessage("Failed to generate hash from cipher.", 3000);
-            }
+        function copyToClipboard(text, msg = 'Copied!') {
+            navigator.clipboard.writeText(text).then(() => showMessage(msg));
         }
 
-        // Modal Control
-        function closeModal() {
-            document.getElementById('modal-overlay').classList.remove('active');
-            document.getElementById('melodyLockOutputModal').classList.remove('active');
-            document.getElementById('melodyLockInputModal').classList.remove('active');
-            document.getElementById('clearConfirmModal').classList.remove('active');
-            if (Tone.Transport.state === 'started') Tone.Transport.stop();
-            if (window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-                document.getElementById('ttsBtn').innerText = 'TTS (Read Aloud)';
-            }
-        }
-
+        // Modal/History
         function openModal() {
             document.getElementById('modal-overlay').classList.add('active');
         }
 
-        // Melody Grid
-        function initInterfaceGrid() {
-            const gridEl = document.getElementById('interface-melody-grid');
-            if (!gridEl || gridEl.children.length > 0) return;
-            gridEl.innerHTML = '';
-            for (let noteIndex = 0; noteIndex < GRID_NOTES.length; noteIndex++) {
-                for (let step = 0; step < NUM_STEPS; step++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'melody-cell';
-                    cell.dataset.noteIndex = noteIndex;
-                    cell.dataset.step = step;
-                    cell.addEventListener('click', toggleInterfaceCell);
-                    gridEl.appendChild(cell);
-                }
-            }
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+            speechSynthesis.cancel();
         }
 
-        function toggleInterfaceCell(e) {
-            const gridEl = document.getElementById('interface-melody-grid');
-            if (!gridEl) return;
-            const noteIndex = parseInt(e.target.dataset.noteIndex, 10);
-            const step = parseInt(e.target.dataset.step, 10);
-            const noteValue = GRID_NOTES.length - noteIndex;
-            const isActive = e.target.classList.contains('active');
-            gridEl.querySelectorAll(`.melody-cell[data-step="${step}"]`).forEach(cell => cell.classList.remove('active'));
-            if (!isActive) {
-                e.target.classList.add('active');
-                melodySequence[step] = noteValue;
-            } else {
-                melodySequence[step] = 0;
-            }
-            generateKeyFromGrid();
+        function toggleHistory() {
+            const panel = document.getElementById('historyPanel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) renderHistory();
         }
 
-        function clearMelodyGrid() {
-            const gridEl = document.getElementById('interface-melody-grid');
-            if (gridEl) gridEl.querySelectorAll('.melody-cell').forEach(cell => cell.classList.remove('active'));
-            melodySequence.fill(0);
-            document.getElementById('decryptionKeyInput').value = '';
-        }
-
-        function generateKeyFromGrid() {
-            if (melodySequence.some(val => val !== 0)) {
-                document.getElementById('decryptionKeyInput').value = MELODY_LOCK_SECRET_KEY;
-                showMessage("Decryption Key generated from sequence!", 2000);
-            } else {
-                document.getElementById('decryptionKeyInput').value = '';
-            }
-        }
-
-        // Cryptographic Utility
-        function strToArrayBuffer(str) {
-            return new TextEncoder().encode(str);
-        }
-
-        async function generateSha256Hash(dataString) {
-            const buffer = strToArrayBuffer(dataString);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        function hashToMelodyCipher(hash) {
-            if (hash.length !== 64) return 'ERROR: Invalid Hash Length';
-            const midiNotes = GRID_NOTES.slice().reverse().map(n => Tone.Midi(n).toNote());
-            let melody = [];
-            for (let i = 0; i < NUM_STEPS; i++) {
-                const char = hash[i * 8 % hash.length];
-                const val = parseInt(char, 16);
-                const noteIndex = val % midiNotes.length;
-                melody.push(midiNotes[noteIndex] + (3 + (i % 2)));
-            }
-            return melody.join(' ');
-        }
-
-        async function generateHashAndDisplay() {
-            if (!currentSessionId) return showMessage("Please run a query or load a session first.", 3000);
-            const sessionData = localHistory.find(s => s.id === currentSessionId);
-            if (!sessionData) return showMessage("Active session data not found locally.", 3000);
-            try {
-                const rawString = JSON.stringify(sessionData);
-                const signedData = MELODY_LOCK_SECRET_KEY + ":" + rawString;
-                const hash = await generateSha256Hash(signedData);
-                const transportCode = btoa(rawString);
-                const finalHash = hash + MELODY_LOCK_PREFIX + transportCode;
-                const melodyCipher = hashToMelodyCipher(hash);
-                document.getElementById('encryptedOutput').value = finalHash;
-                document.getElementById('outputMelodyDisplay').innerText = melodyCipher;
-                document.getElementById('melodyLockOutputModal').classList.add('active');
-                document.getElementById('encryptedOutput').select();
-            } catch (e) {
-                console.error("Hash generation failed:", e);
-                showMessage("Hash generation failed. Is data corrupted?", 4000);
-            }
-        }
-
-        async function copyEncryptedCode() {
-            const outputEl = document.getElementById('encryptedOutput');
-            copyToClipboard(outputEl.value, 'Melody Lock Hash Copied!');
-        }
-
-        async function loadHashFromInput() {
-            const hashInputEl = document.getElementById('hashInput');
-            const keyInputEl = document.getElementById('decryptionKeyInput');
-            const receivedHash = hashInputEl.value.trim();
-            const decryptionKey = keyInputEl.value.trim();
-            if (!receivedHash || !decryptionKey) return showMessage("Please provide both the Hash and the Secret Key.", 3000);
-            try {
-                if (!receivedHash.includes(MELODY_LOCK_PREFIX)) throw new Error("Invalid Hash format. Missing signature prefix.");
-                const parts = receivedHash.split(MELODY_LOCK_PREFIX);
-                const expectedHash = parts[0];
-                const transportCode = parts[1];
-                const rawString = atob(transportCode);
-                const sessionData = JSON.parse(rawString);
-                const signedDataWithReceivedKey = decryptionKey + ":" + rawString;
-                const generatedHash = await generateSha256Hash(signedDataWithReceivedKey);
-                if (generatedHash !== expectedHash) throw new Error("Validation Failed. Key or Hash is incorrect.");
-                const existingIndex = localHistory.findIndex(s => s.id === sessionData.id);
-                if (existingIndex !== -1) localHistory[existingIndex] = sessionData;
-                else localHistory.unshift(sessionData);
-                saveLocalHistoryToStorage();
-                loadLocalHistoryItem(sessionData.id);
-                closeModal();
-                hashInputEl.value = '';
-                keyInputEl.value = '';
-                clearMelodyGrid();
-                showMessage("Melody Lock Session Decrypted, Loaded, and Saved!", 6000);
-            } catch (e) {
-                console.error("Decryption/Loading failed:", e);
-                showMessage(`Melody Lock Error: ${e.message}`, 5000);
-            }
-        }
-
-        // Utility Functions
-        function showMessage(message, duration = 2000) {
-            const customMessage = document.getElementById('customMessage');
-            customMessage.innerText = message;
-            customMessage.classList.add('visible');
-            setTimeout(() => customMessage.classList.remove('visible'), duration);
-        }
-
-        function setMode(mode) {
-            const body = document.body;
-            body.setAttribute('data-mode', mode || '');
-        }
-
-        function copyToClipboard(text, message = 'Copied!') {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => showMessage(message)).catch(err => {
-                    console.error('Failed to copy text: ', err);
-                    showMessage('Failed to copy.', 3000);
-                });
-            } else {
-                const tempInput = document.createElement('textarea');
-                tempInput.value = text;
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                try {
-                    document.execCommand('copy');
-                    showMessage(message + ' (fallback)!');
-                } catch (err) {
-                    showMessage('Copy function unavailable.', 3000);
-                }
-                document.body.removeChild(tempInput);
-            }
-        }
-
-        // Local Storage & History
-        function loadLocalHistoryFromStorage() {
-            try {
-                const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-                if (storedData) localHistory = JSON.parse(storedData);
-                else localHistory = [];
-            } catch (e) {
-                console.error("Error loading local storage history:", e);
-                showMessage("Error accessing local history.", 3000);
-                localHistory = [];
-            }
-        }
-
-        function saveLocalHistoryToStorage() {
-            localHistory.sort((a, b) => b.timestamp - a.timestamp);
-            if (localHistory.length > MAX_HISTORY_ITEMS) localHistory = localHistory.slice(0, MAX_HISTORY_ITEMS);
-            try {
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(localHistory));
-                displayLocalHistoryInPanel();
-            } catch (e) {
-                console.error("Error saving local storage history:", e);
-                showMessage("Local storage is full or disabled. Cannot save new session.", 4000);
-            }
-        }
-
-        function copySessionSegmentToClipboard(sessionId) {
-            const session = localHistory.find(s => s.id === sessionId);
-            if (!session || session.turns.length === 0) return showMessage("Session data is empty.", 3000);
-            const lastTurn = session.turns[session.turns.length - 1];
-            const segmentMarkdown = `
-# TRUTH ENGINE SESSION SEGMENT
----
-*Initial Query:* **${session.initialQuery.replace(/\n/g, ' ')}**
-*Last Response Query:* **${lastTurn.query.replace(/\n/g, ' ')}**
-*Timestamp:* ${new Date(lastTurn.timestamp).toLocaleString()}
----
-${lastTurn.answer || "No response content."}
-            `.trim();
-            copyToClipboard(segmentMarkdown, 'Session Segment Copied as Markdown!');
-        }
-
-        function displayLocalHistoryInPanel() {
-            const historyList = document.getElementById('historyList');
-            historyList.innerHTML = '';
-            if (localHistory.length === 0) {
-                historyList.innerHTML = `<p style="padding: 1rem; text-align: center; color: var(--secondary-text);">No local sessions saved yet.</p>`;
-                return;
-            }
-            localHistory.forEach(session => {
-                const item = document.createElement('div');
-                item.className = 'history-item';
-                const timestamp = typeof session.timestamp === 'string' ? new Date(session.timestamp).getTime() : session.timestamp;
-                const date = new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                item.innerHTML = `
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = localHistory.slice(-20).reverse().map(item => `
+                <li class="history-item" role="button" tabindex="0" data-query="${item.query.replace(/"/g, '&quot;')}">
                     <div class="history-item-content">
-                        <div class="history-item-text">
-                            <p title="${session.initialQuery}">${session.initialQuery}</p>
-                            <small>${date} • ${session.turns?.length || 1} turns</small>
-                        </div>
-                        <button class="copy-query-btn" data-session-id="${session.id}" title="Copy Session Segment (Markdown)">📋</button>
+                        <p>${item.query.slice(0, 50)}${item.query.length > 50 ? '...' : ''}</p>
+                        <small>${item.model} • ${new Date(item.timestamp).toLocaleString()}</small>
                     </div>
-                `;
-                const textContainer = item.querySelector('.history-item-text');
-                if (textContainer) {
-                    textContainer.addEventListener('click', () => loadLocalHistoryItem(session.id));
-                }
-                const copyBtn = item.querySelector('.copy-query-btn');
-                if (copyBtn) {
-                    copyBtn.addEventListener('click', e => {
-                        e.stopPropagation();
-                        copySessionSegmentToClipboard(e.currentTarget.dataset.sessionId);
-                    });
-                }
-                historyList.appendChild(item);
+                    <button class="copy-btn" aria-label="Copy query and answer">📋</button>
+                </li>
+            `).join('');
+            document.querySelectorAll('.history-item').forEach(item => {
+                item.addEventListener('click', e => {
+                    if (e.target.classList.contains('copy-btn')) {
+                        copyToClipboard(`Query: ${item.dataset.query}\nAnswer: ${localHistory.find(h => h.query === item.dataset.query).answer}`);
+                    } else {
+                        performTruthQuery(item.dataset.query);
+                    }
+                });
+                item.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') performTruthQuery(item.dataset.query);
+                });
             });
         }
 
-        function promptClearHistory() {
-            document.getElementById('clearConfirmModal').classList.add('active');
+        function exportHistory() {
+            const blob = new Blob([JSON.stringify(localHistory, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'history.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showMessage('History exported.');
         }
 
-        function confirmClearHistory() {
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-            localHistory = [];
-            currentSessionId = null;
-            displayLocalHistoryInPanel();
-            showMessage("Local history successfully cleared.", 3000);
-            document.getElementById('clearConfirmModal').classList.remove('active');
-        }
-
-        function loadLocalHistoryItem(sessionId) {
-            const sessionData = localHistory.find(s => s.id === sessionId);
-            if (!sessionData) return showMessage("Local session not found.", 3000);
-            const historyPanel = document.getElementById('historyPanel');
-            closeModal();
-            historyPanel.classList.remove('open');
-            openModal();
-            const resultContainer = document.getElementById('resultContainer');
-            resultContainer.innerHTML = '';
-            currentSessionId = sessionId;
-            const lastQuery = sessionData.initialQuery;
-            sessionData.turns.forEach((turn, index) => {
-                const isInitial = index === 0;
-                const queryLabel = isInitial ? `Initial Query: "${turn.query}"` : `Follow-up ${index + 1} on "${lastQuery}"`;
-                const responseLabel = isInitial ? `Response 1 (Initial)` : `Response ${index + 1} (Follow-up)`;
-                let htmlContent = turn.answer ? marked.parse(turn.answer) : '<p>No results found.</p>';
-                if (turn.citations?.length) {
-                    htmlContent += `<div class="citation-block"><h3>Sources</h3><ul>${turn.citations.map(c => `<li><a href="${c.uri}" target="_blank">${c.title || c.uri}</a></li>`).join('')}</ul></div>`;
+        function importHistory(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const imported = JSON.parse(reader.result);
+                    localHistory = [...new Set([...localHistory, ...imported].map(JSON.stringify))].map(JSON.parse);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
+                    renderHistory();
+                    showMessage('History imported.');
+                } catch {
+                    showMessage('Invalid JSON.');
                 }
-                const finalBlock = `
-                    <div class="conversation-block">
-                        <h4>${queryLabel}</h4>
-                        <div class="content">
-                            <h4 style="color: var(--secondary-text);">${responseLabel}</h4>
-                            ${htmlContent}
-                        </div>
-                    </div>`;
-                resultContainer.innerHTML += finalBlock;
-            });
-            resultContainer.scrollTo(0, resultContainer.scrollHeight);
-        }
-
-        function exportHistoryToFile() {
-            loadLocalHistoryFromStorage();
-            if (localHistory.length === 0) return showMessage("No history to export.", 3000);
-            try {
-                const dataStr = JSON.stringify(localHistory, null, 2);
-                const blob = new Blob([dataStr], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                const timestamp = new Date().toISOString().slice(0, 10);
-                a.download = `truth_engine_history_${timestamp}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showMessage("History exported successfully!", 3000);
-            } catch (e) {
-                console.error("Error exporting history:", e);
-                showMessage("Export failed due to file or storage error.", 4000);
-            }
-        }
-
-        // TTS
-        function readAnalysisAloud() {
-            initializeAudio();
-            if (!('speechSynthesis' in window)) return showMessage('Text-to-Speech not supported in this browser.');
-            if (window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-                document.getElementById('ttsBtn').innerText = 'TTS (Stopped)';
-                setTimeout(() => document.getElementById('ttsBtn').innerText = 'TTS (Read Aloud)', 1000);
-                return;
-            }
-            const resultContainer = document.getElementById('resultContainer');
-            const conversationText = Array.from(resultContainer.querySelectorAll('.content')).map(el => el.innerText).join('\n---\n');
-            const utterance = new SpeechSynthesisUtterance(conversationText.replace(/(\n|\t)/g, ' '));
-            utterance.rate = 1.1;
-            document.getElementById('ttsBtn').innerText = 'TTS (Speaking...)';
-            utterance.onend = () => {
-                document.getElementById('ttsBtn').innerText = 'TTS (Read Aloud)';
-                showMessage('Read-aloud complete.');
             };
-            setTimeout(() => window.speechSynthesis.speak(utterance), 100);
+            reader.readAsText(file);
         }
 
-        // Query Logic
-        async function performTruthQuery(query, isFollowUp = false) {
-            if (!query) {
-                showMessage("Please enter a query.", 3000);
-                return;
-            }
-            console.log("performTruthQuery called with:", query, "isFollowUp:", isFollowUp);
-            let queryCount = 1;
-            let sessionToUpdate;
-            const resultContainer = document.getElementById('resultContainer');
-
-            if (!isFollowUp || !currentSessionId) {
-                lastQuery = query;
-                currentSessionId = crypto.randomUUID();
-                sessionToUpdate = {
-                    id: currentSessionId,
-                    initialQuery: query,
-                    timestamp: Date.now(),
-                    turns: []
-                };
-                localHistory.unshift(sessionToUpdate);
-            } else {
-                sessionToUpdate = localHistory.find(s => s.id === currentSessionId);
-                if (!sessionToUpdate) {
-                    showMessage("Error: Follow-up failed. Session not found locally.", 4000);
-                    return;
-                }
-                queryCount = sessionToUpdate.turns.length + 1;
-            }
-
+        // Query
+        async function performTruthQuery(query) {
+            if (!query.trim()) return showMessage('Enter a query.');
             openModal();
-            const tempLoadingId = `loading-${Date.now()}`;
-            const queryLabel = isFollowUp ? `Follow-up ${queryCount} on "${lastQuery}"` : `Initial Query: "${query}"`;
-            const loadingHtml = `
-                <div class="conversation-block" id="${tempLoadingId}">
-                    <h4>${queryLabel}</h4>
-                    <div class="content">
-                        <p>⚡ Scanning truth matrix...</p>
-                    </div>
-                </div>`;
-            resultContainer.innerHTML += loadingHtml;
-            resultContainer.scrollTo(0, resultContainer.scrollHeight);
+            const container = document.getElementById('resultContainer');
+            const loadingId = `loading-${Date.now()}`;
+            container.innerHTML = `
+                <div class="conversation-block" id="${loadingId}">
+                    <h4>Query: ${query}</h4>
+                    <div class="content">Scanning...</div>
+                </div>
+            `;
 
             try {
+                const parse = await loadMarked();
+                const payload = {
+                    task: 'generate',
+                    input: query,
+                    model: MODEL
+                };
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query })
+                    body: JSON.stringify(payload)
                 });
-                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
-                const newTurn = {
-                    query: query,
-                    answer: data.answer || '',
-                    citations: data.citations || [],
-                    timestamp: Date.now(),
-                    isFollowUp: isFollowUp
-                };
-                sessionToUpdate.turns.push(newTurn);
-                saveLocalHistoryToStorage();
-                const loadingBlock = document.getElementById(tempLoadingId);
-                if (loadingBlock) loadingBlock.remove();
-                let htmlContent = newTurn.answer ? marked.parse(newTurn.answer) : '<p>No results found.</p>';
-                if (newTurn.citations?.length) {
-                    htmlContent += `<div class="citation-block"><h3>Sources</h3><ul>${newTurn.citations.map(c => `<li><a href="${c.uri}" target="_blank">${c.title || c.uri}</a></li>`).join('')}</ul></div>`;
-                }
-                const finalBlock = `
+                container.innerHTML = `
                     <div class="conversation-block">
-                        <h4>${isFollowUp ? `Response ${queryCount} (Follow-up)` : `Response ${queryCount} (Initial)`}</h4>
-                        <div class="content">
-                            ${htmlContent}
-                        </div>
-                    </div>`;
-                resultContainer.innerHTML += finalBlock;
-                resultContainer.scrollTo(0, resultContainer.scrollHeight);
-            } catch (err) {
-                console.error("API Error:", err);
-                const loadingBlock = document.getElementById(tempLoadingId);
-                if (loadingBlock) loadingBlock.remove();
-                const mockResponse = query.toLowerCase() === 'what is cybrjustice?' ? {
-                    answer: '# Cybrjustice\nA decentralized platform for transparent justice.\n\n- Focuses on equity\n- Uses blockchain for audit trails',
-                    citations: [{ title: 'Cybrjustice Whitepaper', uri: 'https://example.com/whitepaper' }]
-                } : { answer: 'Mock response: No API available.', citations: [] };
-                const newTurn = {
-                    query: query,
-                    answer: mockResponse.answer,
-                    citations: mockResponse.citations,
-                    timestamp: Date.now(),
-                    isFollowUp: isFollowUp
-                };
-                sessionToUpdate.turns.push(newTurn);
-                saveLocalHistoryToStorage();
-                let htmlContent = newTurn.answer ? marked.parse(newTurn.answer) : '<p>No results found.</p>';
-                if (newTurn.citations?.length) {
-                    htmlContent += `<div class="citation-block"><h3>Sources</h3><ul>${newTurn.citations.map(c => `<li><a href="${c.uri}" target="_blank">${c.title || c.uri}</a></li>`).join('')}</ul></div>`;
-                }
-                const finalBlock = `
-                    <div class="conversation-block">
-                        <h4>${isFollowUp ? `Response ${queryCount} (Follow-up)` : `Response ${queryCount} (Initial)`}</h4>
-                        <div class="content">
-                            ${htmlContent}
-                        </div>
-                    </div>`;
-                resultContainer.innerHTML += finalBlock;
-                resultContainer.scrollTo(0, resultContainer.scrollHeight);
-                showMessage("Using mock response (API unavailable).", 3000);
+                        <h4>Result: ${data.model_used} (${data.confidence}%)</h4>
+                        <div class="content">${parse(data.answer)}</div>
+                    </div>
+                `;
+                localHistory.push({ query, answer: data.answer, model: data.model_used, timestamp: Date.now(), confidence: data.confidence });
+                if (localHistory.length > 50) localHistory.shift();
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
+                if (document.getElementById('historyPanel').classList.contains('open')) renderHistory();
+                showMessage(`Done: ${data.model_used}`);
+            } catch (e) {
+                container.innerHTML = `<p>Error: ${e.message}</p>`;
+                showMessage('Query failed.');
             }
         }
 
-        // Event Listeners
+        // Init
         document.addEventListener('DOMContentLoaded', () => {
-            const queryInput = document.getElementById('queryInput');
-            queryInput.addEventListener('keydown', e => {
+            const input = document.getElementById('queryInput');
+            input.addEventListener('keydown', e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    const query = queryInput.value.trim();
-                    console.log("Enter pressed, query:", query);
-                    if (query === '') {
-                        showMessage("Please enter a query.", 3000);
-                        return;
-                    }
-                    const isFollowUp = query.includes('→');
-                    if (isFollowUp && lastQuery && query.startsWith(lastQuery + ' →')) {
-                        const followUpQuery = query.substring(lastQuery.length + 3).trim();
-                        performTruthQuery(followUpQuery, true);
-                    } else if (isFollowUp && !currentSessionId) {
-                        showMessage("Cannot follow up without an active or loaded session.", 3000);
-                        return;
-                    } else {
-                        performTruthQuery(query, false);
-                    }
-                    queryInput.value = '';
+                    performTruthQuery(input.value);
+                    input.value = '';
                 }
             });
 
             document.getElementById('close-modal').addEventListener('click', closeModal);
             document.getElementById('modal-overlay').addEventListener('click', e => {
-                if (e.target === document.getElementById('modal-overlay')) closeModal();
+                if (e.target === e.currentTarget) closeModal();
             });
-            document.getElementById('ttsBtn').addEventListener('click', readAnalysisAloud);
-            document.getElementById('encryptAndShareBtn').addEventListener('click', generateHashAndDisplay);
-            document.getElementById('followUpBtn').addEventListener('click', () => {
-                closeModal();
-                const queryInput = document.getElementById('queryInput');
-                queryInput.value = lastQuery ? lastQuery + ' → ' : '';
-                queryInput.focus();
+            document.getElementById('ttsBtn').addEventListener('click', () => {
+                const text = document.getElementById('resultContainer').innerText;
+                speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+                showMessage('Reading...');
             });
-            document.getElementById('historyToggle').addEventListener('click', toggleHistoryPanel);
-            document.getElementById('closeHistoryBtn').addEventListener('click', toggleHistoryPanel);
-            document.getElementById('importFile').addEventListener('change', event => {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = e => {
-                    try {
-                        const importedData = JSON.parse(e.target.result);
-                        if (!Array.isArray(importedData) || importedData.length === 0 || !importedData.every(item => typeof item === 'object' && item.id && Array.isArray(item.turns))) {
-                            throw new Error("Invalid file structure. File must contain a list of truth sessions.");
-                        }
-                        importedData.forEach(importedSession => {
-                            const existingIndex = localHistory.findIndex(s => s.id === importedSession.id);
-                            if (existingIndex === -1) localHistory.unshift(importedSession);
-                        });
-                        saveLocalHistoryToStorage();
-                        showMessage(`Successfully imported ${importedData.length} sessions!`, 4000);
-                        toggleHistoryPanel();
-                    } catch (error) {
-                        console.error("Error importing file:", error);
-                        showMessage(`Import failed: ${error.message}`, 5000);
-                    }
-                };
-                reader.readAsText(file);
-                event.target.value = null;
+            document.getElementById('historyToggle').addEventListener('click', toggleHistory);
+            document.getElementById('clearHistory').addEventListener('click', () => {
+                localHistory = [];
+                localStorage.removeItem(STORAGE_KEY);
+                renderHistory();
+                showMessage('History cleared.');
             });
+            document.getElementById('exportHistory').addEventListener('click', exportHistory);
+            document.getElementById('importHistory').addEventListener('change', importHistory);
 
-            // Initialization
-            const body = document.body;
-            setMode(body.getAttribute('data-mode'));
-            loadLocalHistoryFromStorage();
-            const params = new URLSearchParams(window.location.search);
-            const q = params.get('q');
-            if (q) {
-                queryInput.value = decodeURIComponent(q.replace(/\+/g, ' ')).trim();
-                performTruthQuery(queryInput.value);
-                queryInput.value = '';
-            }
-            const typedTextEl = document.getElementById('typedText');
-            let isTypingDone = false;
-            typedTextEl.classList.add('is-typing');
-            typedTextEl.addEventListener('animationend', e => {
-                if (e.animationName === 'typing' && !isTypingDone) {
-                    typedTextEl.classList.remove('is-typing');
-                    typedTextEl.classList.add('is-done');
-                    isTypingDone = true;
+            document.getElementById('copyResult').addEventListener('click', () => {
+                const block = document.querySelector('.conversation-block');
+                if (block) {
+                    const query = block.querySelector('h4').textContent.replace(/^Result: .+?\(/, '(');
+                    const answer = block.querySelector('.content').innerText;
+                    copyToClipboard(`Query: ${query}\nAnswer: ${answer}`);
                 }
             });
-            initializeAudio();
+
+            document.querySelectorAll('.mode-toggle button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.body.dataset.mode = btn.dataset.mode;
+                    localStorage.setItem('truth-theme', btn.dataset.mode);
+                    showMessage(`Theme: ${btn.dataset.mode}`);
+                });
+            });
+
+            const selector = document.getElementById('modelSelector');
+            selector.value = MODEL;
+            selector.addEventListener('change', e => {
+                MODEL = e.target.value;
+                localStorage.setItem('truth-model', MODEL);
+                showMessage(`Model: ${MODEL}`);
+            });
+
+            document.body.dataset.mode = localStorage.getItem('truth-theme') || 'silvery';
+            document.getElementById('typedText').classList.add('is-typing');
+            setTimeout(() => document.getElementById('typedText').classList.add('is-done'), 4000);
+            renderHistory();
         });
-
-        function toggleHistoryPanel() {
-            const historyPanel = document.getElementById('historyPanel');
-            if (historyPanel.classList.contains('open')) {
-                historyPanel.classList.remove('open');
-            } else {
-                loadLocalHistoryFromStorage();
-                displayLocalHistoryInPanel();
-                historyPanel.classList.add('open');
-            }
-        }
     </script>
-
-    <div class="mode-toggle">
-        <button onclick="setMode('silvery')">Default</button>
-        <button onclick="setMode('dark')">Dark</button>
-        <button onclick="setMode('neo')">Neo</button>
-    </div>
-    <div class="terminal-window">
-        <p class="typed-text" id="typedText">connected. truth-engine ready.</p>
-        <div class="input-row">
-            <div class="command-line">
-                <input type="text" class="search-input" id="queryInput" placeholder="Enter query..." autofocus>
-            </div>
-            <button class="history-toggle" id="historyToggle">History</button>
-        </div>
-    </div>
-    <div id="historyPanel">
-        <div class="history-header">
-            <div class="history-title-row">
-                <h2>Local History</h2>
-                <button class="close-history" id="closeHistoryBtn">×</button>
-            </div>
-            <div class="history-actions">
-                <button onclick="exportHistoryToFile()">Export</button>
-                <button onclick="document.getElementById('melodyLockInputModal').classList.add('active'); initInterfaceGrid();">Load Hash</button>
-                <button onclick="document.getElementById('importFile').click()">Import File</button>
-                <button onclick="promptClearHistory()">Clear All</button>
-            </div>
-            <input type="file" id="importFile" accept=".json" style="display:none;">
-        </div>
-        <div id="historyList">
-            <p style="padding: 1rem; text-align: center; color: var(--secondary-text);">Loading local sessions...</p>
-        </div>
-    </div>
-    <div class="modal-overlay" id="modal-overlay">
-        <div class="modal-container">
-            <div class="modal-header">
-                <p class="modal-title">DATA STREAM // ai-nspired</p>
-                <button class="close-modal" id="close-modal">×</button>
-            </div>
-            <div class="result-container" id="resultContainer"></div>
-            <div class="modal-footer" id="modalFooter">
-                <button id="encryptAndShareBtn">🔐 Generate Hash (Melody Lock)</button>
-                <button id="ttsBtn">TTS (Read Aloud)</button>
-                <button id="followUpBtn">Follow-Up</button>
-            </div>
-        </div>
-    </div>
-    <div id="melodyLockOutputModal" class="modal-overlay">
-        <div class="modal-container" style="max-width: 600px; height: auto;">
-            <div class="modal-header">
-                <p class="modal-title">🔐 MELODY LOCK ENCRYPTED HASH</p>
-                <button class="close-modal" onclick="closeModal()">×</button>
-            </div>
-            <div class="result-container" style="padding: 1rem 0;">
-                <p class="text-xs text-gray-500 mb-4" style="font-size: 0.85rem; color: var(--secondary-text);">
-                    **Melody Cipher Sequence** (8-Note Verification)
-                </p>
-                <div id="outputMelodyDisplay" onclick="copyToClipboard(this.innerText, 'Melody Sequence Copied!')">...</div>
-                <p class="text-xs text-gray-500 my-4" style="font-size: 0.85rem; color: var(--secondary-text);">
-                    Full Hash Code (SHA-256 + Data Payload)
-                </p>
-                <textarea id="encryptedOutput" readonly rows="8" style="width:100%; resize: none; border: 1px solid var(--border-color); background: var(--content-bg); color: var(--content-text); padding: 0.5rem; font-size: 0.8rem;"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button onclick="copyEncryptedCode()">Copy Full Hash Code</button>
-                <button onclick="playMelodyCipher()">▶️ Play Cipher</button>
-                <button onclick="generateHashFromCipher()">Generate Hash from Cipher</button>
-            </div>
-        </div>
-    </div>
-    <div id="melodyLockInputModal" class="modal-overlay">
-        <div class="modal-container" style="max-width: 500px; height: auto;">
-            <div class="modal-header">
-                <p class="modal-title">🔓 LOAD MELODY LOCK HASH</p>
-                <button class="close-modal" onclick="closeModal()">×</button>
-            </div>
-            <div class="result-container" style="padding: 1rem 0;">
-                <p style="font-size: 0.85rem; color: var(--secondary-text); margin-bottom: 1rem;">
-                    **Option 1: Paste Decryption Key (Admin Melody Hash)**
-                </p>
-                <input type="text" id="decryptionKeyInput" placeholder="Enter Melody Lock Decryption Key..." style="width:100%; border: 1px solid var(--border-color); background: var(--content-bg); color: var(--content-text); padding: 0.5rem; border-radius: 4px; margin-bottom: 1.5rem;">
-                <p style="font-size: 0.85rem; color: var(--secondary-text); margin-bottom: 1rem;">
-                    **Option 2: Tap the Melody Sequence to Generate Key**
-                </p>
-                <div class="interface-melody-container">
-                    <p style="font-size: 0.75rem; color: var(--secondary-text); margin: 0 0 0.5rem; text-align: center;">Tap the sequence (4 Notes x 8 Steps) to generate the Key.</p>
-                    <div id="interface-melody-grid" class="interface-melody-grid"></div>
-                    <div style="display: flex; justify-content: center; gap: 10px; margin-top: 1rem;">
-                        <button onclick="clearMelodyGrid()">Clear Grid</button>
-                        <button onclick="generateKeyFromGrid()" style="background: var(--accent-color); color: var(--modal-bg);">Generate Key</button>
-                        <button onclick="playTappedMelody()" style="background: var(--accent-color); color: var(--modal-bg);">Play Melody</button>
-                    </div>
-                </div>
-                <p style="font-size: 0.85rem; color: var(--secondary-text); margin-bottom: 0.5rem;">
-                    **Hash Code:**
-                </p>
-                <textarea id="hashInput" rows="4" placeholder="Paste Melody Lock Hash (e.g., e4a2...d1c) here..." style="width:100%; resize: none; border: 1px solid var(--border-color); background: var(--content-bg); color: var(--content-text); padding: 0.5rem; font-size: 0.8rem;"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button onclick="loadHashFromInput()">Load Hash</button>
-            </div>
-        </div>
-    </div>
-    <div id="clearConfirmModal" class="modal-overlay">
-        <div class="modal-container" style="max-width: 400px; height: auto;">
-            <div class="modal-header">
-                <p class="modal-title" style="color: red;">! DANGER: CLEAR HISTORY</p>
-                <button class="close-modal" onclick="closeModal()">×</button>
-            </div>
-            <div class="result-container" style="padding: 1rem 0 0;">
-                <p>Are you sure you want to delete <strong style="color: red;">ALL</strong> locally saved truth sessions? This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer" style="justify-content: flex-end;">
-                <button onclick="closeModal()" style="color: var(--secondary-text); border-color: var(--secondary-text);">Cancel</button>
-                <button onclick="confirmClearHistory()" style="background-color: red; color: white; border-color: red;">Confirm Delete</button>
-            </div>
-        </div>
-    </div>
-    <div id="customMessage"></div>
 </body>
 </html>
