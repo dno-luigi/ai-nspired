@@ -111,8 +111,7 @@
             align-items: center;
             flex-grow: 1;
         }
-        .command-line::before { content: '>'; margin-right: 1rem;
-            font-weight: bold; }
+        .command-line::before { content: '>'; margin-right: 1rem; font-weight: bold; }
 
         .search-input {
             background: transparent;
@@ -186,12 +185,16 @@
             scroll-behavior: smooth;
         }
         .conversation-block {
-            margin-top: 1rem;
+            margin-bottom: 1.5rem;
             padding-bottom: 1rem;
             border-bottom: 1px dashed var(--border-color);
         }
         .conversation-block:last-child {
             border-bottom: none;
+        }
+        .conversation-block h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--accent-color);
         }
         .conversation-block .content {
             box-shadow: 0 4px 10px var(--shadow-color);
@@ -199,6 +202,7 @@
             padding: 1rem;
             border-radius: 4px;
             transition: box-shadow 0.3s;
+            background-color: var(--content-bg);
         }
         [data-mode="neo"] .conversation-block .content {
             box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
@@ -282,7 +286,10 @@
             gap: 0.5rem;
             flex-wrap: wrap;
         }
-        .history-actions button, .history-actions input {
+        .history-actions input[type="file"] {
+            display: none; /* Hide the default file input */
+        }
+        .history-actions button, .history-actions .file-upload-btn {
             background: none;
             border: 1px solid var(--accent-color);
             color: var(--accent-color);
@@ -291,16 +298,13 @@
             cursor: pointer;
             border-radius: 4px;
             min-width: 60px;
+            display: inline-block;
+            text-align: center;
         }
-        .history-actions button:hover, .history-actions input:hover {
+        .history-actions button:hover, .history-actions .file-upload-btn:hover {
             background-color: var(--accent-color);
             color: var(--bg-color);
         }
-        
-        #importHistory {
-            display: none;
-        }
-
         .close-history {
             background: none;
             border: none;
@@ -430,7 +434,6 @@
         <button data-mode="dark">Dark</button>
         <button data-mode="neo">Neo</button>
         <select id="modelSelector" aria-label="Select AI Model">
-            <!-- Updated Model List -->
             <option value="WORKERS_AI">Workers AI (Free)</option>
             <option value="dolphin-mistral-24b-venice-edition">Dolphin 24B (Free, 32K)</option>
             <option value="llama-3-8b">Llama 3 8B (Free)</option>
@@ -439,7 +442,7 @@
             <option value="gemini-flash-1.5">Gemini Flash 1.5 (Cheap)</option>
             <option value="llama-3.2-1b">Llama 3.2 1B (Cheap, 131K)</option>
             <option value="mistral-nemo">Mistral Nemo (Easter Egg)</option>
-            <option value="qwen2.5-7b-instruct">Qwen 2.5 7B (Easter Egg)</option>
+            <option value="qwen2.5-7b-instruct">Qwen 2.5 7B (Easter Egg)</section>
             <option value="gpt-oss-20b">GPT OSS 20B (Easter Egg)</option>
         </select>
     </div>
@@ -458,10 +461,10 @@
         <div class="history-header">
             <p>History</p>
             <div class="history-actions">
-                <button id="exportHistory" aria-label="Export history">Export</button>
-                <button id="importTrigger" aria-label="Import history">Import</button>
+                <button id="exportHistory" aria-label="Export history" style="display: inline-block;">Export</button>
+                <button id="importTrigger" class="file-upload-btn" aria-label="Import history" style="display: inline-block;">Import</button>
                 <input type="file" id="importHistory" accept=".json" aria-label="Import history">
-                <button id="clearHistory" aria-label="Clear history">Clear</button>
+                <button id="clearHistory" aria-label="Clear history" style="display: inline-block;">Clear</button>
             </div>
             <button class="close-history" id="closeHistory" aria-label="Close history">×</button>
         </div>
@@ -476,9 +479,9 @@
             </div>
             <div class="result-container" id="resultContainer" role="log" aria-live="polite"></div>
             <div class="modal-footer">
-                <button id="copyResult" aria-label="Copy result">Copy</button>
-                <button id="ttsBtn" aria-label="Read aloud">TTS</button>
-                <button id="newChatBtn" aria-label="New Chat">New Chat</button>
+                <button id="newChat" aria-label="New chat">New Chat</button>
+                <button id="copyResult" aria-label="Copy result">Copy Last</button>
+                <button id="ttsBtn" aria-label="Read aloud">Read Last</button>
             </div>
         </div>
     </div>
@@ -492,16 +495,19 @@
         Free tier uses shared conversation history. Export to save your context. By using this system, you agree to our terms of service.
     </div>
 
-    <!-- SCRIPT BLOCK RESTORED. I AM SO SORRY. -->
     <script>
+        // This MUST be the full URL.
         const API_URL = 'https://truthengine.ai-n.workers.dev/';
+        
         const STORAGE_KEY = 'LOCAL_TRUTH_HISTORY';
         let localHistory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        let MODEL = localStorage.getItem('truth-model') || 'WORKERS_AI'; // Default to reliable Workers AI
+        let MODEL = localStorage.getItem('truth-model') || 'gemini-flash';
+        let parse = (text) => text.replace(/</g, "&lt;").replace(/>/g, "&gt;"); // Fallback parser
 
-        // Utils
+        // --- Utils ---
         function showMessage(msg, duration = 3000) {
             const el = document.getElementById('customMessage');
+            if (!el) return;
             el.textContent = msg;
             el.classList.add('visible');
             setTimeout(() => el.classList.remove('visible'), duration);
@@ -509,25 +515,38 @@
 
         function showExportPrompt() {
             const prompt = document.getElementById('exportPrompt');
-            prompt.classList.add('visible');
-            setTimeout(() => prompt.classList.remove('visible'), 5000);
+            if (prompt) prompt.classList.add('visible');
+            setTimeout(() => {
+                if (prompt) prompt.classList.remove('visible');
+            }, 5000);
         }
 
         async function loadMarked() {
+            if (window.marked) {
+                parse = window.marked.parse;
+                return;
+            }
             try {
                 const script = document.createElement('script');
                 script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
                 document.head.appendChild(script);
-                return new Promise(resolve => {
-                    script.onload = () => resolve(window.marked.parse);
-                });
-            } catch {
-                return text => text; // Fallback plain text
+                script.onload = () => {
+                    if (window.marked) {
+                        parse = window.marked.parse;
+                        console.log('Marked.js loaded.');
+                    }
+                };
+            } catch(e) {
+                console.error('Failed to load Marked.js', e);
             }
         }
 
         function copyToClipboard(text, msg = 'Copied!') {
-            navigator.clipboard.writeText(text).then(() => showMessage(msg));
+            if (!navigator.clipboard) {
+                showMessage('Clipboard API not available.');
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => showMessage(msg)).catch(err => showMessage('Failed to copy.'));
         }
 
         async function promptForPassphrase(challengeQuestion) {
@@ -536,102 +555,103 @@
                 resolve(passphrase || '');
             });
         }
-
-        async function clearChatSession() {
-            try {
-                const res = await fetch(`${API_URL}/conversation/import`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ history: [] })
-                });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                localHistory = [];
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
-                renderHistory(); // Update side panel
-                document.getElementById('resultContainer').innerHTML = ''; // Clear modal
-                showMessage('New chat started. Context cleared.');
-            } catch (error) {
-                showMessage('Failed to clear session.');
-            }
+        
+        function sanitizeQuery(query) {
+             // Basic sanitization to prevent weirdness, but allow Marked to render
+            return query.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+        
+        function scrollToBottom() {
+            const container = document.getElementById('resultContainer');
+            if(container) container.scrollTop = container.scrollHeight;
         }
 
-        // Modal/History
+        // --- Modal/History ---
         function openModal() {
             document.getElementById('modal-overlay').classList.add('active');
         }
 
         function closeModal() {
             document.getElementById('modal-overlay').classList.remove('active');
-            speechSynthesis.cancel();
+            if (speechSynthesis.speaking) speechSynthesis.cancel();
+            if (localHistory.length > 0) showExportPrompt();
         }
 
         function toggleHistory() {
             const panel = document.getElementById('historyPanel');
+            if (!panel) return;
             panel.classList.toggle('open');
             if (panel.classList.contains('open')) fetchHistory();
         }
 
         async function fetchHistory() {
             try {
-                const res = await fetch(`${API_URL}/conversation/history`, {
+                const res = await fetch(`${API_URL}conversation/history`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const history = await res.json();
-                localHistory = history;
+                
+                if (!Array.isArray(history)) {
+                    console.error("Fetched history is not an array:", history);
+                    localHistory = [];
+                } else {
+                    localHistory = history;
+                }
+                
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
                 renderHistory();
             } catch (error) {
-                showMessage('Failed to fetch history.');
+                showMessage(`Failed to fetch history: ${error.message}`);
+                console.error("fetchHistory error:", error);
                 renderHistory(); // Fallback to local storage
             }
         }
 
         function renderHistory() {
             const list = document.getElementById('historyList');
-            list.innerHTML = (localHistory || []).slice(-20).reverse().map(item => {
-                const query = item.query || '';
-                const queryDisplay = query.slice(0, 50) || 'Empty Query';
-                const queryEllipsis = query.length > 50 ? '...' : '';
+            if (!list) return;
+            
+            if (!Array.isArray(localHistory)) {
+                console.error("localHistory is not an array:", localHistory);
+                localHistory = []; // Fix it
+            }
+            
+            list.innerHTML = localHistory.slice(-20).reverse().map(item => {
+                const query = item.query || "Empty Query";
+                const safeQuery = query.replace(/"/g, '&quot;');
+                const shortQuery = query.slice(0, 50) + (query.length > 50 ? '...' : '');
                 
                 return `
-                <li class="history-item" role="button" tabindex="0" data-query="${query.replace(/"/g, '&quot;')}">
+                <li class="history-item" role="button" tabindex="0" data-query="${safeQuery}">
                     <div class="history-item-content">
-                        <p>${queryDisplay}${queryEllipsis}</p>
-                        <small>${item.model || 'unknown'} • ${new Date(item.timestamp).toLocaleString()}</small>
+                        <p>${shortQuery}</p>
+                        <small>${item.model || 'unknown'} • ${item.timestamp ? new Date(item.timestamp).toLocaleString() : 'no date'}</small>
                     </div>
                     <button class="copy-btn" aria-label="Copy query and answer">📋</button>
-                </li>`
-            }).join('');
-
+                </li>
+            `}).join('');
+            
             document.querySelectorAll('.history-item').forEach(item => {
                 item.addEventListener('click', e => {
                     const query = item.dataset.query;
                     if (e.target.classList.contains('copy-btn')) {
                         const historyItem = localHistory.find(h => h.query === query);
-                        const answer = historyItem ? historyItem.answer : '[Answer not found]';
-                        copyToClipboard(`Query: ${query}\nAnswer: ${answer}`);
-                    } else if (query) { 
-                        // When clicking a history item, clear the chat and start new
-                        clearChatSession().then(() => {
-                            performTruthQuery(query);
-                        });
+                        copyToClipboard(`Query: ${query}\nAnswer: ${historyItem ? historyItem.answer : 'Not found.'}`);
+                    } else {
+                        performTruthQuery(query);
                     }
                 });
                 item.addEventListener('keydown', e => {
-                    if (e.key === 'Enter' && item.dataset.query) {
-                        clearChatSession().then(() => {
-                            performTruthQuery(item.dataset.query);
-                        });
-                    }
+                    if (e.key === 'Enter') performTruthQuery(item.dataset.query);
                 });
             });
         }
 
         async function exportHistory() {
             try {
-                const res = await fetch(`${API_URL}/conversation/export`, {
+                const res = await fetch(`${API_URL}conversation/export`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -641,7 +661,9 @@
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = 'conversation.json';
+                document.body.appendChild(a);
                 a.click();
+                document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 showMessage('History exported. Save it to continue later!');
             } catch (error) {
@@ -656,9 +678,10 @@
             reader.onload = async () => {
                 try {
                     const imported = JSON.parse(reader.result);
-                    if (!imported.history) throw new Error("Invalid format: 'history' key missing.");
-
-                    const res = await fetch(`${API_URL}/conversation/import`, {
+                    if (!imported || !Array.isArray(imported.history)) {
+                        throw new Error("Invalid file format. Expected { history: [...] }");
+                    }
+                    const res = await fetch(`${API_URL}conversation/import`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(imported)
@@ -672,20 +695,6 @@
                         localHistory = imported.history;
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
                         await fetchHistory();
-                        
-                        const container = document.getElementById('resultContainer');
-                        container.innerHTML = ''; // Clear it first
-                        const parse = await loadMarked();
-                        localHistory.forEach(item => {
-                            container.insertAdjacentHTML('beforeend', `
-                                <div class="conversation-block">
-                                    <h4>Query: ${item.query}</h4>
-                                    <div class="content">${parse(item.answer)}</div>
-                                    <small>Model: ${item.model} • ${new Date(item.timestamp).toLocaleString()}</small>
-                                </div>
-                            `);
-                        });
-                        container.scrollTop = container.scrollHeight; // Scroll to bottom
                         showMessage('History imported. Context restored!');
                     } else {
                         throw new Error(data.error);
@@ -695,29 +704,57 @@
                 }
             };
             reader.readAsText(file);
-            e.target.value = null;
+        }
+        
+        async function clearHistory() {
+            try {
+                const res = await fetch(`${API_URL}conversation/import`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ history: [] })
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                localHistory = [];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
+                renderHistory();
+                showMessage('History cleared.');
+                
+                // Also clear the modal
+                const container = document.getElementById('resultContainer');
+                if (container) container.innerHTML = "";
+                
+            } catch (error) {
+                showMessage('Failed to clear history.');
+            }
         }
 
-        // Query
+        // --- Query ---
         async function performTruthQuery(query, challengeResponse = '') {
             if (!query || !query.trim()) return showMessage('Enter a query.');
             
-            openModal(); // Ensure modal is open
+            const sanitizedQuery = sanitizeQuery(query);
+            openModal();
             const container = document.getElementById('resultContainer');
-            const loadingId = `loading-${Date.now()}`;
+            if (!container) return;
             
-            container.insertAdjacentHTML('beforeend', `
-                <div class="conversation-block" id="${loadingId}">
-                    <h4>Query: ${query}</h4>
-                    <div class="content">Scanning...</div>
-                </div>
-            `);
-            container.scrollTop = container.scrollHeight;
+            // Add query to chat
+            const queryBlock = document.createElement('div');
+            queryBlock.className = 'conversation-block';
+            queryBlock.innerHTML = `<h4>Query: ${sanitizedQuery}</h4>`;
+            container.appendChild(queryBlock);
+            
+            // Add placeholder for answer
+            const loadingId = `loading-${Date.now()}`;
+            const answerBlock = document.createElement('div');
+            answerBlock.className = 'content';
+            answerBlock.id = loadingId;
+            answerBlock.innerHTML = 'Scanning...';
+            queryBlock.appendChild(answerBlock);
+
+            scrollToBottom();
 
             try {
-                const parse = await loadMarked();
                 const payload = {
-                    task: 'generate',
                     input: query,
                     model: MODEL,
                     challengeResponse: challengeResponse
@@ -728,129 +765,159 @@
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
+                
+                const answerContainer = document.getElementById(loadingId);
+                if (!answerContainer) return;
 
                 if (!res.ok) {
                     if (data.error === 'CHALLENGE_REQUIRED') {
-                        const loadingEl = document.getElementById(loadingId);
-                        if (loadingEl) loadingEl.remove();
-
+                        // Remove the placeholder blocks
+                        queryBlock.remove(); 
                         const passphrase = await promptForPassphrase(data.challengeQuestion);
-                        return performTruthQuery(query, passphrase);
+                        return performTruthQuery(query, passphrase); // Re-run query
                     }
                     throw new Error(data.error || `HTTP ${res.status}`);
                 }
-
-                const loadingEl = document.getElementById(loadingId);
-                const resultHtml = `
-                    <div class="conversation-block">
-                        <h4>Query: ${query}</h4>
-                        <div class="content">${parse(data.answer)}</div>
-                        <small>Model: ${data.model} • ${new Date(data.timestamp).toLocaleString()}</small>
-                        ${data.cached ? '<br><small><em>(Result from cache)</em></small>' : ''}
-                    </div>
-                `;
-                if (loadingEl) {
-                    loadingEl.outerHTML = resultHtml;
-                } else {
-                    container.insertAdjacentHTML('beforeend', resultHtml);
+                
+                // Success
+                answerContainer.innerHTML = parse(data.answer);
+                
+                const meta = document.createElement('small');
+                meta.textContent = `Model: ${data.model} • ${new Date(data.timestamp).toLocaleString()}`;
+                if(data.cached) {
+                    meta.textContent += " (Cached)";
+                    meta.style.color = "var(--accent-color)";
+                    meta.style.fontWeight = "bold";
                 }
+                queryBlock.appendChild(meta);
 
-                await fetchHistory();
+
+                localHistory.push({ query, answer: data.answer, model: data.model, timestamp: data.timestamp });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
+                // No need to fetchHistory(), just render
+                renderHistory(); 
 
             } catch (error) {
-                const loadingEl = document.getElementById(loadingId);
-                const errorHtml = `
-                    <div class="conversation-block">
-                        <h4>Query: ${query}</h4>
-                        <div class="content">Error: ${error.message}</div>
-                    </div>
-                `;
-                if (loadingEl) {
-                    loadingEl.outerHTML = errorHtml;
+                const answerContainer = document.getElementById(loadingId);
+                if (answerContainer) {
+                    answerContainer.innerHTML = `Error: ${error.message}`;
                 } else {
-                    container.insertAdjacentHTML('beforeend', errorHtml);
+                    queryBlock.innerHTML += `<div class="content">Error: ${error.message}</div>`;
                 }
             }
-            container.scrollTop = container.scrollHeight;
+            
+            scrollToBottom();
         }
 
-        // Event Listeners
-        document.getElementById('queryInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                performTruthQuery(e.target.value);
-                e.target.value = ''; // Clear input after sending
-            }
-        });
-        document.getElementById('historyToggle').addEventListener('click', toggleHistory);
-        document.getElementById('closeHistory').addEventListener('click', toggleHistory);
-        document.getElementById('close-modal').addEventListener('click', closeModal);
-        document.getElementById('copyResult').addEventListener('click', () => {
-            const allContent = Array.from(document.querySelectorAll('.conversation-block .content'));
-            const lastContent = allContent.length ? allContent[allContent.length - 1].textContent : '';
-            if (lastContent) {
-                copyToClipboard(lastContent);
-            } else {
-                showMessage('No result to copy.');
-            }
-        });
-        document.getElementById('ttsBtn').addEventListener('click', () => {
-            const allContent = Array.from(document.querySelectorAll('.conversation-block .content'));
-            const lastContent = allContent.length ? allContent[allContent.length - 1].textContent : '';
-            if (lastContent) {
-                speechSynthesis.cancel(); // Stop any previous speech
-                const utterance = new SpeechSynthesisUtterance(lastContent);
-                speechSynthesis.speak(utterance);
-            } else {
-                showMessage('No result to read.');
-            }
-        });
-        document.getElementById('exportHistory').addEventListener('click', exportHistory);
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMarked(); // Load markdown parser
         
-        document.getElementById('importTrigger').addEventListener('click', () => {
-            document.getElementById('importHistory').click();
-        });
-        
-        document.getElementById('importHistory').addEventListener('change', importHistory);
-        
-        document.getElementById('newChatBtn').addEventListener('click', clearChatSession);
-        document.getElementById('clearHistory').addEventListener('click', clearChatSession);
-        
-        document.getElementById('modelSelector').addEventListener('change', (e) => {
-            MODEL = e.target.value;
-            localStorage.setItem('truth-model', MODEL);
-            showMessage(`Model set to ${e.target.options[e.target.selectedIndex].text}`);
-        });
-        document.querySelectorAll('.mode-toggle button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.body.dataset.mode = btn.dataset.mode;
-                localStorage.setItem('theme', btn.dataset.mode);
+            document.getElementById('queryInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    performTruthQuery(e.target.value);
+                    e.target.value = ""; // Clear input after send
+                }
             });
-        });
-        document.getElementById('exportPromptBtn').addEventListener('click', () => {
-            exportHistory();
-            document.getElementById('exportPrompt').classList.remove('visible');
-        });
+            
+            document.getElementById('historyToggle').addEventListener('click', toggleHistory);
+            document.getElementById('closeHistory').addEventListener('click', toggleHistory);
+            document.getElementById('close-modal').addEventListener('click', closeModal);
+            
+            document.getElementById('copyResult').addEventListener('click', () => {
+                const lastContent = document.querySelector('.conversation-block:last-child .content');
+                if (lastContent) {
+                    copyToClipboard(lastContent.textContent);
+                } else {
+                    showMessage('No result to copy.');
+                }
+            });
+            
+            document.getElementById('ttsBtn').addEventListener('click', () => {
+                if (speechSynthesis.speaking) {
+                    speechSynthesis.cancel();
+                    return;
+                }
+                const lastContent = document.querySelector('.conversation-block:last-child .content');
+                if (lastContent && lastContent.textContent) {
+                    const utterance = new SpeechSynthesisUtterance(lastContent.textContent);
+                    speechSynthesis.speak(utterance);
+                } else {
+                    showMessage('No result to read.');
+                }
+            });
+            
+            document.getElementById('newChat').addEventListener('click', () => {
+                clearHistory(); // This clears the DO and the modal
+                showMessage('New chat started.');
+            });
+            
+            document.getElementById('exportHistory').addEventListener('click', exportHistory);
+            document.getElementById('importTrigger').addEventListener('click', () => {
+                document.getElementById('importHistory').click(); // Trigger hidden file input
+            });
+            document.getElementById('importHistory').addEventListener('change', importHistory);
+            document.getElementById('clearHistory').addEventListener('click', clearHistory);
+            
+            document.getElementById('modelSelector').addEventListener('change', (e) => {
+                MODEL = e.target.value;
+                localStorage.setItem('truth-model', MODEL);
+                showMessage(`Model set to ${e.target.options[e.target.selectedIndex].text}`);
+            });
+            
+            document.querySelectorAll('.mode-toggle button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.body.dataset.mode = btn.dataset.mode;
+                    localStorage.setItem('theme', btn.dataset.mode);
+                });
+            });
+            
+            document.getElementById('exportPromptBtn').addEventListener('click', exportHistory);
 
-        // Initialize
-        document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
-        const savedModel = localStorage.getItem('truth-model');
-        if (savedModel && Array.from(document.getElementById('modelSelector').options).some(o => o.value === savedModel)) {
-            document.getElementById('modelSelector').value = savedModel;
-            MODEL = savedModel;
-        } else {
-            document.getElementById('modelSelector').value = MODEL; 
-            localStorage.setItem('truth-model', MODEL);
-        }
-        
-        fetchHistory(); // Load initial history
-        setTimeout(() => {
-            const typedText = document.getElementById('typedText');
-            typedText.classList.add('is-typing');
+            // --- Initialize ---
+            document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
+            document.getElementById('modelSelector').value = MODEL;
+            
+            // Fetch history *after* DOM is loaded
+            fetchHistory(); 
+            
             setTimeout(() => {
-                typedText.classList.remove('is-typing');
-                typedText.classList.add('is-done');
-            }, 3500);
-        }, 100);
+                const typedText = document.getElementById('typedText');
+                if (typedText) {
+                    typedText.classList.add('is-typing');
+                    setTimeout(() => {
+                        typedText.classList.remove('is-typing');
+                        typedText.classList.add('is-done');
+                    }, 3500);
+                }
+            }, 100);
+
+            // ---!! F---ING URL PARAMETER CATCHER !!---
+            // This is the new code you asked for.
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const queryFromUrl = urlParams.get('q');
+                if (queryFromUrl) {
+                    // We have a query.
+                    // 1. Decode it (handles 'what+is+truth')
+                    const decodedQuery = decodeURIComponent(queryFromUrl);
+                    
+                    // 2. Put it in the search bar so the user sees it.
+                    const queryInput = document.getElementById('queryInput');
+                    if(queryInput) queryInput.value = decodedQuery;
+                    
+                    // 3. Run the query.
+                    performTruthQuery(decodedQuery);
+                    
+                    // 4. Clean the URL (so a refresh doesn't re-run it).
+                    history.replaceState(null, '', window.location.pathname);
+                }
+            } catch (e) {
+                console.error("Error parsing URL query:", e);
+            }
+            // ---!! F---ING END OF NEW CODE !!---
+            
+        });
     </script>
 </body>
 </html>
