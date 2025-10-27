@@ -1,5 +1,3 @@
-<!-- This is your same HTML file, just place it in the src folder -->
-<!-- No changes were made to this file. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -113,8 +111,7 @@
             align-items: center;
             flex-grow: 1;
         }
-        .command-line::before { content: '>'; margin-right: 1rem;
-            font-weight: bold; }
+        .command-line::before { content: '>'; margin-right: 1rem; font-weight: bold; }
 
         .search-input {
             background: transparent;
@@ -188,20 +185,30 @@
             scroll-behavior: smooth;
         }
         .conversation-block {
-            margin-top: 1rem;
+            margin-bottom: 1.5rem;
             padding-bottom: 1rem;
             border-bottom: 1px dashed var(--border-color);
         }
-        .conversation-block:last-child {
-            border-bottom: none;
+        .conversation-block h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.2rem;
+            color: var(--accent-color);
         }
         .conversation-block .content {
             box-shadow: 0 4px 10px var(--shadow-color);
-            margin-top: 1rem;
             padding: 1rem;
             border-radius: 4px;
+            background-color: var(--content-bg);
+            color: var(--content-text);
             transition: box-shadow 0.3s;
         }
+        .conversation-block .content pre {
+            background-color: rgba(var(--accent-color-rgb), 0.05);
+            padding: 0.75rem;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
         [data-mode="neo"] .conversation-block .content {
             box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
         }
@@ -298,11 +305,6 @@
             background-color: var(--accent-color);
             color: var(--bg-color);
         }
-        
-        #importHistory {
-            display: none;
-        }
-
         .close-history {
             background: none;
             border: none;
@@ -424,6 +426,19 @@
             text-align: center;
             max-width: 90vw;
         }
+        .chat-query-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            background: var(--content-bg);
+            color: var(--content-text);
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body data-mode="silvery">
@@ -432,13 +447,12 @@
         <button data-mode="dark">Dark</button>
         <button data-mode="neo">Neo</button>
         <select id="modelSelector" aria-label="Select AI Model">
-            <!-- Updated Model List -->
-            <option value="WORKERS_AI">Workers AI (Free)</option>
-            <option value="dolphin-mistral-24b-venice-edition">Dolphin 24B (Free, 32K)</option>
-            <option value="llama-3-8b">Llama 3 8B (Free)</option>
-            <option value="gemma-7b">Gemma 7B (Free)</option>
-            <option value="mistral-7b">Mistral 7B (Free)</option>
-            <option value="gemini-flash-1.5">Gemini Flash 1.5 (Cheap)</option>
+            <option value="WORKERS_AI">Workers AI (LLaMA 3, 8K)</option>
+            <option value="mixtral-8x7b">Mixtral 8x7B (Free, 32K)</option> 
+            <option value="llama-3-8b">Llama 3 8B (Free, 8K)</option>
+            <option value="gemma-7b">Gemma 7B (Free, 8K)</option>
+            <option value="mistral-7b">Mistral 7B (Free, 8K)</option>
+            <option value="gemini-flash-1.5">Gemini Flash 1.5 (Cheap, 32K)</option>
             <option value="llama-3.2-1b">Llama 3.2 1B (Cheap, 131K)</option>
             <option value="mistral-nemo">Mistral Nemo (Easter Egg)</option>
             <option value="qwen2.5-7b-instruct">Qwen 2.5 7B (Easter Egg)</option>
@@ -462,7 +476,7 @@
             <div class="history-actions">
                 <button id="exportHistory" aria-label="Export history">Export</button>
                 <button id="importTrigger" aria-label="Import history">Import</button>
-                <input type="file" id="importHistory" accept=".json" aria-label="Import history">
+                <input type="file" id="importHistory" accept=".json" aria-label="Import history" style="display: none;">
                 <button id="clearHistory" aria-label="Clear history">Clear</button>
             </div>
             <button class="close-history" id="closeHistory" aria-label="Close history">×</button>
@@ -476,11 +490,13 @@
                 <p class="modal-title">DATA STREAM // ai-nspired</p>
                 <button class="close-modal" id="close-modal" aria-label="Close modal">×</button>
             </div>
-            <div class="result-container" id="resultContainer" role="log" aria-live="polite"></div>
+            <div class="result-container" id="resultContainer" role="log" aria-live="polite">
+                <!-- Chat conversation will be appended here -->
+            </div>
             <div class="modal-footer">
-                <button id="copyResult" aria-label="Copy result">Copy</button>
-                <button id="ttsBtn" aria-label="Read aloud">TTS</button>
-                <button id="newChatBtn" aria-label="New Chat">New Chat</button>
+                <button id="newChatBtn" aria-label="Start a new chat">New Chat</button>
+                <input type="text" id="chatQueryInput" class="chat-query-input" placeholder="Type follow-up query here...">
+                <button id="copyResult" aria-label="Copy entire conversation">Copy All</button>
             </div>
         </div>
     </div>
@@ -494,12 +510,12 @@
         Free tier uses shared conversation history. Export to save your context. By using this system, you agree to our terms of service.
     </div>
 
-    <!-- This is the full, correct script block. -->
     <script>
-        const API_URL = '/'; // Use relative path
+        // NOTE: API_URL MUST be set to the relative path '/' for stable routing to the current worker
+        const API_URL = '/'; 
         const STORAGE_KEY = 'LOCAL_TRUTH_HISTORY';
         let localHistory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        let MODEL = localStorage.getItem('truth-model') || 'WORKERS_AI'; // Default to reliable Workers AI
+        let MODEL = localStorage.getItem('truth-model') || 'WORKERS_AI';
 
         // Utils
         function showMessage(msg, duration = 3000) {
@@ -516,20 +532,19 @@
         }
 
         async function loadMarked() {
-            try {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-                document.head.appendChild(script);
-                return new Promise(resolve => {
-                    script.onload = () => resolve(window.marked.parse);
-                });
-            } catch {
-                return text => text; // Fallback plain text
-            }
+            // Marked is loaded in the HTML head now, so we just return the parse function
+            return window.marked.parse;
         }
 
         function copyToClipboard(text, msg = 'Copied!') {
-            navigator.clipboard.writeText(text).then(() => showMessage(msg));
+            // document.execCommand('copy') is used for compatibility in some environments
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showMessage(msg);
         }
 
         async function promptForPassphrase(challengeQuestion) {
@@ -539,32 +554,16 @@
             });
         }
 
-        async function clearChatSession() {
-            try {
-                const res = await fetch(`${API_URL}conversation/import`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ history: [] })
-                });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                localHistory = [];
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
-                renderHistory(); // Update side panel
-                document.getElementById('resultContainer').innerHTML = ''; // Clear modal
-                showMessage('New chat started. Context cleared.');
-            } catch (error) {
-                showMessage('Failed to clear session.');
-            }
-        }
-
         // Modal/History
         function openModal() {
             document.getElementById('modal-overlay').classList.add('active');
+            document.getElementById('chatQueryInput').focus();
         }
 
         function closeModal() {
             document.getElementById('modal-overlay').classList.remove('active');
-            speechSynthesis.cancel();
+            // If the chat log is not empty after closing, show the export prompt
+            if (document.getElementById('resultContainer').children.length > 0) showExportPrompt();
         }
 
         function toggleHistory() {
@@ -575,6 +574,7 @@
 
         async function fetchHistory() {
             try {
+                // The history endpoint is now correctly bound to the HISTORY Durable Object
                 const res = await fetch(`${API_URL}conversation/history`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
@@ -585,47 +585,51 @@
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
                 renderHistory();
             } catch (error) {
-                showMessage('Failed to fetch history.');
-                renderHistory(); // Fallback to local storage
+                // If fetching the history fails (e.g., initial DO binding not fully ready),
+                // we fall back to local storage and display a message.
+                console.error("Failed to fetch history:", error);
+                showMessage('Failed to fetch history. Loading local cache.', 4000);
+                renderHistory(); 
             }
         }
 
         function renderHistory() {
             const list = document.getElementById('historyList');
-            list.innerHTML = (localHistory || []).slice(-20).reverse().map(item => {
-                const query = item.query || '';
-                const queryDisplay = query.slice(0, 50) || 'Empty Query';
-                const queryEllipsis = query.length > 50 ? '...' : '';
-                
-                return `
-                <li class="history-item" role="button" tabindex="0" data-query="${query.replace(/"/g, '&quot;')}">
+            // Ensure we handle potentially undefined queries from old failed cache attempts
+            const safeHistory = localHistory.map(item => ({
+                ...item,
+                query: item.query || 'Empty Query (Error)' 
+            }));
+
+            list.innerHTML = safeHistory.slice(-20).reverse().map(item => `
+                <li class="history-item" role="button" tabindex="0" data-query="${item.query.replace(/"/g, '&quot;')}">
                     <div class="history-item-content">
-                        <p>${queryDisplay}${queryEllipsis}</p>
-                        <small>${item.model || 'unknown'} • ${new Date(item.timestamp).toLocaleString()}</small>
+                        <p>${item.query.slice(0, 50)}${item.query.length > 50 ? '...' : ''}</p>
+                        <small>${item.model || 'Unknown'} • ${new Date(item.timestamp).toLocaleString()}</small>
                     </div>
                     <button class="copy-btn" aria-label="Copy query and answer">📋</button>
-                </li>`
-            }).join('');
+                </li>
+            `).join('');
 
             document.querySelectorAll('.history-item').forEach(item => {
                 item.addEventListener('click', e => {
                     const query = item.dataset.query;
+                    const historyItem = safeHistory.find(h => h.query === query);
+
                     if (e.target.classList.contains('copy-btn')) {
-                        const historyItem = localHistory.find(h => h.query === query);
-                        const answer = historyItem ? historyItem.answer : '[Answer not found]';
-                        copyToClipboard(`Query: ${query}\nAnswer: ${answer}`);
-                    } else if (query) { 
-                        // When clicking a history item, clear the chat and start new
-                        clearChatSession().then(() => {
-                            performTruthQuery(query);
-                        });
+                        copyToClipboard(`Query: ${query}\nAnswer: ${historyItem.answer}`);
+                    } else {
+                        // When clicking a history item, load the query into the main input and run it
+                        document.getElementById('queryInput').value = query;
+                        performTruthQuery(query);
+                        toggleHistory(); 
                     }
                 });
                 item.addEventListener('keydown', e => {
-                    if (e.key === 'Enter' && item.dataset.query) {
-                        clearChatSession().then(() => {
-                            performTruthQuery(item.dataset.query);
-                        });
+                    if (e.key === 'Enter') {
+                        document.getElementById('queryInput').value = item.dataset.query;
+                        performTruthQuery(item.dataset.query);
+                        toggleHistory();
                     }
                 });
             });
@@ -633,6 +637,7 @@
 
         async function exportHistory() {
             try {
+                // The export endpoint is now correctly bound to the HISTORY Durable Object
                 const res = await fetch(`${API_URL}conversation/export`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
@@ -658,62 +663,54 @@
             reader.onload = async () => {
                 try {
                     const imported = JSON.parse(reader.result);
-                    if (!imported.history) throw new Error("Invalid format: 'history' key missing.");
-
                     const res = await fetch(`${API_URL}conversation/import`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(imported)
                     });
-                    if (!res.ok) {
-                         const err = await res.json();
-                         throw new Error(err.error || `HTTP ${res.status}`);
-                    }
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const data = await res.json();
                     if (data.success) {
+                        // Refresh both local and remote state
                         localHistory = imported.history;
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
                         await fetchHistory();
-                        
-                        const container = document.getElementById('resultContainer');
-                        container.innerHTML = ''; // Clear it first
-                        const parse = await loadMarked();
-                        localHistory.forEach(item => {
-                            container.insertAdjacentHTML('beforeend', `
-                                <div class="conversation-block">
-                                    <h4>Query: ${item.query}</h4>
-                                    <div class="content">${parse(item.answer)}</div>
-                                    <small>Model: ${item.model} • ${new Date(item.timestamp).toLocaleString()}</small>
-                                </div>
-                            `);
-                        });
-                        container.scrollTop = container.scrollHeight; // Scroll to bottom
                         showMessage('History imported. Context restored!');
                     } else {
                         throw new Error(data.error);
                     }
                 } catch (error) {
-                    showMessage(`Import failed: ${error.message}`);
+                    showMessage(`Invalid JSON or import failed: ${error.message}`);
                 }
             };
             reader.readAsText(file);
-            e.target.value = null;
         }
 
         // Query
         async function performTruthQuery(query, challengeResponse = '') {
-            if (!query || !query.trim()) return showMessage('Enter a query.');
+            if (!query.trim()) return showMessage('Enter a query.');
             
-            openModal(); // Ensure modal is open
+            // If the modal is closed, this is a new initial query, so open it and clear the chat log
+            if (!document.getElementById('modal-overlay').classList.contains('active')) {
+                document.getElementById('resultContainer').innerHTML = '';
+                openModal();
+            }
+
             const container = document.getElementById('resultContainer');
             const loadingId = `loading-${Date.now()}`;
             
-            container.insertAdjacentHTML('beforeend', `
-                <div class="conversation-block" id="${loadingId}">
-                    <h4>Query: ${query}</h4>
+            // Append the new question and a loading block
+            container.innerHTML += `
+                <div class="conversation-block user-query" style="text-align: right;">
+                    <h4>You:</h4>
+                    <div class="content" style="background-color: var(--accent-color); color: var(--bg-color);">${query}</div>
+                </div>
+                <div class="conversation-block ai-response" id="${loadingId}">
+                    <h4>AI:</h4>
                     <div class="content">Scanning...</div>
                 </div>
-            `);
+            `;
+            // Scroll to the new entry
             container.scrollTop = container.scrollHeight;
 
             try {
@@ -724,98 +721,119 @@
                     model: MODEL,
                     challengeResponse: challengeResponse
                 };
-                const res = await fetch(API_URL, { // Use relative path
+                
+                const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
 
+                const loadingBlock = document.getElementById(loadingId);
+
                 if (!res.ok) {
                     if (data.error === 'CHALLENGE_REQUIRED') {
-                        const loadingEl = document.getElementById(loadingId);
-                        if (loadingEl) loadingEl.remove();
-
                         const passphrase = await promptForPassphrase(data.challengeQuestion);
+                        loadingBlock.remove(); // Remove temporary block
                         return performTruthQuery(query, passphrase);
                     }
-                    throw new Error(data.error || `HTTP ${res.status}`);
+                    
+                    const errorMsg = data.error || `HTTP ${res.status}`;
+                    loadingBlock.querySelector('.content').innerHTML = `Error: ${errorMsg}`;
+                    loadingBlock.querySelector('.content').style.backgroundColor = 'var(--grid-cell-off)';
+                    throw new Error(errorMsg);
                 }
 
-                const loadingEl = document.getElementById(loadingId);
-                const resultHtml = `
-                    <div class="conversation-block">
-                        <h4>Query: ${query}</h4>
-                        <div class="content">${parse(data.answer)}</div>
-                        <small>Model: ${data.model} • ${new Date(data.timestamp).toLocaleString()}</small>
-                        ${data.cached ? '<br><small><em>(Result from cache)</em></small>' : ''}
-                    </div>
-                `;
-                if (loadingEl) {
-                    loadingEl.outerHTML = resultHtml;
-                } else {
-                    container.insertAdjacentHTML('beforeend', resultHtml);
-                }
-
-                await fetchHistory();
+                // Replace the loading block content with the actual answer
+                loadingBlock.querySelector('.content').innerHTML = parse(data.answer);
+                loadingBlock.innerHTML += `<small style="display: block; margin-top: 5px; text-align: right; color: var(--secondary-text);">Model: ${data.model} • Cached: ${data.cached ? 'Yes' : 'No'}</small>`;
+                
+                // Update conversation history in the background
+                fetchHistory();
 
             } catch (error) {
-                const loadingEl = document.getElementById(loadingId);
-                const errorHtml = `
-                    <div class="conversation-block">
-                        <h4>Query: ${query}</h4>
-                        <div class="content">Error: ${error.message}</div>
-                    </div>
-                `;
-                if (loadingEl) {
-                    loadingEl.outerHTML = errorHtml;
-                } else {
-                    container.insertAdjacentHTML('beforeend', errorHtml);
-                }
+                console.error("Query Error:", error);
+            } finally {
+                 container.scrollTop = container.scrollHeight;
             }
-            container.scrollTop = container.scrollHeight;
         }
-
-        // Event Listeners
+        
+        // --- Event Listeners ---
+        
+        // Main input sends query
         document.getElementById('queryInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') performTruthQuery(e.target.value);
+        });
+
+        // Chat follow-up input sends query
+        document.getElementById('chatQueryInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                performTruthQuery(e.target.value);
-                e.target.value = ''; // Clear input after sending
+                const query = e.target.value;
+                e.target.value = '';
+                performTruthQuery(query);
             }
         });
+
         document.getElementById('historyToggle').addEventListener('click', toggleHistory);
         document.getElementById('closeHistory').addEventListener('click', toggleHistory);
         document.getElementById('close-modal').addEventListener('click', closeModal);
-        document.getElementById('copyResult').addEventListener('click', () => {
-            const allContent = Array.from(document.querySelectorAll('.conversation-block .content'));
-            const lastContent = allContent.length ? allContent[allContent.length - 1].textContent : '';
-            if (lastContent) {
-                copyToClipboard(lastContent);
-            } else {
-                showMessage('No result to copy.');
-            }
-        });
-        document.getElementById('ttsBtn').addEventListener('click', () => {
-            const allContent = Array.from(document.querySelectorAll('.conversation-block .content'));
-            const lastContent = allContent.length ? allContent[allContent.length - 1].textContent : '';
-            if (lastContent) {
-                speechSynthesis.cancel(); // Stop any previous speech
-                const utterance = new SpeechSynthesisUtterance(lastContent);
-                speechSynthesis.speak(utterance);
-            } else {
-                showMessage('No result to read.');
-            }
-        });
-        document.getElementById('exportHistory').addEventListener('click', exportHistory);
         
+        // Copy entire conversation from the modal
+        document.getElementById('copyResult').addEventListener('click', () => {
+            const conversationBlocks = document.querySelectorAll('.result-container .conversation-block');
+            let fullText = '';
+            conversationBlocks.forEach(block => {
+                const speaker = block.querySelector('h4').textContent;
+                const content = block.querySelector('.content').textContent;
+                fullText += `${speaker}: ${content}\n\n`;
+            });
+            copyToClipboard(fullText.trim(), 'Conversation copied!');
+        });
+        
+        // Start New Chat (clears modal visually and resets DO history)
+        document.getElementById('newChatBtn').addEventListener('click', async () => {
+            const container = document.getElementById('resultContainer');
+            container.innerHTML = ''; 
+            try {
+                // Clear history in the Durable Object
+                const res = await fetch(`${API_URL}conversation/import`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ history: [] })
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                fetchHistory(); // Refresh the sidebar
+                showMessage('New chat started. Context cleared.', 3000);
+            } catch (error) {
+                showMessage('Failed to clear DO context. Starting new chat locally only.', 4000);
+            }
+        });
+
+
+        document.getElementById('exportHistory').addEventListener('click', exportHistory);
+        document.getElementById('importHistory').addEventListener('change', importHistory);
         document.getElementById('importTrigger').addEventListener('click', () => {
             document.getElementById('importHistory').click();
         });
         
-        document.getElementById('importHistory').addEventListener('change', importHistory);
-        
-        document.getElementById('newChatBtn').addEventListener('click', clearChatSession);
-        document.getElementById('clearHistory').addEventListener('click', clearChatSession);
+        // Clear all history from DO
+        document.getElementById('clearHistory').addEventListener('click', async () => {
+            try {
+                const res = await fetch(`${API_URL}conversation/import`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ history: [] })
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                localHistory = [];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
+                renderHistory();
+                document.getElementById('resultContainer').innerHTML = '';
+                showMessage('All history cleared (DO and Local).');
+            } catch (error) {
+                showMessage('Failed to clear history.');
+            }
+        });
         
         document.getElementById('modelSelector').addEventListener('change', (e) => {
             MODEL = e.target.value;
@@ -828,31 +846,34 @@
                 localStorage.setItem('theme', btn.dataset.mode);
             });
         });
-        document.getElementById('exportPromptBtn').addEventListener('click', () => {
-            exportHistory();
-            document.getElementById('exportPrompt').classList.remove('visible');
-        });
+        document.getElementById('exportPromptBtn').addEventListener('click', exportHistory);
 
         // Initialize
         document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
-        const savedModel = localStorage.getItem('truth-model');
-        if (savedModel && Array.from(document.getElementById('modelSelector').options).some(o => o.value === savedModel)) {
-            document.getElementById('modelSelector').value = savedModel;
-            MODEL = savedModel;
-        } else {
-            document.getElementById('modelSelector').value = MODEL; 
-            localStorage.setItem('truth-model', MODEL);
-        }
-        
+        document.getElementById('modelSelector').value = MODEL;
         fetchHistory(); // Load initial history
-        setTimeout(() => {
-            const typedText = document.getElementById('typedText');
-            typedText.classList.add('is-typing');
+        
+        window.onload = function() {
+            // Typing animation
             setTimeout(() => {
-                typedText.classList.remove('is-typing');
-                typedText.classList.add('is-done');
-            }, 3500);
-        }, 100);
+                const typedText = document.getElementById('typedText');
+                typedText.classList.add('is-typing');
+                setTimeout(() => {
+                    typedText.classList.remove('is-typing');
+                    typedText.classList.add('is-done');
+                }, 3500);
+            }, 100);
+
+            // Check for URL query parameter and run search automatically
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialQuery = urlParams.get('q');
+            if (initialQuery) {
+                const decodedQuery = decodeURIComponent(initialQuery.replace(/\+/g, ' '));
+                document.getElementById('queryInput').value = decodedQuery;
+                performTruthQuery(decodedQuery);
+            }
+        };
+
     </script>
 </body>
 </html>
