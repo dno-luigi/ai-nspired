@@ -113,10 +113,10 @@
             flex-grow: 1;
             min-width: 0;
         }
-        .command-line::before { 
-            content: '>'; 
-            margin-right: 1rem; 
-            font-weight: bold; 
+        .command-line::before {
+            content: '>';
+            margin-right: 1rem;
+            font-weight: bold;
             flex-shrink: 0;
         }
 
@@ -136,7 +136,7 @@
             border-radius: 2px;
         }
 
-        .history-toggle {
+        .history-toggle, .new-chat-btn {
             padding: 0.5rem 1rem;
             border: 1px solid var(--accent-color);
             background: none;
@@ -148,7 +148,7 @@
             min-width: 80px;
             flex-shrink: 0;
         }
-        .history-toggle:hover, .history-toggle:focus {
+        .history-toggle:hover, .history-toggle:focus, .new-chat-btn:hover, .new-chat-btn:focus {
             background-color: var(--accent-color);
             color: var(--bg-color);
         }
@@ -179,26 +179,26 @@
             transition: background-color 0.3s, color 0.3s;
             overflow: hidden;
         }
-        .modal-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 1px solid var(--border-color); 
-            padding-bottom: 0.5rem; 
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
         }
         .modal-title { font-weight: 700; color: var(--accent-color); }
-        .close-modal { 
-            background: none; 
-            border: none; 
-            color: var(--accent-color); 
-            font-size: 2rem; 
-            cursor: pointer; 
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            font-size: 2rem;
+            cursor: pointer;
             padding: 0.25rem;
         }
-        .close-modal:hover { 
-            color: var(--bg-color); 
-            background: var(--accent-color); 
-            border-radius: 50%; 
+        .close-modal:hover {
+            color: var(--bg-color);
+            background: var(--accent-color);
+            border-radius: 50%;
         }
         .result-container {
             padding: 1rem 0;
@@ -314,7 +314,7 @@
             background-color: var(--accent-color);
             color: var(--bg-color);
         }
-        
+
         #importHistory {
             display: none;
         }
@@ -472,6 +472,7 @@
                 <input type="text" class="search-input" id="queryInput" placeholder="Enter query..." autofocus>
             </div>
             <button class="history-toggle" id="historyToggle">History</button>
+            <button class="new-chat-btn" id="newChatBtn">New Chat</button>
         </div>
     </div>
 
@@ -582,7 +583,7 @@
 
         function renderHistory() {
             const list = document.getElementById('historyList');
-            list.innerHTML = (localHistory || []).slice(-20).reverse().map(item => {
+            list.innerHTML = (localHistory || []).slice(0, 20).map(item => {
                 const query = (item.query || '').trim();
                 const display = query.slice(0, 50) + (query.length > 50 ? '...' : '');
                 return `
@@ -628,7 +629,7 @@
             reader.onload = async () => {
                 try {
                     const data = JSON.parse(reader.result);
-                    if (!Array.isArray(data.history)) throw new Error('Invalid format');
+                    if (!Array.isArray(data.chat)) throw new Error('Invalid format');
                     const res = await fetch(`${API_URL}/conversation/import`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -682,19 +683,29 @@
                         ${data.cached ? '<br><small><em>(Cached)</em></small>' : ''}
                     </div>`;
 
-                if (!data.cached) {
-                    localHistory.push({ query, answer: data.answer, model: data.model, timestamp: data.created / 1000 });
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
-                    renderHistory();
-                }
+                await fetchHistory();
             } catch (err) {
                 container.innerHTML = `<div class="conversation-block"><h4>Query: ${query}</h4><div class="content">Error: ${err.message}</div></div>`;
+            }
+        }
+
+        async function newChat() {
+            try {
+                const res = await fetch(`${API_URL}/conversation/new`, { method: 'POST' });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                localHistory = [];
+                localStorage.setItem(STORAGE_KEY, '[]');
+                renderHistory();
+                showMessage('New chat started. Context cleared.');
+            } catch (err) {
+                showMessage(`New chat failed: ${err.message}`);
             }
         }
 
         // === EVENTS ===
         const queryInput = document.getElementById('queryInput');
         const historyToggle = document.getElementById('historyToggle');
+        const newChatBtn = document.getElementById('newChatBtn');
 
         queryInput.addEventListener('keydown', e => {
             if (e.key === 'Enter') {
@@ -704,6 +715,7 @@
         });
 
         historyToggle.addEventListener('click', toggleHistory);
+        newChatBtn.addEventListener('click', newChat);
         document.getElementById('closeHistory').addEventListener('click', toggleHistory);
         document.getElementById('close-modal').addEventListener('click', closeModal);
         document.getElementById('copyResult').addEventListener('click', () => {
@@ -721,7 +733,7 @@
         document.getElementById('clearHistory').addEventListener('click', async () => {
             if (!confirm('Clear all history?')) return;
             try {
-                await fetch(`${API_URL}/conversation/import`, { method: 'POST', body: JSON.stringify({ history: [] }) });
+                await fetch(`${API_URL}/conversation/import`, { method: 'POST', body: JSON.stringify({ chat: [] }) });
                 localHistory = [];
                 localStorage.setItem(STORAGE_KEY, '[]');
                 renderHistory();
