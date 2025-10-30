@@ -111,8 +111,7 @@
             align-items: center;
             flex-grow: 1;
         }
-        .command-line::before { content: '>'; margin-right: 1rem;
-            font-weight: bold; }
+        .command-line::before { content: '>'; margin-right: 1rem; font-weight: bold; }
 
         .search-input {
             background: transparent;
@@ -184,14 +183,6 @@
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
             scroll-behavior: smooth;
-        }
-        .conversation-block {
-            margin-top: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px dashed var(--border-color);
-        }
-        .conversation-block:last-child {
-            border-bottom: none;
         }
         .conversation-block .content {
             box-shadow: 0 4px 10px var(--shadow-color);
@@ -430,13 +421,9 @@
         <button data-mode="dark">Dark</button>
         <button data-mode="neo">Neo</button>
         <select id="modelSelector" aria-label="Select AI Model">
-            <!-- Updated Model List -->
             <option value="WORKERS_AI">Workers AI (Free)</option>
             <option value="dolphin-mistral-24b-venice-edition">Dolphin 24B (Free, 32K)</option>
             <option value="llama-3-8b">Llama 3 8B (Free)</option>
-            <option value="gemma-7b">Gemma 7B (Free)</option>
-            <option value="mistral-7b">Mistral 7B (Free)</option>
-            <option value="gemini-flash-1.5">Gemini Flash 1.5 (Cheap)</option>
             <option value="llama-3.2-1b">Llama 3.2 1B (Cheap, 131K)</option>
             <option value="mistral-nemo">Mistral Nemo (Easter Egg)</option>
             <option value="qwen2.5-7b-instruct">Qwen 2.5 7B (Easter Egg)</option>
@@ -478,7 +465,6 @@
             <div class="modal-footer">
                 <button id="copyResult" aria-label="Copy result">Copy</button>
                 <button id="ttsBtn" aria-label="Read aloud">TTS</button>
-                <button id="newChatBtn" aria-label="New Chat">New Chat</button>
             </div>
         </div>
     </div>
@@ -492,12 +478,11 @@
         Free tier uses shared conversation history. Export to save your context. By using this system, you agree to our terms of service.
     </div>
 
-    <!-- SCRIPT BLOCK RESTORED. I AM SO SORRY. -->
     <script>
-        const API_URL = 'https://truthengine.ai-n.workers.dev/';
+        const API_URL = 'https://truthengine.ai-n.workers.dev';
         const STORAGE_KEY = 'LOCAL_TRUTH_HISTORY';
         let localHistory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        let MODEL = localStorage.getItem('truth-model') || 'WORKERS_AI'; // Default to reliable Workers AI
+        let MODEL = localStorage.getItem('truth-model') || 'WORKERS_AI';
 
         // Utils
         function showMessage(msg, duration = 3000) {
@@ -514,16 +499,12 @@
         }
 
         async function loadMarked() {
-            try {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-                document.head.appendChild(script);
-                return new Promise(resolve => {
-                    script.onload = () => resolve(window.marked.parse);
-                });
-            } catch {
-                return text => text; // Fallback plain text
-            }
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+            document.head.appendChild(script);
+            return new Promise(resolve => {
+                script.onload = () => resolve(window.marked.parse);
+            });
         }
 
         function copyToClipboard(text, msg = 'Copied!') {
@@ -531,28 +512,7 @@
         }
 
         async function promptForPassphrase(challengeQuestion) {
-            return new Promise((resolve) => {
-                const passphrase = prompt(challengeQuestion || 'What is the passphrase?');
-                resolve(passphrase || '');
-            });
-        }
-
-        async function clearChatSession() {
-            try {
-                const res = await fetch(`${API_URL}/conversation/import`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ history: [] })
-                });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                localHistory = [];
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
-                renderHistory(); // Update side panel
-                document.getElementById('resultContainer').innerHTML = ''; // Clear modal
-                showMessage('New chat started. Context cleared.');
-            } catch (error) {
-                showMessage('Failed to clear session.');
-            }
+            return prompt(challengeQuestion || 'What is the passphrase?') || '';
         }
 
         // Modal/History
@@ -563,6 +523,7 @@
         function closeModal() {
             document.getElementById('modal-overlay').classList.remove('active');
             speechSynthesis.cancel();
+            if (localHistory.length > 0) showExportPrompt();
         }
 
         function toggleHistory() {
@@ -573,57 +534,41 @@
 
         async function fetchHistory() {
             try {
-                const res = await fetch(`${API_URL}/conversation/history`, {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
-                });
+                const res = await fetch(`${API_URL}/conversation/history`);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const history = await res.json();
                 localHistory = history;
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
                 renderHistory();
             } catch (error) {
-                showMessage('Failed to fetch history.');
-                renderHistory(); // Fallback to local storage
+                console.warn('History fetch failed, using local:', error);
+                renderHistory(); // Fallback
             }
         }
 
         function renderHistory() {
             const list = document.getElementById('historyList');
             list.innerHTML = (localHistory || []).slice(-20).reverse().map(item => {
-                const query = item.query || '';
-                const queryDisplay = query.slice(0, 50) || 'Empty Query';
-                const queryEllipsis = query.length > 50 ? '...' : '';
-                
+                const query = (item.query || '').trim();
+                const display = query.slice(0, 50) + (query.length > 50 ? '...' : '');
                 return `
                 <li class="history-item" role="button" tabindex="0" data-query="${query.replace(/"/g, '&quot;')}">
                     <div class="history-item-content">
-                        <p>${queryDisplay}${queryEllipsis}</p>
-                        <small>${item.model || 'unknown'} • ${new Date(item.timestamp).toLocaleString()}</small>
+                        <p>${display || 'Empty'}</p>
+                        <small>${item.model || 'unknown'} • ${new Date(item.timestamp * 1000).toLocaleString()}</small>
                     </div>
-                    <button class="copy-btn" aria-label="Copy query and answer">📋</button>
-                </li>`
+                    <button class="copy-btn" aria-label="Copy">Copy</button>
+                </li>`;
             }).join('');
 
             document.querySelectorAll('.history-item').forEach(item => {
+                const query = item.dataset.query;
                 item.addEventListener('click', e => {
-                    const query = item.dataset.query;
                     if (e.target.classList.contains('copy-btn')) {
-                        const historyItem = localHistory.find(h => h.query === query);
-                        const answer = historyItem ? historyItem.answer : '[Answer not found]';
-                        copyToClipboard(`Query: ${query}\nAnswer: ${answer}`);
-                    } else if (query) { 
-                        // When clicking a history item, clear the chat and start new
-                        clearChatSession().then(() => {
-                            performTruthQuery(query);
-                        });
-                    }
-                });
-                item.addEventListener('keydown', e => {
-                    if (e.key === 'Enter' && item.dataset.query) {
-                        clearChatSession().then(() => {
-                            performTruthQuery(item.dataset.query);
-                        });
+                        const h = localHistory.find(x => x.query === query);
+                        copyToClipboard(`Q: ${query}\nA: ${h?.answer || ''}`);
+                    } else if (query) {
+                        performTruthQuery(query);
                     }
                 });
             });
@@ -631,22 +576,15 @@
 
         async function exportHistory() {
             try {
-                const res = await fetch(`${API_URL}/conversation/export`, {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
-                });
+                const res = await fetch(`${API_URL}/conversation/export`);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = 'conversation.json';
-                a.click();
+                a.href = url; a.download = 'truth-conversation.json'; a.click();
                 URL.revokeObjectURL(url);
-                showMessage('History exported. Save it to continue later!');
-            } catch (error) {
-                showMessage('Failed to export history.');
-            }
+                showMessage('Exported. Your truth is saved.');
+            } catch (e) { showMessage('Export failed.'); }
         }
 
         async function importHistory(e) {
@@ -655,43 +593,18 @@
             const reader = new FileReader();
             reader.onload = async () => {
                 try {
-                    const imported = JSON.parse(reader.result);
-                    if (!imported.history) throw new Error("Invalid format: 'history' key missing.");
-
+                    const data = JSON.parse(reader.result);
+                    if (!Array.isArray(data.history)) throw new Error('Invalid format');
                     const res = await fetch(`${API_URL}/conversation/import`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(imported)
+                        body: JSON.stringify(data)
                     });
-                    if (!res.ok) {
-                         const err = await res.json();
-                         throw new Error(err.error || `HTTP ${res.status}`);
-                    }
-                    const data = await res.json();
-                    if (data.success) {
-                        localHistory = imported.history;
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
-                        await fetchHistory();
-                        
-                        const container = document.getElementById('resultContainer');
-                        container.innerHTML = ''; // Clear it first
-                        const parse = await loadMarked();
-                        localHistory.forEach(item => {
-                            container.insertAdjacentHTML('beforeend', `
-                                <div class="conversation-block">
-                                    <h4>Query: ${item.query}</h4>
-                                    <div class="content">${parse(item.answer)}</div>
-                                    <small>Model: ${item.model} • ${new Date(item.timestamp).toLocaleString()}</small>
-                                </div>
-                            `);
-                        });
-                        container.scrollTop = container.scrollHeight; // Scroll to bottom
-                        showMessage('History imported. Context restored!');
-                    } else {
-                        throw new Error(data.error);
-                    }
-                } catch (error) {
-                    showMessage(`Import failed: ${error.message}`);
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    await fetchHistory();
+                    showMessage('History restored. Context alive.');
+                } catch (err) {
+                    showMessage(`Import failed: ${err.message}`);
                 }
             };
             reader.readAsText(file);
@@ -700,28 +613,16 @@
 
         // Query
         async function performTruthQuery(query, challengeResponse = '') {
-            if (!query || !query.trim()) return showMessage('Enter a query.');
-            
-            openModal(); // Ensure modal is open
+            if (!query?.trim()) return showMessage('Query required.');
+            openModal();
             const container = document.getElementById('resultContainer');
-            const loadingId = `loading-${Date.now()}`;
-            
-            container.insertAdjacentHTML('beforeend', `
-                <div class="conversation-block" id="${loadingId}">
-                    <h4>Query: ${query}</h4>
-                    <div class="content">Scanning...</div>
-                </div>
-            `);
-            container.scrollTop = container.scrollHeight;
+            container.innerHTML = `<div class="conversation-block"><h4>Query: ${query}</h4><div class="content">Thinking...</div></div>`;
 
             try {
                 const parse = await loadMarked();
-                const payload = {
-                    task: 'generate',
-                    input: query,
-                    model: MODEL,
-                    challengeResponse: challengeResponse
-                };
+                const payload = { input: query, model: MODEL };
+                if (challengeResponse) payload.challengeResponse = challengeResponse;
+
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -730,129 +631,90 @@
                 const data = await res.json();
 
                 if (!res.ok) {
-                    if (data.error === 'CHALLENGE_REQUIRED') {
-                        const loadingEl = document.getElementById(loadingId);
-                        if (loadingEl) loadingEl.remove();
-
-                        const passphrase = await promptForPassphrase(data.challengeQuestion);
-                        return performTruthQuery(query, passphrase);
+                    if (data.error === 'CHALLENGE_FAILED') {
+                        const pass = await promptForPassphrase(data.challengeQuestion);
+                        return performTruthQuery(query, pass);
                     }
-                    throw new Error(data.error || `HTTP ${res.status}`);
+                    throw new Error(data.error || 'Unknown error');
                 }
 
-                const loadingEl = document.getElementById(loadingId);
-                const resultHtml = `
+                container.innerHTML = `
                     <div class="conversation-block">
                         <h4>Query: ${query}</h4>
                         <div class="content">${parse(data.answer)}</div>
-                        <small>Model: ${data.model} • ${new Date(data.timestamp).toLocaleString()}</small>
-                        ${data.cached ? '<br><small><em>(Result from cache)</em></small>' : ''}
-                    </div>
-                `;
-                if (loadingEl) {
-                    loadingEl.outerHTML = resultHtml;
-                } else {
-                    container.insertAdjacentHTML('beforeend', resultHtml);
-                }
+                        <small>Model: ${data.model} • ${new Date(data.created).toLocaleString()}</small>
+                        ${data.cached ? '<br><small><em>(Cached)</em></small>' : ''}
+                    </div>`;
 
-                await fetchHistory();
-
-            } catch (error) {
-                const loadingEl = document.getElementById(loadingId);
-                const errorHtml = `
-                    <div class="conversation-block">
-                        <h4>Query: ${query}</h4>
-                        <div class="content">Error: ${error.message}</div>
-                    </div>
-                `;
-                if (loadingEl) {
-                    loadingEl.outerHTML = errorHtml;
-                } else {
-                    container.insertAdjacentHTML('beforeend', errorHtml);
+                if (!data.cached) {
+                    localHistory.push({ query, answer: data.answer, model: data.model, timestamp: data.created / 1000 });
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
+                    renderHistory();
                 }
+            } catch (err) {
+                container.innerHTML = `<div class="conversation-block"><h4>Query: ${query}</h4><div class="content">Error: ${err.message}</div></div>`;
             }
-            container.scrollTop = container.scrollHeight;
         }
 
-        // Event Listeners
-        document.getElementById('queryInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                performTruthQuery(e.target.value);
-                e.target.value = ''; // Clear input after sending
-            }
+        // Events
+        document.getElementById('queryInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') performTruthQuery(e.target.value);
         });
         document.getElementById('historyToggle').addEventListener('click', toggleHistory);
         document.getElementById('closeHistory').addEventListener('click', toggleHistory);
         document.getElementById('close-modal').addEventListener('click', closeModal);
         document.getElementById('copyResult').addEventListener('click', () => {
-            const allContent = Array.from(document.querySelectorAll('.conversation-block .content'));
-            const lastContent = allContent.length ? allContent[allContent.length - 1].textContent : '';
-            if (lastContent) {
-                copyToClipboard(lastContent);
-            } else {
-                showMessage('No result to copy.');
-            }
+            const text = document.querySelector('.conversation-block .content')?.innerText || '';
+            copyToClipboard(text);
         });
         document.getElementById('ttsBtn').addEventListener('click', () => {
-            const allContent = Array.from(document.querySelectorAll('.conversation-block .content'));
-            const lastContent = allContent.length ? allContent[allContent.length - 1].textContent : '';
-            if (lastContent) {
-                speechSynthesis.cancel(); // Stop any previous speech
-                const utterance = new SpeechSynthesisUtterance(lastContent);
-                speechSynthesis.speak(utterance);
-            } else {
-                showMessage('No result to read.');
-            }
+            const text = document.querySelector('.conversation-block .content')?.innerText || '';
+            const utter = new SpeechSynthesisUtterance(text);
+            speechSynthesis.speak(utter);
         });
         document.getElementById('exportHistory').addEventListener('click', exportHistory);
-        
-        document.getElementById('importTrigger').addEventListener('click', () => {
-            document.getElementById('importHistory').click();
-        });
-        
+        document.getElementById('importTrigger').addEventListener('click', () => document.getElementById('importHistory').click());
         document.getElementById('importHistory').addEventListener('change', importHistory);
-        
-        document.getElementById('newChatBtn').addEventListener('click', clearChatSession);
-        document.getElementById('clearHistory').addEventListener('click', clearChatSession);
-        
-        document.getElementById('modelSelector').addEventListener('change', (e) => {
+        document.getElementById('clearHistory').addEventListener('click', async () => {
+            if (!confirm('Clear all history?')) return;
+            try {
+                await fetch(`${API_URL}/conversation/import`, { method: 'POST', body: JSON.stringify({ history: [] }) });
+                localHistory = [];
+                localStorage.setItem(STORAGE_KEY, '[]');
+                renderHistory();
+                showMessage('History wiped.');
+            } catch { showMessage('Clear failed.'); }
+        });
+        document.getElementById('modelSelector').addEventListener('change', e => {
             MODEL = e.target.value;
             localStorage.setItem('truth-model', MODEL);
-            showMessage(`Model set to ${e.target.options[e.target.selectedIndex].text}`);
+            const name = e.target.options[e.target.selectedIndex].text;
+            showMessage(`Model: ${name}`);
         });
-        document.querySelectorAll('.mode-toggle button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.body.dataset.mode = btn.dataset.mode;
-                localStorage.setItem('theme', btn.dataset.mode);
+        document.querySelectorAll('.mode-toggle button').forEach(b => {
+            b.addEventListener('click', () => {
+                document.body.dataset.mode = b.dataset.mode;
+                localStorage.setItem('theme', b.dataset.mode);
             });
         });
-        document.getElementById('exportPromptBtn').addEventListener('click', () => {
-            exportHistory();
-            document.getElementById('exportPrompt').classList.remove('visible');
-        });
+        document.getElementById('exportPromptBtn').addEventListener('click', exportHistory);
 
-        // Initialize
+        // Init
         document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
-        const savedModel = localStorage.getItem('truth-model');
-        if (savedModel && Array.from(document.getElementById('modelSelector').options).some(o => o.value === savedModel)) {
-            document.getElementById('modelSelector').value = savedModel;
-            MODEL = savedModel;
-        } else {
-            document.getElementById('modelSelector').value = MODEL; 
-            localStorage.setItem('truth-model', MODEL);
+        const saved = localStorage.getItem('truth-model');
+        if (saved && [...document.getElementById('modelSelector').options].some(o => o.value === saved)) {
+            document.getElementById('modelSelector').value = saved;
+            MODEL = saved;
         }
-        
-        fetchHistory(); // Load initial history
+        fetchHistory();
         setTimeout(() => {
-            const typedText = document.getElementById('typedText');
-            typedText.classList.add('is-typing');
+            const el = document.getElementById('typedText');
+            el.classList.add('is-typing');
             setTimeout(() => {
-                typedText.classList.remove('is-typing');
-                typedText.classList.add('is-done');
+                el.classList.remove('is-typing');
+                el.classList.add('is-done');
             }, 3500);
         }, 100);
     </script>
 </body>
 </html>
-
-
