@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI-Nspired :: Truth Engine Interface</title>
-    <meta name="description" content="ai-nspired.com • truth-engine. memory keeper. Systems that don’t forget—or flinch.">
-    <style>
+    <meta name="description" content="ai-nspired.com • truth-engine. memory keeper. Systems that don't forget—or flinch.">
+      <style>
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&display=swap');
 
         :root {
@@ -478,14 +478,14 @@
 
     <div id="historyPanel">
         <div class="history-header">
-            <p class="history-title">History</p>
+            <p class="history-title">Conversation History</p>
             <button class="close-history" id="closeHistory">×</button>
         </div>
         <div class="history-actions">
-            <button id="exportHistory">Export</button>
+            <button id="exportHistory">Export All</button>
             <button id="importTrigger">Import</button>
             <input type="file" id="importHistory" accept=".json">
-            <button id="clearHistory">Clear</button>
+            <button id="clearLocalHistory">Clear Local</button>
         </div>
         <ul id="historyList"></ul>
     </div>
@@ -500,25 +500,155 @@
             <div class="modal-footer">
                 <button id="copyResult">Copy</button>
                 <button id="ttsBtn">TTS</button>
+                <button id="saveLocal">Save Locally</button>
             </div>
         </div>
     </div>
 
     <div id="customMessage"></div>
     <div id="exportPrompt">
-        Your shit’s gonna self-destruct in 2 hours—export now to keep your context free!
+        Your conversation context will reset in 2 hours—export to preserve your history!
         <button id="exportPromptBtn">Export Now</button>
     </div>
     <div class="disclaimer">
-        Free tier uses shared conversation history. Export to save your context. By using this system, you agree to our terms of service.
+        Primary storage: Local browser. Export to backup. "New Chat" clears remote context only.
     </div>
 
     <script>
         const API_URL = 'https://truthengine.ai-n.workers.dev';
-        const STORAGE_KEY = 'LOCAL_TRUTH_HISTORY';
-        let localHistory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        
+        // Storage Keys - LOCAL is primary
+        const LOCAL_HISTORY_KEY = 'TRUTH_ENGINE_LOCAL_HISTORY';
+        const REMOTE_HISTORY_KEY = 'TRUTH_ENGINE_REMOTE_SYNC';
+        const CURRENT_SESSION_KEY = 'TRUTH_ENGINE_CURRENT_SESSION';
+        
+        // State management
+        let localHistory = JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY)) || [];
+        let remoteHistory = JSON.parse(localStorage.getItem(REMOTE_HISTORY_KEY)) || [];
+        let currentSession = JSON.parse(localStorage.getItem(CURRENT_SESSION_KEY)) || [];
         let MODEL = localStorage.getItem('truth-model') || 'WORKERS_AI';
         let isChallenging = false;
+
+        // ==================== LOCAL STORAGE MANAGEMENT ====================
+        
+        function saveToLocalHistory(query, answer, model) {
+            const entry = {
+                id: Date.now().toString(),
+                query: query,
+                answer: answer,
+                model: model,
+                timestamp: Math.floor(Date.now() / 1000),
+                source: 'local'
+            };
+            
+            localHistory.unshift(entry);
+            // Keep only last 100 local entries to prevent storage bloat
+            if (localHistory.length > 100) {
+                localHistory = localHistory.slice(0, 100);
+            }
+            
+            localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(localHistory));
+            return entry;
+        }
+
+        function getLocalHistory() {
+            return localHistory;
+        }
+
+        function clearLocalHistory() {
+            localHistory = [];
+            localStorage.setItem(LOCAL_HISTORY_KEY, '[]');
+            return true;
+        }
+
+        function exportLocalHistory() {
+            const exportData = {
+                version: "2.0",
+                exportedAt: new Date().toISOString(),
+                source: "truth-engine-local",
+                conversations: localHistory
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `truth-engine-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            return exportData;
+        }
+
+        function importLocalHistory(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        
+                        // Validate import format
+                        if (!importedData.conversations || !Array.isArray(importedData.conversations)) {
+                            throw new Error('Invalid file format: missing conversations array');
+                        }
+                        
+                        // Merge imported conversations with existing local history
+                        const newEntries = importedData.conversations.filter(conv => 
+                            conv.query && conv.answer && !localHistory.some(existing => 
+                                existing.query === conv.query && existing.answer === conv.answer
+                            )
+                        );
+                        
+                        localHistory = [...newEntries, ...localHistory];
+                        localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(localHistory));
+                        
+                        resolve({
+                            success: true,
+                            imported: newEntries.length,
+                            total: localHistory.length
+                        });
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsText(file);
+            });
+        }
+
+        // ==================== SESSION MANAGEMENT ====================
+        
+        function addToCurrentSession(query, answer, model) {
+            const sessionEntry = {
+                query: query,
+                answer: answer,
+                model: model,
+                timestamp: Math.floor(Date.now() / 1000)
+            };
+            
+            currentSession.unshift(sessionEntry);
+            localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(currentSession));
+            return sessionEntry;
+        }
+
+        function clearCurrentSession() {
+            currentSession = [];
+            localStorage.setItem(CURRENT_SESSION_KEY, '[]');
+            return true;
+        }
+
+        function getSessionContext() {
+            // Return last 5 interactions for context
+            return currentSession.slice(0, 5).reverse().map(entry => 
+                `User: ${entry.query}\nAI: ${entry.answer}`
+            ).join('\n\n');
+        }
+
+        // ==================== UI FUNCTIONS ====================
 
         function showMessage(msg, duration = 3000) {
             const el = document.getElementById('customMessage');
@@ -534,12 +664,17 @@
         }
 
         async function loadMarked() {
+            if (window.marked) return window.marked.parse;
+            
             const script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
             document.head.appendChild(script);
-            return new Promise(resolve => {
+            return new Promise((resolve, reject) => {
                 script.onload = () => resolve(window.marked.parse);
-                script.onerror = () => resolve(text => text);
+                script.onerror = () => {
+                    console.warn('Marked failed to load, using plain text');
+                    resolve(text => text);
+                };
             });
         }
 
@@ -558,111 +693,85 @@
         function closeModal() {
             document.getElementById('modal-overlay').classList.remove('active');
             speechSynthesis.cancel();
-            if (localHistory.length > 0) showExportPrompt();
+            if (currentSession.length > 0) showExportPrompt();
         }
 
         function toggleHistory() {
             const panel = document.getElementById('historyPanel');
             panel.classList.toggle('open');
-            if (panel.classList.contains('open')) fetchHistory();
+            if (panel.classList.contains('open')) renderCombinedHistory();
         }
 
-        async function fetchHistory() {
-            try {
-                const res = await fetch(`${API_URL}/conversation/history`);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const history = await res.json();
-                localHistory = history;
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(localHistory));
-                renderHistory();
-            } catch (error) {
-                console.warn('History fetch failed, using local:', error);
-                renderHistory();
-            }
-        }
-
-        function renderHistory() {
+        function renderCombinedHistory() {
             const list = document.getElementById('historyList');
-            list.innerHTML = (localHistory || []).slice(0, 20).map(item => {
+            const allHistory = [...currentSession, ...localHistory.slice(0, 50)];
+            
+            list.innerHTML = allHistory.map(item => {
                 const query = (item.query || '').trim();
-                const display = query.slice(0, 50) + (query.length > 50 ? '...' : '');
+                const display = query.slice(0, 60) + (query.length > 60 ? '...' : '');
+                const isCurrent = currentSession.includes(item);
+                
                 return `
-                <li class="history-item" data-query="${query.replace(/"/g, '&quot;')}">
+                <li class="history-item" data-query="${query.replace(/"/g, '&quot;')}" data-answer="${(item.answer || '').replace(/"/g, '&quot;')}">
                     <div class="history-item-content">
                         <p>${display || 'Empty'}</p>
                         <small>${item.model || 'unknown'} • ${new Date(item.timestamp * 1000).toLocaleString()}</small>
+                        ${isCurrent ? '<br><small><em>(Current Session)</em></small>' : ''}
                     </div>
-                    <button class="copy-btn">Copy</button>
+                    <button class="copy-btn" title="Copy conversation">Copy</button>
                 </li>`;
             }).join('');
 
+            // Add event listeners
             document.querySelectorAll('.history-item').forEach(item => {
                 const query = item.dataset.query;
+                const answer = item.dataset.answer;
+                
                 item.addEventListener('click', e => {
                     if (e.target.classList.contains('copy-btn')) {
-                        const h = localHistory.find(x => x.query === query);
-                        copyToClipboard(`Q: ${query}\nA: ${h?.answer || ''}`);
+                        copyToClipboard(`Q: ${query}\nA: ${answer || ''}`);
                     } else if (query) {
-                        performTruthQuery(query);
+                        document.getElementById('queryInput').value = query;
+                        document.getElementById('queryInput').focus();
+                        toggleHistory();
                     }
                 });
             });
         }
 
-        async function exportHistory() {
-            try {
-                const res = await fetch(`${API_URL}/conversation/export`);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url; a.download = 'truth-conversation.json'; a.click();
-                URL.revokeObjectURL(url);
-                showMessage('Exported. Your truth is saved.');
-            } catch (e) { showMessage('Export failed.'); }
-        }
-
-        async function importHistory(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async () => {
-                try {
-                    const data = JSON.parse(reader.result);
-                    if (!Array.isArray(data.chat)) throw new Error('Invalid format');
-                    const res = await fetch(`${API_URL}/conversation/import`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    await fetchHistory();
-                    showMessage('History restored. Context alive.');
-                } catch (err) {
-                    showMessage(`Import failed: ${err.message}`);
-                }
-            };
-            reader.readAsText(file);
-            e.target.value = null;
-        }
+        // ==================== CORE LOGIC ====================
 
         async function performTruthQuery(query, challengeResponse = '') {
             if (!query?.trim()) return showMessage('Query required.');
             if (isChallenging) return;
+            
             openModal();
             const container = document.getElementById('resultContainer');
             container.innerHTML = `<div class="conversation-block"><h4>Query: ${query}</h4><div class="content">Thinking...</div></div>`;
 
             try {
                 const parse = await loadMarked();
-                const payload = { input: query, model: MODEL };
-                if (challengeResponse) payload.challengeResponse = challengeResponse;
+                const payload = { 
+                    input: query, 
+                    model: MODEL 
+                };
+                
+                if (challengeResponse) {
+                    payload.challengeResponse = challengeResponse;
+                }
+
+                // Add session context for better follow-ups
+                const sessionContext = getSessionContext();
+                if (sessionContext) {
+                    payload.context = sessionContext;
+                }
 
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                
                 const data = await res.json();
 
                 if (!res.ok) {
@@ -675,6 +784,10 @@
                     throw new Error(data.error || 'Unknown error');
                 }
 
+                // SUCCESS: Save to both local storage and current session
+                saveToLocalHistory(query, data.answer, MODEL);
+                addToCurrentSession(query, data.answer, MODEL);
+
                 container.innerHTML = `
                     <div class="conversation-block">
                         <h4>Query: ${query}</h4>
@@ -683,95 +796,158 @@
                         ${data.cached ? '<br><small><em>(Cached)</em></small>' : ''}
                     </div>`;
 
-                await fetchHistory();
+                renderCombinedHistory();
+                
             } catch (err) {
                 container.innerHTML = `<div class="conversation-block"><h4>Query: ${query}</h4><div class="content">Error: ${err.message}</div></div>`;
+                showMessage('Query failed. Saved locally only.');
+                
+                // Fallback: Save query locally even if API fails
+                saveToLocalHistory(query, `Error: ${err.message}`, MODEL);
             }
         }
 
         async function newChat() {
+            if (!confirm('Start new chat? This clears remote context but keeps your local history.')) return;
+            
             try {
                 const res = await fetch(`${API_URL}/conversation/new`, { method: 'POST' });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                localHistory = [];
-                localStorage.setItem(STORAGE_KEY, '[]');
-                renderHistory();
-                showMessage('New chat started. Context cleared.');
+                if (res.ok) {
+                    clearCurrentSession();
+                    showMessage('New chat started. Remote context cleared.');
+                    renderCombinedHistory();
+                } else {
+                    throw new Error(`HTTP ${res.status}`);
+                }
             } catch (err) {
-                showMessage(`New chat failed: ${err.message}`);
+                // Fallback: clear session locally anyway
+                clearCurrentSession();
+                showMessage('New chat started (local only). Remote clear failed.');
+                renderCombinedHistory();
             }
         }
 
-        // === EVENTS ===
-        const queryInput = document.getElementById('queryInput');
-        const historyToggle = document.getElementById('historyToggle');
-        const newChatBtn = document.getElementById('newChatBtn');
+        // ==================== EVENT LISTENERS ====================
 
-        queryInput.addEventListener('keydown', e => {
+        document.getElementById('queryInput').addEventListener('keydown', e => {
             if (e.key === 'Enter') {
                 performTruthQuery(e.target.value);
                 e.target.value = '';
             }
         });
 
-        historyToggle.addEventListener('click', toggleHistory);
-        newChatBtn.addEventListener('click', newChat);
+        document.getElementById('historyToggle').addEventListener('click', toggleHistory);
+        document.getElementById('newChatBtn').addEventListener('click', newChat);
         document.getElementById('closeHistory').addEventListener('click', toggleHistory);
         document.getElementById('close-modal').addEventListener('click', closeModal);
+        
         document.getElementById('copyResult').addEventListener('click', () => {
             const text = document.querySelector('.conversation-block .content')?.innerText || '';
             copyToClipboard(text);
         });
+        
         document.getElementById('ttsBtn').addEventListener('click', () => {
             const text = document.querySelector('.conversation-block .content')?.innerText || '';
             const utter = new SpeechSynthesisUtterance(text);
             speechSynthesis.speak(utter);
         });
-        document.getElementById('exportHistory').addEventListener('click', exportHistory);
-        document.getElementById('importTrigger').addEventListener('click', () => document.getElementById('importHistory').click());
-        document.getElementById('importHistory').addEventListener('change', importHistory);
-        document.getElementById('clearHistory').addEventListener('click', async () => {
-            if (!confirm('Clear all history?')) return;
-            try {
-                await fetch(`${API_URL}/conversation/import`, { method: 'POST', body: JSON.stringify({ chat: [] }) });
-                localHistory = [];
-                localStorage.setItem(STORAGE_KEY, '[]');
-                renderHistory();
-                showMessage('History wiped.');
-            } catch { showMessage('Clear failed.'); }
+
+        document.getElementById('saveLocal').addEventListener('click', () => {
+            const query = document.querySelector('.conversation-block h4')?.textContent.replace('Query: ', '') || '';
+            const answer = document.querySelector('.conversation-block .content')?.innerText || '';
+            if (query && answer) {
+                saveToLocalHistory(query, answer, MODEL);
+                showMessage('Saved to local history');
+            }
         });
+
+        document.getElementById('exportHistory').addEventListener('click', () => {
+            const exported = exportLocalHistory();
+            showMessage(`Exported ${exported.conversations.length} conversations`);
+        });
+
+        document.getElementById('importTrigger').addEventListener('click', () => {
+            document.getElementById('importHistory').click();
+        });
+
+        document.getElementById('importHistory').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            try {
+                const result = await importLocalHistory(file);
+                showMessage(`Imported ${result.imported} conversations. Total: ${result.total}`);
+                renderCombinedHistory();
+            } catch (error) {
+                showMessage(`Import failed: ${error.message}`);
+            }
+            
+            e.target.value = '';
+        });
+
+        document.getElementById('clearLocalHistory').addEventListener('click', () => {
+            if (confirm('Clear ALL local history? This cannot be undone.')) {
+                clearLocalHistory();
+                showMessage('Local history cleared');
+                renderCombinedHistory();
+            }
+        });
+
         document.getElementById('modelSelector').addEventListener('change', e => {
             MODEL = e.target.value;
             localStorage.setItem('truth-model', MODEL);
             showMessage(`Model: ${e.target.options[e.target.selectedIndex].text}`);
         });
+
         document.querySelectorAll('.mode-toggle button').forEach(b => {
             b.addEventListener('click', () => {
                 document.body.dataset.mode = b.dataset.mode;
                 localStorage.setItem('theme', b.dataset.mode);
             });
         });
-        document.getElementById('exportPromptBtn').addEventListener('click', exportHistory);
 
-        // === INIT ===
-        document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
-        const saved = localStorage.getItem('truth-model');
-        if (saved && [...document.getElementById('modelSelector').options].some(o => o.value === saved)) {
-            document.getElementById('modelSelector').value = saved;
-            MODEL = saved;
+        document.getElementById('exportPromptBtn').addEventListener('click', () => {
+            exportLocalHistory();
+        });
+
+        // ==================== INITIALIZATION ====================
+
+        function initializeApp() {
+            // Set theme
+            document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
+            
+            // Set model
+            const savedModel = localStorage.getItem('truth-model');
+            if (savedModel) {
+                const selector = document.getElementById('modelSelector');
+                if ([...selector.options].some(o => o.value === savedModel)) {
+                    selector.value = savedModel;
+                    MODEL = savedModel;
+                }
+            }
+
+            // Focus input
+            setTimeout(() => document.getElementById('queryInput').focus(), 100);
+            
+            // Render initial history
+            renderCombinedHistory();
+
+            // Typing animation
+            setTimeout(() => {
+                const el = document.getElementById('typedText');
+                el.classList.add('is-typing');
+                setTimeout(() => {
+                    el.classList.remove('is-typing');
+                    el.classList.add('is-done');
+                }, 3500);
+            }, 100);
+
+            // Show stats
+            console.log(`Truth Engine Ready - Local: ${localHistory.length} conversations, Session: ${currentSession.length} messages`);
         }
 
-        setTimeout(() => queryInput.focus(), 100);
-        fetchHistory();
-
-        setTimeout(() => {
-            const el = document.getElementById('typedText');
-            el.classList.add('is-typing');
-            setTimeout(() => {
-                el.classList.remove('is-typing');
-                el.classList.add('is-done');
-            }, 3500);
-        }, 100);
+        // Start the app
+        initializeApp();
     </script>
 </body>
 </html>
