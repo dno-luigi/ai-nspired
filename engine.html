@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI-Nspired :: Truth Engine Interface</title>
     <meta name="description" content="ai-nspired.com • truth-engine. memory keeper. Systems that don't forget—or flinch.">
-      <style>
+    <style>
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&display=swap');
 
         :root {
@@ -70,12 +70,25 @@
             width: 100%;
             position: relative;
         }
-        @media (max-width: 600px) { body { padding: 1rem 0.5rem; } }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+                align-items: flex-start;
+                min-height: 90vh;
+            }
+        }
 
         .terminal-window {
             width: 100%;
             max-width: 800px;
             text-align: left;
+        }
+
+        @media (max-width: 768px) {
+            .terminal-window {
+                margin-top: 2rem;
+            }
         }
 
         .typed-text {
@@ -88,6 +101,15 @@
             border-right: 3px solid var(--accent-color);
             animation: blink-caret .75s step-end infinite;
         }
+
+        @media (max-width: 768px) {
+            .typed-text {
+                font-size: 1.3rem;
+                text-align: center;
+                display: block;
+            }
+        }
+
         .typed-text.is-typing {
             animation: typing 3.5s steps(40, end) forwards, blink-caret .75s step-end infinite;
         }
@@ -100,24 +122,94 @@
         @keyframes typing { from { width: 0 } to { width: 100% } }
         @keyframes blink-caret { 50% { border-color: transparent; } }
 
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            margin-top: 2rem;
+            width: 100%;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .input-container {
+                margin-top: 3rem;
+            }
+        }
+
         .input-row {
             display: flex;
-            align-items: center;
-            margin-top: 1rem;
-            width: 100%;
+            align-items: flex-end;
             gap: 0.5rem;
+            width: 100%;
         }
+
+        @media (max-width: 768px) {
+            .input-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
         .command-line {
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             flex-grow: 1;
             min-width: 0;
+            width: 100%;
+            position: relative;
+            background: var(--content-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 16px;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
         }
-        .command-line::before {
-            content: '>';
-            margin-right: 1rem;
+
+        .command-line:focus-within {
+            box-shadow: 0 0 20px rgba(var(--accent-color-rgb), 0.3);
+            border-color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            .command-line {
+                order: 2;
+                border-radius: 20px;
+            }
+        }
+
+        .enter-button {
+            margin: 0.5rem;
             font-weight: bold;
             flex-shrink: 0;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--accent-color);
+            color: var(--bg-color);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            align-self: flex-end;
+        }
+
+        .enter-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            .enter-button {
+                width: 50px;
+                height: 50px;
+                font-size: 1.8rem;
+                position: absolute;
+                right: 8px;
+                bottom: 8px;
+                z-index: 2;
+            }
         }
 
         .search-input {
@@ -125,32 +217,79 @@
             border: none;
             color: var(--text-color);
             font-family: 'Crimson Pro', serif;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             flex-grow: 1;
             outline: none;
             min-width: 0;
-        }
-        .search-input:focus {
-            outline: 2px solid var(--accent-color);
-            outline-offset: 4px;
-            border-radius: 2px;
+            width: 100%;
+            padding: 1rem;
+            resize: none;
+            min-height: 60px;
+            max-height: 200px;
+            line-height: 1.5;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
-        .history-toggle, .new-chat-btn {
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--accent-color);
+        @media (max-width: 768px) {
+            .search-input {
+                font-size: 1.2rem;
+                padding: 1.2rem;
+                min-height: 80px;
+                padding-right: 70px;
+            }
+        }
+
+        .search-input:focus {
+            outline: none;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .button-row {
+                order: 1;
+                justify-content: space-between;
+            }
+        }
+
+        .icon-button {
+            padding: 0.75rem;
+            border: 2px solid var(--accent-color);
             background: none;
             color: var(--accent-color);
             font-weight: 700;
             cursor: pointer;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            min-width: 80px;
-            flex-shrink: 0;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            text-decoration: none;
         }
-        .history-toggle:hover, .history-toggle:focus, .new-chat-btn:hover, .new-chat-btn:focus {
+
+        @media (max-width: 768px) {
+            .icon-button {
+                width: 55px;
+                height: 55px;
+                font-size: 1.3rem;
+            }
+        }
+
+        .icon-button:hover, .icon-button:focus {
             background-color: var(--accent-color);
             color: var(--bg-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(var(--accent-color-rgb), 0.3);
         }
 
         .modal-overlay {
@@ -242,39 +381,14 @@
             color: var(--bg-color);
         }
 
-        .mode-toggle {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .mode-toggle button, .mode-toggle select {
-            padding: 0.5rem;
-            border: 1px solid var(--accent-color);
-            background: none;
-            color: var(--accent-color);
-            font-weight: 700;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            min-width: 100px;
-        }
-        .mode-toggle select { background: var(--modal-bg); }
-        .mode-toggle button:hover, .mode-toggle select:focus {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-        }
-        @media (max-width: 600px) { .mode-toggle { top: 0.5rem; right: 0.5rem; } }
-
+        /* Menu Panel Styles */
         #historyPanel {
             position: fixed;
             top: 0;
             left: 0;
             height: 100%;
-            width: 300px;
-            max-width: 80vw;
+            width: 350px;
+            max-width: 85vw;
             background-color: var(--modal-bg);
             border-right: 1px solid var(--border-color);
             box-shadow: 5px 0 15px rgba(0,0,0,0.5);
@@ -284,35 +398,100 @@
             display: flex;
             flex-direction: column;
             touch-action: pan-y;
+            overflow-y: auto;
         }
         #historyPanel.open { transform: translateX(0); }
         .history-header {
-            padding: 1rem;
+            padding: 1.5rem;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: var(--accent-color);
+            color: var(--bg-color);
         }
-        .history-title { font-weight: 700; color: var(--accent-color); }
-        .history-actions {
+        .history-title { 
+            font-weight: 700; 
+            font-size: 1.2rem;
+            margin: 0;
+        }
+        
+        .menu-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .menu-section:last-child {
+            border-bottom: none;
+        }
+        .menu-section-title {
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .theme-buttons {
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
-            margin: 0.5rem 1rem;
+        }
+        .theme-buttons button {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--accent-color);
+            background: none;
+            color: var(--accent-color);
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            flex: 1;
+            min-width: 80px;
+            transition: all 0.3s ease;
+        }
+        .theme-buttons button:hover, .theme-buttons button:focus {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            transform: translateY(-2px);
+        }
+        
+        .model-selector {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--accent-color);
+            background: var(--modal-bg);
+            color: var(--accent-color);
+            font-weight: 700;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .model-selector:focus {
+            outline: none;
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .history-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
         }
         .history-actions button, .history-actions input {
             background: none;
-            border: 1px solid var(--accent-color);
+            border: 2px solid var(--accent-color);
             color: var(--accent-color);
-            font-size: 0.8rem;
-            padding: 0.25rem 0.5rem;
+            font-size: 0.9rem;
+            padding: 0.75rem;
             cursor: pointer;
-            border-radius: 4px;
-            min-width: 60px;
+            border-radius: 8px;
+            font-weight: 700;
+            transition: all 0.3s ease;
         }
         .history-actions button:hover, .history-actions input:hover {
             background-color: var(--accent-color);
             color: var(--bg-color);
+            transform: translateY(-2px);
         }
 
         #importHistory {
@@ -322,26 +501,31 @@
         .close-history {
             background: none;
             border: none;
-            color: var(--accent-color);
-            font-size: 1.5rem;
+            color: var(--bg-color);
+            font-size: 1.8rem;
             cursor: pointer;
             padding: 0.25rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
         }
         .close-history:hover {
-            background: var(--accent-color);
-            color: var(--bg-color);
-            border-radius: 50%;
+            background: var(--bg-color);
+            color: var(--accent-color);
         }
 
         #historyList {
             flex-grow: 1;
             overflow-y: auto;
-            padding: 0 1rem;
+            padding: 0 1.5rem;
             list-style: none;
             margin: 0;
         }
         .history-item {
-            padding: 0.75rem 0;
+            padding: 1rem 0;
             border-bottom: 1px dashed var(--border-color);
             font-size: 0.9rem;
             transition: background-color 0.2s;
@@ -450,44 +634,70 @@
     </style>
 </head>
 <body data-mode="silvery">
-    <div class="mode-toggle">
-        <button data-mode="silvery">Silvery</button>
-        <button data-mode="dark">Dark</button>
-        <button data-mode="neo">Neo</button>
-        <select id="modelSelector" aria-label="Select AI Model">
-            <option value="WORKERS_AI">Workers AI (Free)</option>
-            <option value="dolphin-mistral-24b-venice-edition">Dolphin 24B (Free, 32K)</option>
-            <option value="llama-3-8b">Llama 3 8B (Free)</option>
-            <option value="llama-3.2-1b">Llama 3.2 1B (Cheap, 131K)</option>
-            <option value="mistral-nemo">Mistral Nemo (Easter Egg)</option>
-            <option value="qwen2.5-7b-instruct">Qwen 2.5 7B (Easter Egg)</option>
-            <option value="gpt-oss-20b">GPT OSS 20B (Easter Egg)</option>
-        </select>
-    </div>
-
     <div class="terminal-window">
         <p class="typed-text" id="typedText">connected. truth-engine ready.</p>
-        <div class="input-row">
-            <div class="command-line">
-                <input type="text" class="search-input" id="queryInput" placeholder="Enter query..." autofocus>
+        
+        <div class="input-container">
+            <div class="button-row">
+                <button class="icon-button" id="historyToggle" title="Menu">☰</button>
+                <button class="icon-button" id="newChatBtn" title="New Chat">+</button>
             </div>
-            <button class="history-toggle" id="historyToggle">History</button>
-            <button class="new-chat-btn" id="newChatBtn">New Chat</button>
+            
+            <div class="input-row">
+                <div class="command-line">
+                    <textarea class="search-input" id="queryInput" placeholder="Ask anything..." rows="3"></textarea>
+                    <button class="enter-button" id="enterButton">⏎</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <div id="historyPanel">
         <div class="history-header">
-            <p class="history-title">Conversation History</p>
+            <p class="history-title">Menu & History</p>
             <button class="close-history" id="closeHistory">×</button>
         </div>
-        <div class="history-actions">
-            <button id="exportHistory">Export All</button>
-            <button id="importTrigger">Import</button>
-            <input type="file" id="importHistory" accept=".json">
-            <button id="clearLocalHistory">Clear Local</button>
+        
+        <!-- Theme Selection Section -->
+        <div class="menu-section">
+            <div class="menu-section-title">Theme</div>
+            <div class="theme-buttons">
+                <button data-mode="silvery">Silvery</button>
+                <button data-mode="dark">Dark</button>
+                <button data-mode="neo">Neo</button>
+            </div>
         </div>
-        <ul id="historyList"></ul>
+        
+        <!-- Model Selection Section -->
+        <div class="menu-section">
+            <div class="menu-section-title">AI Model</div>
+            <select class="model-selector" id="modelSelector" aria-label="Select AI Model">
+                <option value="WORKERS_AI">Workers AI (Free)</option>
+                <option value="dolphin-mistral-24b-venice-edition">Dolphin 24B (Free, 32K)</option>
+                <option value="llama-3-8b">Llama 3 8B (Free)</option>
+                <option value="llama-3.2-1b">Llama 3.2 1B (Cheap, 131K)</option>
+                <option value="mistral-nemo">Mistral Nemo (Easter Egg)</option>
+                <option value="qwen2.5-7b-instruct">Qwen 2.5 7B (Easter Egg)</option>
+                <option value="gpt-oss-20b">GPT OSS 20B (Easter Egg)</option>
+            </select>
+        </div>
+        
+        <!-- History Actions Section -->
+        <div class="menu-section">
+            <div class="menu-section-title">Data Management</div>
+            <div class="history-actions">
+                <button id="exportHistory">Export All</button>
+                <button id="importTrigger">Import</button>
+                <input type="file" id="importHistory" accept=".json">
+                <button id="clearLocalHistory">Clear Local</button>
+            </div>
+        </div>
+        
+        <!-- Conversation History Section -->
+        <div class="menu-section" style="border-bottom: none; flex-grow: 1; display: flex; flex-direction: column;">
+            <div class="menu-section-title">Recent Conversations</div>
+            <ul id="historyList"></ul>
+        </div>
     </div>
 
     <div class="modal-overlay" id="modal-overlay">
@@ -829,10 +1039,21 @@
 
         // ==================== EVENT LISTENERS ====================
 
+        // Enter key still works
         document.getElementById('queryInput').addEventListener('keydown', e => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 performTruthQuery(e.target.value);
                 e.target.value = '';
+            }
+        });
+
+        // Enter button now properly works
+        document.getElementById('enterButton').addEventListener('click', () => {
+            const input = document.getElementById('queryInput');
+            if (input.value.trim()) {
+                performTruthQuery(input.value);
+                input.value = '';
             }
         });
 
@@ -893,17 +1114,20 @@
             }
         });
 
+        // Theme buttons in menu
+        document.querySelectorAll('.theme-buttons button').forEach(b => {
+            b.addEventListener('click', () => {
+                document.body.dataset.mode = b.dataset.mode;
+                localStorage.setItem('theme', b.dataset.mode);
+                showMessage(`Theme: ${b.dataset.mode}`);
+            });
+        });
+
+        // Model selector in menu
         document.getElementById('modelSelector').addEventListener('change', e => {
             MODEL = e.target.value;
             localStorage.setItem('truth-model', MODEL);
             showMessage(`Model: ${e.target.options[e.target.selectedIndex].text}`);
-        });
-
-        document.querySelectorAll('.mode-toggle button').forEach(b => {
-            b.addEventListener('click', () => {
-                document.body.dataset.mode = b.dataset.mode;
-                localStorage.setItem('theme', b.dataset.mode);
-            });
         });
 
         document.getElementById('exportPromptBtn').addEventListener('click', () => {
