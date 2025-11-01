@@ -652,7 +652,7 @@
             display: block;
             margin-top: 2px;
         }
-        .copy-btn {
+        .copy-btn, .edit-btn {
             background: none;
             border: none;
             color: var(--secondary-text);
@@ -661,7 +661,7 @@
             font-size: 1rem;
             line-height: 1;
         }
-        .copy-btn:hover { color: var(--accent-color); }
+        .copy-btn:hover, .edit-btn:hover { color: var(--accent-color); }
 
         #customMessage {
             position: fixed;
@@ -727,6 +727,36 @@
             font-size: 0.8rem;
             text-align: center;
             max-width: 90vw;
+        }
+        .edit-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .edit-form input, .edit-form textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            background: var(--content-bg);
+            color: var(--content-text);
+            font-family: 'Crimson Pro', serif;
+            border-radius: 4px;
+        }
+        .edit-form textarea {
+            min-height: 100px;
+        }
+        .edit-form button {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--accent-color);
+            background: none;
+            color: var(--accent-color);
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        .edit-form button:hover {
+            background: var(--accent-color);
+            color: var(--bg-color);
         }
     </style>
 </head>
@@ -826,6 +856,22 @@
         </div>
     </div>
 
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="edit-modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <p class="modal-title">Edit Conversation</p>
+                <button class="close-modal" id="close-edit-modal">×</button>
+            </div>
+            <div class="result-container edit-form" id="editContainer">
+                <label>Title: <input id="editTitle" type="text" placeholder="Optional title"></label>
+                <label>Query: <textarea id="editQuery" rows="5"></textarea></label>
+                <label>Answer: <textarea id="editAnswer" rows="10"></textarea></label>
+                <button id="saveEdit">Save</button>
+            </div>
+        </div>
+    </div>
+
     <div id="customMessage"></div>
     <div id="exportPrompt">
         Your conversation context will reset in 2 hours—export to preserve your history!
@@ -841,12 +887,10 @@
         // Storage Keys - LOCAL is primary
         const LOCAL_HISTORY_KEY = 'TRUTH_ENGINE_LOCAL_HISTORY';
         const REMOTE_HISTORY_KEY = 'TRUTH_ENGINE_REMOTE_SYNC';
-        const CURRENT_SESSION_KEY = 'TRUTH_ENGINE_CURRENT_SESSION';
         
         // State management
         let localHistory = JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY)) || [];
         let remoteHistory = JSON.parse(localStorage.getItem(REMOTE_HISTORY_KEY)) || [];
-        let currentSession = JSON.parse(localStorage.getItem(CURRENT_SESSION_KEY)) || [];
         let MODEL = localStorage.getItem('truth-model') || 'WORKERS_AI';
         let isChallenging = false;
         let ttsUtterance = null;
@@ -855,6 +899,9 @@
         // ==================== LOCAL STORAGE MANAGEMENT ====================
         
         function saveToLocalHistory(query, answer, model) {
+            if (localHistory.some(e => e.query === query && e.answer === answer)) {
+                return; // Avoid duplicates
+            }
             const entry = {
                 id: Date.now().toString(),
                 query: query,
@@ -945,28 +992,9 @@
 
         // ==================== SESSION MANAGEMENT ====================
         
-        function addToCurrentSession(query, answer, model) {
-            const sessionEntry = {
-                query: query,
-                answer: answer,
-                model: model,
-                timestamp: Math.floor(Date.now() / 1000)
-            };
-            
-            currentSession.unshift(sessionEntry);
-            localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(currentSession));
-            return sessionEntry;
-        }
-
-        function clearCurrentSession() {
-            currentSession = [];
-            localStorage.setItem(CURRENT_SESSION_KEY, '[]');
-            return true;
-        }
-
         function getSessionContext() {
             // Return last 5 interactions for context
-            return currentSession.slice(0, 5).reverse().map(entry => 
+            return localHistory.slice(0, 5).reverse().map(entry => 
                 `User: ${entry.query}\nAI: ${entry.answer}`
             ).join('\n\n');
         }
@@ -1017,7 +1045,7 @@
             document.getElementById('modal-overlay').classList.remove('active');
             stopTts();
             closeTtsMiniModal();
-            if (currentSession.length > 0) showExportPrompt();
+            if (localHistory.length > 0) showExportPrompt();
         }
 
         function toggleHistory() {
@@ -1028,21 +1056,21 @@
 
         function renderCombinedHistory() {
             const list = document.getElementById('historyList');
-            const allHistory = [...currentSession, ...localHistory.slice(0, 50)];
+            const allHistory = localHistory.slice(0, 50);
             
             list.innerHTML = allHistory.map(item => {
                 const query = (item.query || '').trim();
-                const display = query.slice(0, 60) + (query.length > 60 ? '...' : '');
-                const isCurrent = currentSession.includes(item);
+                const title = (item.title || '').trim();
+                const display = (title || query).slice(0, 60) + ((title || query).length > 60 ? '...' : '');
                 
                 return `
                 <li class="history-item" data-query="${query.replace(/"/g, '&quot;')}" data-answer="${(item.answer || '').replace(/"/g, '&quot;')}">
                     <div class="history-item-content">
                         <p>${display || 'Empty'}</p>
                         <small>${item.model || 'unknown'} • ${new Date(item.timestamp * 1000).toLocaleString()}</small>
-                        ${isCurrent ? '<br><small><em>(Current Session)</em></small>' : ''}
                     </div>
-                    <button class="copy-btn" title="Copy conversation">Copy</button>
+                    <button class="copy-btn" title="Copy conversation">📋</button>
+                    <button class="edit-btn" data-id="${item.id}" title="Edit">✏️</button>
                 </li>`;
             }).join('');
 
@@ -1054,6 +1082,12 @@
                 item.addEventListener('click', e => {
                     if (e.target.classList.contains('copy-btn')) {
                         copyToClipboard(`Q: ${query}\nA: ${answer || ''}`);
+                    } else if (e.target.classList.contains('edit-btn')) {
+                        const id = e.target.dataset.id;
+                        const entry = localHistory.find(e => e.id === id);
+                        if (entry) {
+                            openEditModal(entry);
+                        }
                     } else if (query) {
                         document.getElementById('queryInput').value = query;
                         document.getElementById('queryInput').focus();
@@ -1061,6 +1095,17 @@
                     }
                 });
             });
+        }
+
+        function openEditModal(entry) {
+            document.getElementById('editTitle').value = entry.title || '';
+            document.getElementById('editQuery').value = entry.query || '';
+            document.getElementById('editAnswer').value = entry.answer || '';
+            document.getElementById('edit-modal-overlay').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal-overlay').classList.remove('active');
         }
 
         // ==================== TTS FUNCTIONS ====================
@@ -1197,9 +1242,8 @@
                     throw new Error(data.error || 'Unknown error');
                 }
 
-                // SUCCESS: Save to both local storage and current session
+                // SUCCESS: Save to local storage
                 saveToLocalHistory(query, data.answer, MODEL);
-                addToCurrentSession(query, data.answer, MODEL);
 
                 container.innerHTML = `
                     <div class="conversation-block">
@@ -1226,15 +1270,12 @@
             try {
                 const res = await fetch(`${API_URL}/conversation/new`, { method: 'POST' });
                 if (res.ok) {
-                    clearCurrentSession();
                     showMessage('New chat started. Remote context cleared.');
                     renderCombinedHistory();
                 } else {
                     throw new Error(`HTTP ${res.status}`);
                 }
             } catch (err) {
-                // Fallback: clear session locally anyway
-                clearCurrentSession();
                 showMessage('New chat started (local only). Remote clear failed.');
                 renderCombinedHistory();
             }
@@ -1354,6 +1395,32 @@
             exportLocalHistory();
         });
 
+        // Edit Modal Listeners
+        document.getElementById('close-edit-modal').addEventListener('click', closeEditModal);
+        document.getElementById('saveEdit').addEventListener('click', () => {
+            const title = document.getElementById('editTitle').value.trim();
+            const query = document.getElementById('editQuery').value.trim();
+            const answer = document.getElementById('editAnswer').value.trim();
+            
+            // Note: entry is reference, so update directly
+            // But to be safe, find again
+            const id = document.querySelector('.edit-btn[data-id]')?.dataset.id; // Not ideal, better pass entry
+            // Actually, since click has entry, but here no.
+            // Wait, better store current editing id
+            // Add global let editingEntry;
+            // In openEditModal: editingEntry = entry;
+            // Then here:
+            if (editingEntry) {
+                editingEntry.title = title || undefined;
+                editingEntry.query = query;
+                editingEntry.answer = answer;
+                localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(localHistory));
+                closeEditModal();
+                renderCombinedHistory();
+                showMessage('Conversation updated');
+            }
+        });
+
         // ==================== INITIALIZATION ====================
 
         function initializeApp() {
@@ -1387,8 +1454,17 @@
             }, 100);
 
             // Show stats
-            console.log(`Truth Engine Ready - Local: ${localHistory.length} conversations, Session: ${currentSession.length} messages`);
+            console.log(`Truth Engine Ready - Local: ${localHistory.length} conversations`);
         }
+
+let editingEntry = null;
+function openEditModal(entry) {
+    editingEntry = entry;
+    document.getElementById('editTitle').value = entry.title || '';
+    document.getElementById('editQuery').value = entry.query || '';
+    document.getElementById('editAnswer').value = entry.answer || '';
+    document.getElementById('edit-modal-overlay').classList.add('active');
+}
 
         // Start the app
         initializeApp();
