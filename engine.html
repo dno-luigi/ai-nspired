@@ -507,12 +507,12 @@
             background: var(--accent-color);
             color: var(--bg-color);
         }
-        .history-title { 
-            font-weight: 700; 
+        .history-title {
+            font-weight: 700;
             font-size: 1.2rem;
             margin: 0;
         }
-        
+
         .menu-section {
             padding: 1.5rem;
             border-bottom: 1px solid var(--border-color);
@@ -528,7 +528,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         .theme-buttons {
             display: flex;
             gap: 0.5rem;
@@ -545,15 +545,8 @@
             font-size: 0.9rem;
             flex: 1;
             min-width: 80px;
-            transition: all 0.3s ease;
-        }
-        .theme-buttons button:hover, .theme-buttons button:focus {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-            transform: translateY(-2px);
-        }
-        
-        .model-selector {
+          }
+                 .model-selector {
             width: 100%;
             padding: 0.75rem;
             border: 2px solid var(--accent-color);
@@ -798,13 +791,13 @@
 <body data-mode="silvery">
     <div class="terminal-window">
         <p class="typed-text" id="typedText">Ai-Nspired. Truth-Engine. Connected.</p>
-        
+
         <div class="input-container">
             <div class="button-row">
                 <button class="icon-button" id="historyToggle" title="Menu">☰</button>
                 <button class="icon-button" id="newChatBtn" title="New Chat">+</button>
             </div>
-            
+
             <div class="input-row">
                 <div class="command-line">
                     <textarea class="search-input" id="queryInput" placeholder="Ask anything..." rows="3"></textarea>
@@ -819,7 +812,7 @@
             <p class="history-title">Menu & History</p>
             <button class="close-history" id="closeHistory">×</button>
         </div>
-        
+
         <!-- Theme Selection Section -->
         <div class="menu-section">
             <div class="menu-section-title">Theme</div>
@@ -829,12 +822,12 @@
                 <button data-mode="neo">Neo</button>
             </div>
         </div>
-        
+
         <!-- Model Selection Section -->
         <div class="menu-section">
             <div class="menu-section-title">AI Model</div>
             <select class="model-selector" id="modelSelector" aria-label="Select AI Model">
-                <option value="WORKERS_AI">Workers AI (Free)</option>                
+                <option value="WORKERS_AI">Workers AI (Free)</option>
                 <option value="llama-3-8b">Llama 3 8B (Free)</option>
                 <option value="llama-3.2-1b">Llama 3.2 1B (Almost Free, 131K)</option>
                 <option value="qwen2.5-7b-instruct">Qwen 2.5 7B (Easter Egg)</option>
@@ -842,7 +835,7 @@
                 <option value="dolphin-mistral-24b-venice-edition">Dolphin 24B (unfiltered, 32K)</option>
             </select>
         </div>
-        
+
         <!-- History Actions Section -->
         <div class="menu-section">
             <div class="menu-section-title">Data Management</div>
@@ -853,7 +846,7 @@
                 <button id="clearLocalHistory">Clear Local</button>
             </div>
         </div>
-        
+
         <!-- Conversation History Section -->
         <div class="menu-section" style="border-bottom: none; flex-grow: 1; display: flex; flex-direction: column;">
             <div class="menu-section-title">Recent Conversations</div>
@@ -870,7 +863,7 @@
             <div class="result-container" id="resultContainer"></div>
             <div class="modal-footer">
                 <button id="copyResult" title="Copy">📋</button>
-                <button id="ttsBtn" title="TTS">🎤</button>
+                <button id="ttsBtn" title="TTS">🔊</button>
                 <button id="saveLocal" title="Save Locally">💾</button>
             </div>
         </div>
@@ -919,11 +912,11 @@
 
     <script>
         const API_URL = 'https://truthengine.ai-n.workers.dev';
-        
+
         // Storage Keys - LOCAL is primary
         const LOCAL_HISTORY_KEY = 'TRUTH_ENGINE_LOCAL_HISTORY';
         const REMOTE_HISTORY_KEY = 'TRUTH_ENGINE_REMOTE_SYNC';
-        
+
         // State management
         let localHistory = JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY)) || [];
         let remoteHistory = JSON.parse(localStorage.getItem(REMOTE_HISTORY_KEY)) || [];
@@ -932,9 +925,10 @@
         let ttsUtterance = null;
         let isTtsPlaying = false;
         let editingEntry = null;
+        let currentHistoryId = null;
 
         // ==================== LOCAL STORAGE MANAGEMENT ====================
-        
+
         function saveToLocalHistory(query, answer, model) {
             if (localHistory.some(e => e.query === query && e.answer === answer)) {
                 return; // Avoid duplicates
@@ -947,13 +941,13 @@
                 timestamp: Math.floor(Date.now() / 1000),
                 source: 'local'
             };
-            
+
             localHistory.unshift(entry);
             // Keep only last 100 local entries to prevent storage bloat
             if (localHistory.length > 100) {
                 localHistory = localHistory.slice(0, 100);
             }
-            
+
             localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(localHistory));
             return entry;
         }
@@ -975,10 +969,10 @@
                 source: "truth-engine-local",
                 conversations: localHistory
             };
-            
+
             const dataStr = JSON.stringify(exportData, null, 2);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            
+
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
             link.href = url;
@@ -987,7 +981,7 @@
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            
+
             return exportData;
         }
 
@@ -997,22 +991,22 @@
                 reader.onload = function(e) {
                     try {
                         const importedData = JSON.parse(e.target.result);
-                        
+
                         // Validate import format
                         if (!importedData.conversations || !Array.isArray(importedData.conversations)) {
                             throw new Error('Invalid file format: missing conversations array');
                         }
-                        
+
                         // Merge imported conversations with existing local history
-                        const newEntries = importedData.conversations.filter(conv => 
-                            conv.query && conv.answer && !localHistory.some(existing => 
+                        const newEntries = importedData.conversations.filter(conv =>
+                            conv.query && conv.answer && !localHistory.some(existing =>
                                 existing.query === conv.query && existing.answer === conv.answer
                             )
                         );
-                        
+
                         localHistory = [...newEntries, ...localHistory];
                         localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(localHistory));
-                        
+
                         resolve({
                             success: true,
                             imported: newEntries.length,
@@ -1035,10 +1029,10 @@
         }
 
         // ==================== SESSION MANAGEMENT ====================
-        
+
         function getSessionContext() {
             // Return last 5 interactions for context
-            return localHistory.slice(0, 5).reverse().map(entry => 
+            return localHistory.slice(0, 5).reverse().map(entry =>
                 `User: ${entry.query}\nAI: ${entry.answer}`
             ).join('\n\n');
         }
@@ -1060,7 +1054,7 @@
 
         async function loadMarked() {
             if (window.marked) return window.marked.parse;
-            
+
             const script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
             document.head.appendChild(script);
@@ -1101,12 +1095,12 @@
         function renderCombinedHistory() {
             const list = document.getElementById('historyList');
             const allHistory = localHistory.slice(0, 50);
-            
+
             list.innerHTML = allHistory.map(item => {
                 const query = (item.query || '').trim();
                 const title = (item.title || '').trim();
                 const display = (title || query).slice(0, 60) + ((title || query).length > 60 ? '...' : '');
-                
+
                 return `
                 <li class="history-item" data-id="${item.id}">
                     <div class="history-item-content">
@@ -1163,6 +1157,8 @@
                 item.addEventListener('click', async e => {
                     if (e.target.closest('.menu-btn, .item-menu')) return; // Ignore if clicking menu
 
+                    // Store reference for TTS
+                    currentHistoryId = id;
                     // Load full conversation without re-query
                     const parse = await loadMarked();
                     const container = document.getElementById('resultContainer');
@@ -1199,7 +1195,7 @@
             document.getElementById('editPreview').innerHTML = parse(text);
         }
 
-        // ==================== TTS FUNCTIONS ====================
+        // ==================== TTS FUNCTIONS (WIth Safety Checks) ====================
 
         function openTtsMiniModal() {
             const modal = document.getElementById('ttsMiniModal');
@@ -1212,80 +1208,121 @@
         }
 
         function startTts(text) {
-            stopTts();
-            ttsUtterance = new SpeechSynthesisUtterance(text);
-            ttsUtterance.rate = 1;
-            ttsUtterance.pitch = 1;
-            ttsUtterance.volume = 1;
+            // Check for browser support
+            if (!('speechSynthesis' in window)) {
+                showMessage('Text-to-speech not supported in your browser');
+                return;
+            }
 
-            ttsUtterance.onstart = () => {
+            // Stop any currently playing speech
+            if (ttsUtterance) {
+                speechSynthesis.cancel();
+            }
+
+            // Create new utterance
+            try {
+                ttsUtterance = new SpeechSynthesisUtterance(text);
+            } catch (error) {
+                console.error('Error creating SpeechSynthesisUtterance:', error);
+                showMessage('Failed to create speech: ' + error.message);
+                return;
+            }
+
+            ttsUtterance.rate = 1.0;
+            ttsUtterance.pitch = 1.0;
+            ttsUtterance.volume = 1.0;
+
+            // Event listeners
+            ttsUtterance.onstart = function() {
                 isTtsPlaying = true;
                 document.getElementById('ttsPlayPause').textContent = '⏸️';
+                console.log('TTS started:', text.substring(0, 50) + '...');
                 updateTtsProgress(0);
             };
 
-            ttsUtterance.onend = () => {
+            ttsUtterance.onend = function() {
                 isTtsPlaying = false;
                 document.getElementById('ttsPlayPause').textContent = '▶️';
+                console.log('TTS ended');
                 updateTtsProgress(100);
                 setTimeout(() => updateTtsProgress(0), 1000);
             };
 
-            ttsUtterance.onpause = () => {
+            ttsUtterance.onpause = function() {
                 isTtsPlaying = false;
                 document.getElementById('ttsPlayPause').textContent = '▶️';
+                console.log('TTS paused');
             };
 
-            ttsUtterance.onresume = () => {
+            ttsUtterance.onresume = function() {
                 isTtsPlaying = true;
                 document.getElementById('ttsPlayPause').textContent = '⏸️';
+                console.log('TTS resumed');
             };
 
-            // Simple progress simulation (real progress is tricky without events)
+            ttsUtterance.onerror = function(event) {
+                console.error('TTS Error:', event.error);
+                isTtsPlaying = false;
+                document.getElementById('ttsPlayPause').textContent = '▶️';
+                updateTtsProgress(0);
+            };
+
+            // Progress tracking
+            let startTime = Date.now();
             let progressInterval;
-            ttsUtterance.onstart = () => {
-                // ... existing
-                progressInterval = setInterval(() => {
-                    // Approximate progress based on time (rough estimate)
-                    const elapsed = Date.now() - ttsUtterance.startTime;
-                    const estimatedDuration = text.length * 100; // ms per char approx
+            
+            // Create a timer to simulate progress
+            progressInterval = setInterval(() => {
+                if (isTtsPlaying) {
+                    const elapsed = Date.now() - startTime;
+                    const estimatedDuration = text.length * 80; // Average 80ms per character
                     const progress = Math.min(100, (elapsed / estimatedDuration) * 100);
                     updateTtsProgress(progress);
-                }, 100);
-            };
+                } else {
+                    clearInterval(progressInterval);
+                }
+            }, 100);
 
-            ttsUtterance.onend = () => {
-                clearInterval(progressInterval);
-                // ... existing
-            };
+            // Store interval reference
+            ttsUtterance.progressInterval = progressInterval;
 
+            // Start speech synthesis
             speechSynthesis.speak(ttsUtterance);
         }
 
         function pauseTts() {
-            if (isTtsPlaying) {
+            if (isTtsPlaying && ttsUtterance) {
                 speechSynthesis.pause();
+                isTtsPlaying = false;
+                console.log('TTS paused');
             }
         }
 
         function resumeTts() {
-            if (!isTtsPlaying) {
+            if (!isTtsPlaying && ttsUtterance) {
                 speechSynthesis.resume();
+                isTtsPlaying = true;
+                console.log('TTS resumed');
             }
         }
 
         function stopTts() {
-            speechSynthesis.cancel();
-            isTtsPlaying = false;
-            document.getElementById('ttsPlayPause').textContent = '▶️';
-            updateTtsProgress(0);
             if (ttsUtterance) {
-                clearInterval(ttsUtterance.progressInterval); // Custom prop if set
+                speechSynthesis.cancel();
+                clearInterval(ttsUtterance.progressInterval);
+                isTtsPlaying = false;
+                document.getElementById('ttsPlayPause').textContent = '▶️';
+                updateTtsProgress(0);
+                ttsUtterance = null;
+                console.log('TTS stopped');
             }
         }
 
         function updateTtsProgress(percent) {
-            document.getElementById('ttsProgressBar').style.width = `${percent}%`;
+            const progressBar = document.getElementById('ttsProgressBar');
+            if (progressBar) {
+                progressBar.style.width = `${percent}%`;
+            }
         }
 
         // ==================== CORE LOGIC ====================
@@ -1293,18 +1330,18 @@
         async function performTruthQuery(query, challengeResponse = '') {
             if (!query?.trim()) return showMessage('Query required.');
             if (isChallenging) return;
-            
+
             openModal();
             const container = document.getElementById('resultContainer');
             container.innerHTML = `<div class="conversation-block"><h4>Query: ${query}</h4><div class="content">Thinking...</div></div>`;
 
             try {
                 const parse = await loadMarked();
-                const payload = { 
-                    input: query, 
-                    model: MODEL 
+                const payload = {
+                    input: query,
+                    model: MODEL
                 };
-                
+
                 if (challengeResponse) {
                     payload.challengeResponse = challengeResponse;
                 }
@@ -1320,7 +1357,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                
+
                 const data = await res.json();
 
                 if (!res.ok) {
@@ -1345,11 +1382,11 @@
                     </div>`;
 
                 renderCombinedHistory();
-                
+
             } catch (err) {
                 container.innerHTML = `<div class="conversation-block"><h4>Query: ${query}</h4><div class="content">Error: ${err.message}</div></div>`;
                 showMessage('Query failed. Saved locally only.');
-                
+
                 // Fallback: Save query locally even if API fails
                 saveToLocalHistory(query, `Error: ${err.message}`, MODEL);
             }
@@ -1357,7 +1394,7 @@
 
         async function newChat() {
             if (!confirm('Start new chat? This clears remote context but keeps your local history.')) return;
-            
+
             try {
                 const res = await fetch(`${API_URL}/conversation/new`, { method: 'POST' });
                 if (res.ok) {
@@ -1376,6 +1413,7 @@
 
         // Enter key no longer sends - allow multi-line
         document.getElementById('queryInput').addEventListener('keydown', e => {
+
             // Optional: Shift+Enter for new line if needed, but default is fine for paragraphs
         });
 
@@ -1392,34 +1430,69 @@
         document.getElementById('newChatBtn').addEventListener('click', newChat);
         document.getElementById('closeHistory').addEventListener('click', toggleHistory);
         document.getElementById('close-modal').addEventListener('click', closeModal);
-        
+
         document.getElementById('copyResult').addEventListener('click', () => {
             const text = document.querySelector('.conversation-block .content')?.innerText || '';
             copyToClipboard(text);
         });
-        
-        document.getElementById('ttsBtn').addEventListener('click', () => {
-            const text = document.querySelector('.conversation-block .content')?.innerText || '';
-            if (text) {
+
+        // ==================== FIXED TTS BUTTON FOR HISTORY ITEMS ====================
+        document.getElementById('ttsBtn').addEventListener('click', function() {
+            let text = '';
+            
+            // Try to get text from current modal
+            const contentElement = document.querySelector('.conversation-block .content');
+            if (contentElement) {
+                text = contentElement.innerText || contentElement.textContent;
+            }
+            
+            // If we're dealing with history item content
+            if (!text.trim() && currentHistoryId) {
+                const historyItem = localHistory.find(item => item.id === currentHistoryId);
+                if (historyItem && historyItem.answer) {
+                    text = historyItem.answer;
+                }
+            }
+            
+            // Validate text exists
+            if (text.trim()) {
                 openTtsMiniModal();
                 if (!isTtsPlaying) {
+                    console.log('Starting TTS with:', text.substring(0, 100) + '...');
                     startTts(text);
+                } else {
+                    console.log('Pausing TTS');
+                    pauseTts();
                 }
+            } else {
+                showMessage('No text available for TTS');
+                console.warn('No text found for TTS');
             }
         });
 
-        // TTS Mini Modal Controls
+        // ==================== FIXED PLAYER CONTROLS ====================
         document.getElementById('ttsMiniClose').addEventListener('click', closeTtsMiniModal);
 
-        document.getElementById('ttsPlayPause').addEventListener('click', () => {
-            if (isTtsPlaying) {
-                pauseTts();
-            } else if (ttsUtterance) {
-                resumeTts();
+        document.getElementById('ttsPlayPause').addEventListener('click', function() {
+            // Try to get text from current conversation
+            const contentElement = document.querySelector('.conversation-block .content');
+            const text = contentElement ? contentElement.innerText || contentElement.textContent : '';
+            
+            // Check if we have a text to process
+            if (text.trim()) {
+                if (isTtsPlaying) {
+                    console.log('Pausing TTS');
+                    pauseTts();
+                } else if (ttsUtterance) {
+                    console.log('Resuming TTS');
+                    resumeTts();
+                } else {
+                    console.log('Starting TTS with:', text.substring(0, 100) + '...');
+                    startTts(text);
+                }
             } else {
-                // Restart if stopped
-                const text = document.querySelector('.conversation-block .content')?.innerText || '';
-                if (text) startTts(text);
+                showMessage('No text available for TTS');
+                console.warn('No text found for TTS');
             }
         });
 
@@ -1446,7 +1519,7 @@
         document.getElementById('importHistory').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            
+
             try {
                 const result = await importLocalHistory(file);
                 showMessage(`Imported ${result.imported} conversations. Total: ${result.total}`);
@@ -1454,7 +1527,7 @@
             } catch (error) {
                 showMessage(`Import failed: ${error.message}`);
             }
-            
+
             e.target.value = '';
         });
 
@@ -1509,7 +1582,7 @@
         function initializeApp() {
             // Set theme
             document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
-            
+
             // Set model
             const savedModel = localStorage.getItem('truth-model');
             if (savedModel) {
@@ -1522,7 +1595,7 @@
 
             // Focus input
             setTimeout(() => document.getElementById('queryInput').focus(), 100);
-            
+
             // Render initial history
             renderCombinedHistory();
 
@@ -1544,4 +1617,4 @@
         initializeApp();
     </script>
 </body>
-</html>
+</html>  
