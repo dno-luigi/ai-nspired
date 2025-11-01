@@ -631,6 +631,7 @@
             justify-content: space-between;
             align-items: flex-start;
             gap: 0.5rem;
+            position: relative;
         }
         .history-item:hover {
             background-color: rgba(var(--accent-color-rgb), 0.1);
@@ -652,7 +653,7 @@
             display: block;
             margin-top: 2px;
         }
-        .copy-btn, .edit-btn {
+        .menu-btn {
             background: none;
             border: none;
             color: var(--secondary-text);
@@ -661,7 +662,34 @@
             font-size: 1rem;
             line-height: 1;
         }
-        .copy-btn:hover, .edit-btn:hover { color: var(--accent-color); }
+        .menu-btn:hover { color: var(--accent-color); }
+        .item-menu {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: var(--modal-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 10;
+            display: none;
+        }
+        .item-menu.active {
+            display: block;
+        }
+        .item-menu button {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 1rem;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            text-align: left;
+            cursor: pointer;
+        }
+        .item-menu button:hover {
+            background: rgba(var(--accent-color-rgb), 0.1);
+        }
 
         #customMessage {
             position: fixed;
@@ -999,6 +1027,13 @@
             });
         }
 
+        function deleteFromLocalHistory(id) {
+            localHistory = localHistory.filter(entry => entry.id !== id);
+            localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(localHistory));
+            renderCombinedHistory();
+            showMessage('Conversation deleted');
+        }
+
         // ==================== SESSION MANAGEMENT ====================
         
         function getSessionContext() {
@@ -1078,37 +1113,69 @@
                         <p>${display || 'Empty'}</p>
                         <small>${item.model || 'unknown'} • ${new Date(item.timestamp * 1000).toLocaleString()}</small>
                     </div>
-                    <button class="copy-btn" title="Copy conversation">📋</button>
-                    <button class="edit-btn" data-id="${item.id}" title="Edit">✏️</button>
+                    <button class="menu-btn" title="Options">⋯</button>
+                    <div class="item-menu">
+                        <button class="copy-option">Copy</button>
+                        <button class="edit-option">Edit</button>
+                        <button class="delete-option">Delete</button>
+                    </div>
                 </li>`;
             }).join('');
 
             // Add event listeners
             document.querySelectorAll('.history-item').forEach(item => {
-                item.addEventListener('click', async e => {
-                    const id = item.querySelector('.edit-btn').dataset.id;
-                    const entry = localHistory.find(ent => ent.id === id);
-                    if (!entry) return;
+                const id = item.dataset.id;
+                const entry = localHistory.find(ent => ent.id === id);
+                if (!entry) return;
 
-                    if (e.target.classList.contains('copy-btn')) {
-                        copyToClipboard(`Q: ${entry.query}\nA: ${entry.answer || ''}`);
-                    } else if (e.target.classList.contains('edit-btn')) {
-                        openEditModal(entry);
-                    } else {
-                        // Load full conversation without re-query
-                        const parse = await loadMarked();
-                        const container = document.getElementById('resultContainer');
-                        const displayTitle = entry.title ? `<h3>${entry.title}</h3>` : '';
-                        container.innerHTML = `
-                            <div class="conversation-block">
-                                ${displayTitle}
-                                <h4>Query: ${entry.query}</h4>
-                                <div class="content">${parse(entry.answer)}</div>
-                                <small>Model: ${entry.model} • ${new Date(entry.timestamp * 1000).toLocaleString()}</small>
-                            </div>`;
-                        openModal();
-                        toggleHistory();
+                const menuBtn = item.querySelector('.menu-btn');
+                const menu = item.querySelector('.item-menu');
+
+                menuBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    menu.classList.toggle('active');
+                });
+
+                item.querySelector('.copy-option').addEventListener('click', () => {
+                    copyToClipboard(`Q: ${entry.query}\nA: ${entry.answer || ''}`);
+                    menu.classList.remove('active');
+                });
+
+                item.querySelector('.edit-option').addEventListener('click', () => {
+                    openEditModal(entry);
+                    menu.classList.remove('active');
+                });
+
+                item.querySelector('.delete-option').addEventListener('click', () => {
+                    if (confirm('Delete this conversation?')) {
+                        deleteFromLocalHistory(id);
                     }
+                    menu.classList.remove('active');
+                });
+
+                // Close menu if clicking outside
+                document.addEventListener('click', e => {
+                    if (!item.contains(e.target)) {
+                        menu.classList.remove('active');
+                    }
+                });
+
+                item.addEventListener('click', async e => {
+                    if (e.target.closest('.menu-btn, .item-menu')) return; // Ignore if clicking menu
+
+                    // Load full conversation without re-query
+                    const parse = await loadMarked();
+                    const container = document.getElementById('resultContainer');
+                    const displayTitle = entry.title ? `<h3>${entry.title}</h3>` : '';
+                    container.innerHTML = `
+                        <div class="conversation-block">
+                            ${displayTitle}
+                            <h4>Query: ${entry.query}</h4>
+                            <div class="content">${parse(entry.answer)}</div>
+                            <small>Model: ${entry.model} • ${new Date(entry.timestamp * 1000).toLocaleString()}</small>
+                        </div>`;
+                    openModal();
+                    toggleHistory();
                 });
             });
         }
