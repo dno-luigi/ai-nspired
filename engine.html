@@ -758,6 +758,13 @@
             background: var(--accent-color);
             color: var(--bg-color);
         }
+        .edit-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--content-bg);
+        }
     </style>
 </head>
 <body data-mode="silvery">
@@ -867,6 +874,7 @@
                 <label>Title: <input id="editTitle" type="text" placeholder="Optional title"></label>
                 <label>Query: <textarea id="editQuery" rows="5"></textarea></label>
                 <label>Answer: <textarea id="editAnswer" rows="10"></textarea></label>
+                <div class="edit-preview" id="editPreview">Preview will appear here...</div>
                 <button id="saveEdit">Save</button>
             </div>
         </div>
@@ -895,6 +903,7 @@
         let isChallenging = false;
         let ttsUtterance = null;
         let isTtsPlaying = false;
+        let editingEntry = null;
 
         // ==================== LOCAL STORAGE MANAGEMENT ====================
         
@@ -1064,7 +1073,7 @@
                 const display = (title || query).slice(0, 60) + ((title || query).length > 60 ? '...' : '');
                 
                 return `
-                <li class="history-item" data-query="${query.replace(/"/g, '&quot;')}" data-answer="${(item.answer || '').replace(/"/g, '&quot;')}">
+                <li class="history-item" data-id="${item.id}">
                     <div class="history-item-content">
                         <p>${display || 'Empty'}</p>
                         <small>${item.model || 'unknown'} • ${new Date(item.timestamp * 1000).toLocaleString()}</small>
@@ -1076,21 +1085,28 @@
 
             // Add event listeners
             document.querySelectorAll('.history-item').forEach(item => {
-                const query = item.dataset.query;
-                const answer = item.dataset.answer;
-                
-                item.addEventListener('click', e => {
+                item.addEventListener('click', async e => {
+                    const id = item.querySelector('.edit-btn').dataset.id;
+                    const entry = localHistory.find(ent => ent.id === id);
+                    if (!entry) return;
+
                     if (e.target.classList.contains('copy-btn')) {
-                        copyToClipboard(`Q: ${query}\nA: ${answer || ''}`);
+                        copyToClipboard(`Q: ${entry.query}\nA: ${entry.answer || ''}`);
                     } else if (e.target.classList.contains('edit-btn')) {
-                        const id = e.target.dataset.id;
-                        const entry = localHistory.find(e => e.id === id);
-                        if (entry) {
-                            openEditModal(entry);
-                        }
-                    } else if (query) {
-                        document.getElementById('queryInput').value = query;
-                        document.getElementById('queryInput').focus();
+                        openEditModal(entry);
+                    } else {
+                        // Load full conversation without re-query
+                        const parse = await loadMarked();
+                        const container = document.getElementById('resultContainer');
+                        const displayTitle = entry.title ? `<h3>${entry.title}</h3>` : '';
+                        container.innerHTML = `
+                            <div class="conversation-block">
+                                ${displayTitle}
+                                <h4>Query: ${entry.query}</h4>
+                                <div class="content">${parse(entry.answer)}</div>
+                                <small>Model: ${entry.model} • ${new Date(entry.timestamp * 1000).toLocaleString()}</small>
+                            </div>`;
+                        openModal();
                         toggleHistory();
                     }
                 });
@@ -1098,14 +1114,22 @@
         }
 
         function openEditModal(entry) {
+            editingEntry = entry;
             document.getElementById('editTitle').value = entry.title || '';
             document.getElementById('editQuery').value = entry.query || '';
             document.getElementById('editAnswer').value = entry.answer || '';
+            updateEditPreview(entry.answer || '');
             document.getElementById('edit-modal-overlay').classList.add('active');
         }
 
         function closeEditModal() {
             document.getElementById('edit-modal-overlay').classList.remove('active');
+            editingEntry = null;
+        }
+
+        async function updateEditPreview(text) {
+            const parse = await loadMarked();
+            document.getElementById('editPreview').innerHTML = parse(text);
         }
 
         // ==================== TTS FUNCTIONS ====================
@@ -1398,27 +1422,19 @@
         // Edit Modal Listeners
         document.getElementById('close-edit-modal').addEventListener('click', closeEditModal);
         document.getElementById('saveEdit').addEventListener('click', () => {
-            const title = document.getElementById('editTitle').value.trim();
-            const query = document.getElementById('editQuery').value.trim();
-            const answer = document.getElementById('editAnswer').value.trim();
-            
-            // Note: entry is reference, so update directly
-            // But to be safe, find again
-            const id = document.querySelector('.edit-btn[data-id]')?.dataset.id; // Not ideal, better pass entry
-            // Actually, since click has entry, but here no.
-            // Wait, better store current editing id
-            // Add global let editingEntry;
-            // In openEditModal: editingEntry = entry;
-            // Then here:
             if (editingEntry) {
-                editingEntry.title = title || undefined;
-                editingEntry.query = query;
-                editingEntry.answer = answer;
+                editingEntry.title = document.getElementById('editTitle').value.trim() || undefined;
+                editingEntry.query = document.getElementById('editQuery').value.trim();
+                editingEntry.answer = document.getElementById('editAnswer').value.trim();
                 localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(localHistory));
                 closeEditModal();
                 renderCombinedHistory();
                 showMessage('Conversation updated');
             }
+        });
+
+        document.getElementById('editAnswer').addEventListener('input', (e) => {
+            updateEditPreview(e.target.value);
         });
 
         // ==================== INITIALIZATION ====================
@@ -1456,15 +1472,6 @@
             // Show stats
             console.log(`Truth Engine Ready - Local: ${localHistory.length} conversations`);
         }
-
-let editingEntry = null;
-function openEditModal(entry) {
-    editingEntry = entry;
-    document.getElementById('editTitle').value = entry.title || '';
-    document.getElementById('editQuery').value = entry.query || '';
-    document.getElementById('editAnswer').value = entry.answer || '';
-    document.getElementById('edit-modal-overlay').classList.add('active');
-}
 
         // Start the app
         initializeApp();
