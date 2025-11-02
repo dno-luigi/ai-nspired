@@ -54,6 +54,31 @@
             --grid-cell-on: #00FF00;
         }
 
+        /* Better mobile touch targets */
+        @media (max-width: 768px) {
+            .history-item {
+                min-height: 60px;
+                padding: 1rem;
+                font-size: 1rem;
+            }
+            
+            .icon-button {
+                min-width: 48px;
+                min-height: 48px;
+            }
+            
+            .menu-btn {
+                min-width: 44px;
+                min-height: 44px;
+                font-size: 1.2rem;
+            }
+            
+            /* Prevent zoom on input focus */
+            .search-input {
+                font-size: 16px !important;
+            }
+        }
+
         body {
             margin: 0;
             padding: 1.5rem 1rem;
@@ -625,9 +650,15 @@
             align-items: flex-start;
             gap: 0.5rem;
             position: relative;
+            outline: none;
         }
         .history-item:hover {
             background-color: rgba(var(--accent-color-rgb), 0.1);
+        }
+        .history-item:focus {
+            background-color: rgba(var(--accent-color-rgb), 0.2);
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
         }
         .history-item-content {
             flex-grow: 1;
@@ -854,17 +885,17 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-overlay">
-        <div class="modal-container">
+    <div class="modal-overlay" id="modal-overlay" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-container" role="document">
             <div class="modal-header">
-                <p class="modal-title">speakeasy // ai-n.org</p>
-                <button class="close-modal" id="close-modal">×</button>
+                <p class="modal-title" id="modal-title">speakeasy // ai-n.org</p>
+                <button class="close-modal" id="close-modal" aria-label="Close dialog">×</button>
             </div>
-            <div class="result-container" id="resultContainer"></div>
+            <div class="result-container" id="resultContainer" role="main" aria-live="polite"></div>
             <div class="modal-footer">
-                <button id="copyResult" title="Copy">📋</button>
-                <button id="ttsBtn" title="TTS">🔊</button>
-                <button id="saveLocal" title="Save Locally">💾</button>
+                <button id="copyResult" title="Copy" aria-label="Copy response">📋</button>
+                <button id="ttsBtn" title="TTS" aria-label="Read aloud">🔊</button>
+                <button id="saveLocal" title="Save Locally" aria-label="Save locally">💾</button>
             </div>
         </div>
     </div>
@@ -917,47 +948,88 @@
         const LOCAL_HISTORY_KEY = 'TRUTH_ENGINE_LOCAL_HISTORY';
         const REMOTE_HISTORY_KEY = 'TRUTH_ENGINE_REMOTE_SYNC';
 
-        // State management
-        let localHistory = JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY)) || [];
-        let remoteHistory = JSON.parse(localStorage.getItem(REMOTE_HISTORY_KEY)) || [];
-        let MODEL = localStorage.getItem('truth-model') || 'WORKERS_AI';
-        let isChallenging = false;
-        let ttsUtterance = null;
-        let isTtsPlaying = false;
-        let editingEntry = null;
-        let currentHistoryId = null;
+        // Better State Management - Single Object
+        const appState = {
+            localHistory: JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY)) || [],
+            remoteHistory: JSON.parse(localStorage.getItem(REMOTE_HISTORY_KEY)) || [],
+            MODEL: localStorage.getItem('truth-model') || 'WORKERS_AI',
+            isChallenging: false,
+            ttsUtterance: null,
+            isTtsPlaying: false,
+            editingEntry: null,
+            currentHistoryId: null
+        };
 
-        // ==================== LOCAL STORAGE MANAGEMENT ====================
+        // Memory Leak Prevention
+        window.addEventListener('beforeunload', function() {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+        });
+
+        // ==================== SMART LOADING STATES ====================
+        function showLoadingState(container, message = "Loading...") {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                    <div style="color: var(--secondary-text);">${message}</div>
+                    <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--secondary-text);">
+                        This usually takes 3-10 seconds...
+                    </div>
+                </div>`;
+        }
+
+        // ==================== IMPROVED HISTORY MANAGEMENT ====================
 
         function saveToLocalHistory(query, answer, model) {
-            if (localHistory.some(e => e.query === query && e.answer === answer)) {
-                return; // Avoid duplicates
+            // Prevent duplicates more intelligently
+            const exists = appState.localHistory.some(entry => 
+                entry.query.trim().toLowerCase() === query.trim().toLowerCase() && 
+                entry.answer.trim() === answer.trim()
+            );
+            
+            if (exists) {
+                console.log('Duplicate entry prevented');
+                return appState.localHistory.find(entry => 
+                    entry.query.trim().toLowerCase() === query.trim().toLowerCase()
+                );
             }
+
             const entry = {
-                id: Date.now().toString(),
-                query: query,
-                answer: answer,
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                query: query.trim(),
+                answer: answer.trim(),
                 model: model,
                 timestamp: Math.floor(Date.now() / 1000),
-                source: 'local'
+                source: 'local',
+                wordCount: answer.split(' ').length,
+                characterCount: answer.length
             };
 
-            localHistory.unshift(entry);
-            // Keep only last 100 local entries to prevent storage bloat
-            if (localHistory.length > 100) {
-                localHistory = localHistory.slice(0, 100);
+            appState.localHistory.unshift(entry);
+            
+            // Smart limits: Keep more recent entries
+            if (appState.localHistory.length > 50) {
+                appState.localHistory = appState.localHistory.slice(0, 50);
             }
 
-            localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(localHistory));
+            localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
+            
+            // Show storage size occasionally
+            const sizeKB = Math.round(JSON.stringify(appState.localHistory).length / 1024);
+            if (sizeKB > 400) {
+                showMessage(`⚠️ Local storage at ${sizeKB}KB - consider exporting`, 3000);
+            }
+            
             return entry;
         }
 
         function getLocalHistory() {
-            return localHistory;
+            return appState.localHistory;
         }
 
         function clearLocalHistory() {
-            localHistory = [];
+            appState.localHistory = [];
             localStorage.setItem(LOCAL_HISTORY_KEY, '[]');
             return true;
         }
@@ -967,7 +1039,7 @@
                 version: "2.0",
                 exportedAt: new Date().toISOString(),
                 source: "truth-engine-local",
-                conversations: localHistory
+                conversations: appState.localHistory
             };
 
             const dataStr = JSON.stringify(exportData, null, 2);
@@ -999,18 +1071,18 @@
 
                         // Merge imported conversations with existing local history
                         const newEntries = importedData.conversations.filter(conv =>
-                            conv.query && conv.answer && !localHistory.some(existing =>
+                            conv.query && conv.answer && !appState.localHistory.some(existing =>
                                 existing.query === conv.query && existing.answer === conv.answer
                             )
                         );
 
-                        localHistory = [...newEntries, ...localHistory];
-                        localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(localHistory));
+                        appState.localHistory = [...newEntries, ...appState.localHistory];
+                        localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
 
                         resolve({
                             success: true,
                             imported: newEntries.length,
-                            total: localHistory.length
+                            total: appState.localHistory.length
                         });
                     } catch (error) {
                         reject(error);
@@ -1022,8 +1094,8 @@
         }
 
         function deleteFromLocalHistory(id) {
-            localHistory = localHistory.filter(entry => entry.id !== id);
-            localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(localHistory));
+            appState.localHistory = appState.localHistory.filter(entry => entry.id !== id);
+            localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
             renderCombinedHistory();
             showMessage('Conversation deleted');
         }
@@ -1032,7 +1104,7 @@
 
         function getSessionContext() {
             // Return last 5 interactions for context
-            return localHistory.slice(0, 5).reverse().map(entry =>
+            return appState.localHistory.slice(0, 5).reverse().map(entry =>
                 `User: ${entry.query}\nAI: ${entry.answer}`
             ).join('\n\n');
         }
@@ -1083,7 +1155,7 @@
             document.getElementById('modal-overlay').classList.remove('active');
             stopTts();
             closeTtsMiniModal();
-            if (localHistory.length > 0) showExportPrompt();
+            if (appState.localHistory.length > 0) showExportPrompt();
         }
 
         function toggleHistory() {
@@ -1094,90 +1166,91 @@
 
         function renderCombinedHistory() {
             const list = document.getElementById('historyList');
-            const allHistory = localHistory.slice(0, 50);
+            const allHistory = appState.localHistory.slice(0, 30); // Show fewer, recent ones
+
+            if (allHistory.length === 0) {
+                list.innerHTML = '<li style="text-align: center; color: var(--secondary-text); padding: 2rem;">No conversations yet. Ask your first question!</li>';
+                return;
+            }
 
             list.innerHTML = allHistory.map(item => {
                 const query = (item.query || '').trim();
                 const title = (item.title || '').trim();
-                const display = (title || query).slice(0, 60) + ((title || query).length > 60 ? '...' : '');
+                const display = (title || query).slice(0, 50) + ((title || query).length > 50 ? '...' : '');
+                const dateStr = new Date(item.timestamp * 1000).toLocaleDateString();
+                const timeStr = new Date(item.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
                 return `
-                <li class="history-item" data-id="${item.id}">
+                <li class="history-item" data-id="${item.id}" tabindex="0" role="button" aria-label="Conversation from ${dateStr}">
                     <div class="history-item-content">
-                        <p>${display || 'Empty'}</p>
-                        <small>${item.model || 'unknown'} • ${new Date(item.timestamp * 1000).toLocaleString()}</small>
+                        <p>${display || 'Empty conversation'}</p>
+                        <small>🤖 ${item.model} • 📅 ${dateStr} ${timeStr} • 📝 ${item.wordCount || 0} words</small>
                     </div>
-                    <button class="menu-btn" title="Options">⋯</button>
-                    <div class="item-menu">
-                        <button class="copy-option">Copy</button>
-                        <button class="edit-option">Edit</button>
-                        <button class="delete-option">Delete</button>
+                    <button class="menu-btn" title="Options" aria-label="More options">⋯</button>
+                    <div class="item-menu" role="menu">
+                        <button class="copy-option" role="menuitem">📋 Copy</button>
+                        <button class="edit-option" role="menuitem">✏️ Edit</button>
+                        <button class="delete-option" role="menuitem">🗑️ Delete</button>
                     </div>
                 </li>`;
             }).join('');
 
-            // Add event listeners
+            // Add event listeners with better error handling
             document.querySelectorAll('.history-item').forEach(item => {
                 const id = item.dataset.id;
-                const entry = localHistory.find(ent => ent.id === id);
+                const entry = appState.localHistory.find(ent => ent.id === id);
                 if (!entry) return;
 
                 const menuBtn = item.querySelector('.menu-btn');
                 const menu = item.querySelector('.item-menu');
 
+                // Menu toggle
                 menuBtn.addEventListener('click', e => {
                     e.stopPropagation();
                     menu.classList.toggle('active');
                 });
 
+                // Copy function
                 item.querySelector('.copy-option').addEventListener('click', () => {
-                    copyToClipboard(`Q: ${entry.query}\nA: ${entry.answer || ''}`);
+                    copyToClipboard(`Q: ${entry.query}\nA: ${entry.answer || ''}`, '📋 Conversation copied!');
                     menu.classList.remove('active');
                 });
 
+                // Edit function
                 item.querySelector('.edit-option').addEventListener('click', () => {
                     openEditModal(entry);
                     menu.classList.remove('active');
                 });
 
+                // Delete function
                 item.querySelector('.delete-option').addEventListener('click', () => {
-                    if (confirm('Delete this conversation?')) {
+                    if (confirm('🗑️ Delete this conversation? This cannot be undone.')) {
                         deleteFromLocalHistory(id);
                     }
                     menu.classList.remove('active');
                 });
 
-                // Close menu if clicking outside
-                document.addEventListener('click', e => {
-                    if (!item.contains(e.target)) {
-                        menu.classList.remove('active');
-                    }
+                // Click to view
+                item.addEventListener('click', async e => {
+                    if (e.target.closest('.menu-btn, .item-menu')) return;
+
+                    appState.currentHistoryId = id;
+                    await showConversation(entry);
                 });
 
-                item.addEventListener('click', async e => {
-                    if (e.target.closest('.menu-btn, .item-menu')) return; // Ignore if clicking menu
-
-                    // Store reference for TTS
-                    currentHistoryId = id;
-                    // Load full conversation without re-query
-                    const parse = await loadMarked();
-                    const container = document.getElementById('resultContainer');
-                    const displayTitle = entry.title ? `<h3>${entry.title}</h3>` : '';
-                    container.innerHTML = `
-                        <div class="conversation-block">
-                            ${displayTitle}
-                            <h4>Query: ${entry.query}</h4>
-                            <div class="content">${parse(entry.answer)}</div>
-                            <small>Model: ${entry.model} • ${new Date(entry.timestamp * 1000).toLocaleString()}</small>
-                        </div>`;
-                    openModal();
-                    toggleHistory();
+                // Keyboard support
+                item.addEventListener('keydown', async e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        appState.currentHistoryId = id;
+                        await showConversation(entry);
+                    }
                 });
             });
         }
 
         function openEditModal(entry) {
-            editingEntry = entry;
+            appState.editingEntry = entry;
             document.getElementById('editTitle').value = entry.title || '';
             document.getElementById('editQuery').value = entry.query || '';
             document.getElementById('editAnswer').value = entry.answer || '';
@@ -1187,7 +1260,7 @@
 
         function closeEditModal() {
             document.getElementById('edit-modal-overlay').classList.remove('active');
-            editingEntry = null;
+            appState.editingEntry = null;
         }
 
         async function updateEditPreview(text) {
@@ -1195,7 +1268,25 @@
             document.getElementById('editPreview').innerHTML = parse(text);
         }
 
-        // ==================== TTS FUNCTIONS (WIth Safety Checks) ====================
+        async function showConversation(entry) {
+            const parse = await loadMarked();
+            const container = document.getElementById('resultContainer');
+            const displayTitle = entry.title ? `<h3>${entry.title}</h3>` : '';
+            const cacheIndicator = entry.source === 'local' ? '📱 Local' : '☁️ Remote';
+            
+            container.innerHTML = `
+                <div class="conversation-block">
+                    ${displayTitle}
+                    <h4>❓ Query: ${entry.query}</h4>
+                    <div class="content">${parse(entry.answer || 'No answer stored')}</div>
+                    <small>🤖 ${entry.model} • 📅 ${new Date(entry.timestamp * 1000).toLocaleString()} • ${cacheIndicator}</small>
+                </div>`;
+            
+            openModal();
+            toggleHistory();
+        }
+
+        // ==================== TTS FUNCTIONS (WITH SAFETY CHECKS) ====================
 
         function openTtsMiniModal() {
             const modal = document.getElementById('ttsMiniModal');
@@ -1215,54 +1306,54 @@
             }
 
             // Stop any currently playing speech
-            if (ttsUtterance) {
+            if (appState.ttsUtterance) {
                 speechSynthesis.cancel();
             }
 
             // Create new utterance
             try {
-                ttsUtterance = new SpeechSynthesisUtterance(text);
+                appState.ttsUtterance = new SpeechSynthesisUtterance(text);
             } catch (error) {
                 console.error('Error creating SpeechSynthesisUtterance:', error);
                 showMessage('Failed to create speech: ' + error.message);
                 return;
             }
 
-            ttsUtterance.rate = 1.0;
-            ttsUtterance.pitch = 1.0;
-            ttsUtterance.volume = 1.0;
+            appState.ttsUtterance.rate = 1.0;
+            appState.ttsUtterance.pitch = 1.0;
+            appState.ttsUtterance.volume = 1.0;
 
             // Event listeners
-            ttsUtterance.onstart = function() {
-                isTtsPlaying = true;
+            appState.ttsUtterance.onstart = function() {
+                appState.isTtsPlaying = true;
                 document.getElementById('ttsPlayPause').textContent = '⏸️';
                 console.log('TTS started:', text.substring(0, 50) + '...');
                 updateTtsProgress(0);
             };
 
-            ttsUtterance.onend = function() {
-                isTtsPlaying = false;
+            appState.ttsUtterance.onend = function() {
+                appState.isTtsPlaying = false;
                 document.getElementById('ttsPlayPause').textContent = '▶️';
                 console.log('TTS ended');
                 updateTtsProgress(100);
                 setTimeout(() => updateTtsProgress(0), 1000);
             };
 
-            ttsUtterance.onpause = function() {
-                isTtsPlaying = false;
+            appState.ttsUtterance.onpause = function() {
+                appState.isTtsPlaying = false;
                 document.getElementById('ttsPlayPause').textContent = '▶️';
                 console.log('TTS paused');
             };
 
-            ttsUtterance.onresume = function() {
-                isTtsPlaying = true;
+            appState.ttsUtterance.onresume = function() {
+                appState.isTtsPlaying = true;
                 document.getElementById('ttsPlayPause').textContent = '⏸️';
                 console.log('TTS resumed');
             };
 
-            ttsUtterance.onerror = function(event) {
+            appState.ttsUtterance.onerror = function(event) {
                 console.error('TTS Error:', event.error);
-                isTtsPlaying = false;
+                appState.isTtsPlaying = false;
                 document.getElementById('ttsPlayPause').textContent = '▶️';
                 updateTtsProgress(0);
             };
@@ -1273,7 +1364,7 @@
             
             // Create a timer to simulate progress
             progressInterval = setInterval(() => {
-                if (isTtsPlaying) {
+                if (appState.isTtsPlaying) {
                     const elapsed = Date.now() - startTime;
                     const estimatedDuration = text.length * 80; // Average 80ms per character
                     const progress = Math.min(100, (elapsed / estimatedDuration) * 100);
@@ -1284,36 +1375,41 @@
             }, 100);
 
             // Store interval reference
-            ttsUtterance.progressInterval = progressInterval;
+            appState.ttsUtterance.progressInterval = progressInterval;
 
             // Start speech synthesis
-            speechSynthesis.speak(ttsUtterance);
+            speechSynthesis.speak(appState.ttsUtterance);
         }
 
         function pauseTts() {
-            if (isTtsPlaying && ttsUtterance) {
+            if (appState.isTtsPlaying && appState.ttsUtterance) {
                 speechSynthesis.pause();
-                isTtsPlaying = false;
+                appState.isTtsPlaying = false;
                 console.log('TTS paused');
             }
         }
 
         function resumeTts() {
-            if (!isTtsPlaying && ttsUtterance) {
+            if (!appState.isTtsPlaying && appState.ttsUtterance) {
                 speechSynthesis.resume();
-                isTtsPlaying = true;
+                appState.isTtsPlaying = true;
                 console.log('TTS resumed');
             }
         }
 
         function stopTts() {
-            if (ttsUtterance) {
-                speechSynthesis.cancel();
-                clearInterval(ttsUtterance.progressInterval);
-                isTtsPlaying = false;
+            if (appState.ttsUtterance) {
+                // Clear any progress intervals
+                if (appState.ttsUtterance.progressInterval) {
+                    clearInterval(appState.ttsUtterance.progressInterval);
+                    appState.ttsUtterance.progressInterval = null;
+                }
+                
+                window.speechSynthesis.cancel();
+                appState.isTtsPlaying = false;
                 document.getElementById('ttsPlayPause').textContent = '▶️';
                 updateTtsProgress(0);
-                ttsUtterance = null;
+                appState.ttsUtterance = null;
                 console.log('TTS stopped');
             }
         }
@@ -1325,70 +1421,121 @@
             }
         }
 
-        // ==================== CORE LOGIC ====================
+        // ==================== CORE LOGIC WITH BETTER ERROR HANDLING ====================
 
         async function performTruthQuery(query, challengeResponse = '') {
-            if (!query?.trim()) return showMessage('Query required.');
-            if (isChallenging) return;
+            if (!query?.trim()) {
+                showMessage('Please enter a question first.');
+                return;
+            }
+            
+            if (appState.isChallenging) {
+                showMessage('Please answer the challenge first...');
+                return;
+            }
 
-            openModal();
+            // More specific error messages
             const container = document.getElementById('resultContainer');
-            container.innerHTML = `<div class="conversation-block"><h4>Query: ${query}</h4><div class="content">Thinking...</div></div>`;
+            
+            openModal();
+            showLoadingState(container, '⏳ Thinking... Please wait.');
 
             try {
                 const parse = await loadMarked();
                 const payload = {
                     input: query,
-                    model: MODEL
+                    model: appState.MODEL
                 };
 
                 if (challengeResponse) {
                     payload.challengeResponse = challengeResponse;
                 }
 
-                // Add session context for better follow-ups
                 const sessionContext = getSessionContext();
                 if (sessionContext) {
                     payload.context = sessionContext;
                 }
 
+                showMessage('🔄 Sending to AI...', 1500);
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
                 });
 
+                clearTimeout(timeoutId);
                 const data = await res.json();
 
                 if (!res.ok) {
-                    if (data.error === 'CHALLENGE_FAILED' && !isChallenging) {
-                        isChallenging = true;
-                        const pass = await promptForPassphrase(data.challengeQuestion);
-                        isChallenging = false;
-                        return performTruthQuery(query, pass);
+                    if (data.error === 'CHALLENGE_FAILED' && !appState.isChallenging) {
+                        appState.isChallenging = true;
+                        const pass = prompt('🔐 ' + (data.challengeQuestion || 'Access requires passphrase:'));
+                        appState.isChallenging = false;
+                        if (pass) {
+                            return performTruthQuery(query, pass);
+                        } else {
+                            throw new Error('Access denied - no passphrase provided');
+                        }
                     }
-                    throw new Error(data.error || 'Unknown error');
+                    
+                    // More helpful error messages
+                    let errorMsg = 'Unknown error occurred';
+                    if (res.status === 404) errorMsg = 'AI service not found';
+                    else if (res.status === 429) errorMsg = 'Too many requests - please wait';
+                    else if (res.status === 500) errorMsg = 'AI service is having issues';
+                    else if (data.error) errorMsg = data.error;
+                    
+                    throw new Error(errorMsg);
                 }
 
-                // SUCCESS: Save to local storage
-                saveToLocalHistory(query, data.answer, MODEL);
+                // Success!
+                saveToLocalHistory(query, data.answer, appState.MODEL);
+                showMessage('✅ Answer ready!', 2000);
 
                 container.innerHTML = `
                     <div class="conversation-block">
-                        <h4>Query: ${query}</h4>
+                        <h4>❓ Query: ${query}</h4>
                         <div class="content">${parse(data.answer)}</div>
-                        <small>Model: ${data.model} • ${new Date(data.created).toLocaleString()}</small>
-                        ${data.cached ? '<br><small><em>(Cached)</em></small>' : ''}
+                        <small>🤖 ${data.model} • ${new Date(data.created).toLocaleString()}</small>
+                        ${data.cached ? '<small><br>📦 <em>(Cached - faster response)</em></small>' : ''}
                     </div>`;
 
                 renderCombinedHistory();
 
             } catch (err) {
-                container.innerHTML = `<div class="conversation-block"><h4>Query: ${query}</h4><div class="content">Error: ${err.message}</div></div>`;
-                showMessage('Query failed. Saved locally only.');
-
-                // Fallback: Save query locally even if API fails
-                saveToLocalHistory(query, `Error: ${err.message}`, MODEL);
+                console.error('Query error:', err);
+                
+                let errorMessage = 'Something went wrong';
+                if (err.name === 'AbortError') {
+                    errorMessage = 'Request timed out - please try again';
+                } else if (!navigator.onLine) {
+                    errorMessage = 'No internet connection';
+                } else if (err.message.includes('challenge')) {
+                    errorMessage = 'Challenge failed - check your passphrase';
+                } else {
+                    errorMessage = err.message || 'Unknown error';
+                }
+                
+                container.innerHTML = `
+                    <div class="conversation-block">
+                        <h4>❓ Query: ${query}</h4>
+                        <div class="content" style="color: #d32f2f;">
+                            ⚠️ <strong>Error:</strong> ${errorMessage}
+                            <br><br>
+                            <em>💾 Your query has been saved locally so you don't lose it.</em>
+                        </div>
+                    </div>`;
+                
+                // Always save locally as backup
+                saveToLocalHistory(query, `❌ Error: ${err.message}`, appState.MODEL);
+                
+                showMessage('❌ ' + errorMessage + ' - Saved locally', 4000);
+                renderCombinedHistory();
             }
         }
 
@@ -1411,13 +1558,20 @@
 
         // ==================== EVENT LISTENERS ====================
 
-        // Enter key no longer sends - allow multi-line
+        // Enter key support (multi-line)
         document.getElementById('queryInput').addEventListener('keydown', e => {
-
-            // Optional: Shift+Enter for new line if needed, but default is fine for paragraphs
+            // Ctrl+Enter or Cmd+Enter to send
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                const input = document.getElementById('queryInput');
+                if (input.value.trim()) {
+                    performTruthQuery(input.value);
+                    input.value = '';
+                }
+            }
         });
 
-        // Enter button now properly works
+        // Enter button
         document.getElementById('enterButton').addEventListener('click', () => {
             const input = document.getElementById('queryInput');
             if (input.value.trim()) {
@@ -1426,17 +1580,19 @@
             }
         });
 
+        // Modal controls
         document.getElementById('historyToggle').addEventListener('click', toggleHistory);
         document.getElementById('newChatBtn').addEventListener('click', newChat);
         document.getElementById('closeHistory').addEventListener('click', toggleHistory);
         document.getElementById('close-modal').addEventListener('click', closeModal);
 
+        // Copy result
         document.getElementById('copyResult').addEventListener('click', () => {
             const text = document.querySelector('.conversation-block .content')?.innerText || '';
             copyToClipboard(text);
         });
 
-        // ==================== FIXED TTS BUTTON FOR HISTORY ITEMS ====================
+        // TTS functionality
         document.getElementById('ttsBtn').addEventListener('click', function() {
             let text = '';
             
@@ -1447,8 +1603,8 @@
             }
             
             // If we're dealing with history item content
-            if (!text.trim() && currentHistoryId) {
-                const historyItem = localHistory.find(item => item.id === currentHistoryId);
+            if (!text.trim() && appState.currentHistoryId) {
+                const historyItem = appState.localHistory.find(item => item.id === appState.currentHistoryId);
                 if (historyItem && historyItem.answer) {
                     text = historyItem.answer;
                 }
@@ -1457,7 +1613,7 @@
             // Validate text exists
             if (text.trim()) {
                 openTtsMiniModal();
-                if (!isTtsPlaying) {
+                if (!appState.isTtsPlaying) {
                     console.log('Starting TTS with:', text.substring(0, 100) + '...');
                     startTts(text);
                 } else {
@@ -1470,20 +1626,16 @@
             }
         });
 
-        // ==================== FIXED PLAYER CONTROLS ====================
         document.getElementById('ttsMiniClose').addEventListener('click', closeTtsMiniModal);
-
         document.getElementById('ttsPlayPause').addEventListener('click', function() {
-            // Try to get text from current conversation
             const contentElement = document.querySelector('.conversation-block .content');
             const text = contentElement ? contentElement.innerText || contentElement.textContent : '';
             
-            // Check if we have a text to process
             if (text.trim()) {
-                if (isTtsPlaying) {
+                if (appState.isTtsPlaying) {
                     console.log('Pausing TTS');
                     pauseTts();
-                } else if (ttsUtterance) {
+                } else if (appState.ttsUtterance) {
                     console.log('Resuming TTS');
                     resumeTts();
                 } else {
@@ -1495,18 +1647,19 @@
                 console.warn('No text found for TTS');
             }
         });
-
         document.getElementById('ttsStop').addEventListener('click', stopTts);
 
+        // Save locally
         document.getElementById('saveLocal').addEventListener('click', () => {
             const query = document.querySelector('.conversation-block h4')?.textContent.replace('Query: ', '') || '';
             const answer = document.querySelector('.conversation-block .content')?.innerText || '';
             if (query && answer) {
-                saveToLocalHistory(query, answer, MODEL);
+                saveToLocalHistory(query, answer, appState.MODEL);
                 showMessage('Saved to local history');
             }
         });
 
+        // History management
         document.getElementById('exportHistory').addEventListener('click', () => {
             const exported = exportLocalHistory();
             showMessage(`Exported ${exported.conversations.length} conversations`);
@@ -1550,11 +1703,12 @@
 
         // Model selector in menu
         document.getElementById('modelSelector').addEventListener('change', e => {
-            MODEL = e.target.value;
-            localStorage.setItem('truth-model', MODEL);
+            appState.MODEL = e.target.value;
+            localStorage.setItem('truth-model', appState.MODEL);
             showMessage(`Model: ${e.target.options[e.target.selectedIndex].text}`);
         });
 
+        // Export prompt
         document.getElementById('exportPromptBtn').addEventListener('click', () => {
             exportLocalHistory();
         });
@@ -1562,11 +1716,11 @@
         // Edit Modal Listeners
         document.getElementById('close-edit-modal').addEventListener('click', closeEditModal);
         document.getElementById('saveEdit').addEventListener('click', () => {
-            if (editingEntry) {
-                editingEntry.title = document.getElementById('editTitle').value.trim() || undefined;
-                editingEntry.query = document.getElementById('editQuery').value.trim();
-                editingEntry.answer = document.getElementById('editAnswer').value.trim();
-                localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(localHistory));
+            if (appState.editingEntry) {
+                appState.editingEntry.title = document.getElementById('editTitle').value.trim() || undefined;
+                appState.editingEntry.query = document.getElementById('editQuery').value.trim();
+                appState.editingEntry.answer = document.getElementById('editAnswer').value.trim();
+                localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
                 closeEditModal();
                 renderCombinedHistory();
                 showMessage('Conversation updated');
@@ -1575,6 +1729,22 @@
 
         document.getElementById('editAnswer').addEventListener('input', (e) => {
             updateEditPreview(e.target.value);
+        });
+
+        // ==================== ACCESSIBILITY - KEYBOARD NAVIGATION ====================
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                // Close any open modals
+                if (document.getElementById('modal-overlay').classList.contains('active')) {
+                    closeModal();
+                }
+                if (document.getElementById('edit-modal-overlay').classList.contains('active')) {
+                    closeEditModal();
+                }
+                if (document.getElementById('ttsMiniModal').classList.contains('active')) {
+                    closeTtsMiniModal();
+                }
+            }
         });
 
         // ==================== INITIALIZATION ====================
@@ -1589,7 +1759,7 @@
                 const selector = document.getElementById('modelSelector');
                 if ([...selector.options].some(o => o.value === savedModel)) {
                     selector.value = savedModel;
-                    MODEL = savedModel;
+                    appState.MODEL = savedModel;
                 }
             }
 
@@ -1610,11 +1780,11 @@
             }, 100);
 
             // Show stats
-            console.log(`Truth Engine Ready - Local: ${localHistory.length} conversations`);
+            console.log(`Truth Engine Ready - Local: ${appState.localHistory.length} conversations`);
         }
 
         // Start the app
         initializeApp();
     </script>
 </body>
-</html>  
+</html>
