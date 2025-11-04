@@ -871,10 +871,10 @@
         <div class="menu-section">
             <div class="menu-section-title">Data Management</div>
             <div class="history-actions">
-                <button id="exportHistory">Export All</button>
-                <button id="importTrigger">Import</button>
+                <button id="exportHistory">📦 Session Backup</button>
+                <button id="importTrigger">📥 Import Session</button>
                 <input type="file" id="importHistory" accept=".json">
-                <button id="clearLocalHistory">Clear Local</button>
+                <button id="clearLocalHistory">🗑️ Clear Local</button>
             </div>
         </div>
 
@@ -942,7 +942,8 @@
     </div>
 
     <script>
-        const API_URL = 'https://truthengine.ai-n.workers.dev';
+        // FIXED API URL - points to correct endpoint
+        const API_URL = 'https://truthengine.ai-n.workers.dev/api/ai/truth';
 
         // Storage Keys - LOCAL is primary
         const LOCAL_HISTORY_KEY = 'TRUTH_ENGINE_LOCAL_HISTORY';
@@ -979,7 +980,7 @@
                 </div>`;
         }
 
-        // ==================== IMPROVED HISTORY MANAGEMENT ====================
+        // ==================== ENHANCED HISTORY MANAGEMENT ====================
 
         function saveToLocalHistory(query, answer, model) {
             // Prevent duplicates more intelligently
@@ -1034,12 +1035,21 @@
             return true;
         }
 
+        // ENHANCED EXPORT - Full session state
         function exportLocalHistory() {
             const exportData = {
-                version: "2.0",
+                version: "3.0",
                 exportedAt: new Date().toISOString(),
-                source: "truth-engine-local",
-                conversations: appState.localHistory
+                source: "truth-engine-free-tier",
+                // EVERYTHING gets exported
+                conversations: appState.localHistory,
+                currentModel: appState.MODEL,
+                theme: localStorage.getItem('theme') || 'silvery',
+                settings: {
+                    // Add any other settings you want to preserve
+                    localHistoryCount: appState.localHistory.length,
+                    hasRemoteHistory: appState.remoteHistory.length > 0
+                }
             };
 
             const dataStr = JSON.stringify(exportData, null, 2);
@@ -1048,7 +1058,7 @@
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `truth-engine-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `truth-engine-full-session-${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1057,6 +1067,7 @@
             return exportData;
         }
 
+        // ENHANCED IMPORT - Restores EVERYTHING
         function importLocalHistory(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1069,7 +1080,7 @@
                             throw new Error('Invalid file format: missing conversations array');
                         }
 
-                        // Merge imported conversations with existing local history
+                        // MERGE imported conversations with existing local history
                         const newEntries = importedData.conversations.filter(conv =>
                             conv.query && conv.answer && !appState.localHistory.some(existing =>
                                 existing.query === conv.query && existing.answer === conv.answer
@@ -1079,10 +1090,29 @@
                         appState.localHistory = [...newEntries, ...appState.localHistory];
                         localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
 
+                        // RESTORE EVERYTHING ELSE
+                        if (importedData.currentModel) {
+                            appState.MODEL = importedData.currentModel;
+                            localStorage.setItem('truth-model', appState.MODEL);
+                            
+                            // Update UI
+                            const selector = document.getElementById('modelSelector');
+                            if ([...selector.options].some(o => o.value === appState.MODEL)) {
+                                selector.value = appState.MODEL;
+                            }
+                        }
+
+                        if (importedData.theme) {
+                            document.body.dataset.mode = importedData.theme;
+                            localStorage.setItem('theme', importedData.theme);
+                        }
+
                         resolve({
                             success: true,
                             imported: newEntries.length,
-                            total: appState.localHistory.length
+                            total: appState.localHistory.length,
+                            restoredModel: importedData.currentModel || 'none',
+                            restoredTheme: importedData.theme || 'none'
                         });
                     } catch (error) {
                         reject(error);
@@ -1543,7 +1573,8 @@
             if (!confirm('Start new chat? This clears remote context but keeps your local history.')) return;
 
             try {
-                const res = await fetch(`${API_URL}/conversation/new`, { method: 'POST' });
+                // FIXED: Direct URL for new chat endpoint
+                const res = await fetch('https://truthengine.ai-n.workers.dev/conversation/new', { method: 'POST' });
                 if (res.ok) {
                     showMessage('New chat started. Remote context cleared.');
                     renderCombinedHistory();
@@ -1662,7 +1693,7 @@
         // History management
         document.getElementById('exportHistory').addEventListener('click', () => {
             const exported = exportLocalHistory();
-            showMessage(`Exported ${exported.conversations.length} conversations`);
+            showMessage(`📦 Full session exported: ${exported.conversations.length} conversations + settings`);
         });
 
         document.getElementById('importTrigger').addEventListener('click', () => {
