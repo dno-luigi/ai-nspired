@@ -942,12 +942,25 @@
     </div>
 
     <script>
-        // FIXED API URL - points to correct endpoint
-        const API_URL = 'https://truthengine.ai-n.workers.dev/api/ai/truth';
-
+        // SERVER API ENDPOINTS - Consistent with server normalization
+        const API_BASE = 'https://truthengine.ai-n.workers.dev/api/ai';
+        const API_URL = `${API_BASE}/truth`;
+        
         // Storage Keys - LOCAL is primary
         const LOCAL_HISTORY_KEY = 'TRUTH_ENGINE_LOCAL_HISTORY';
         const REMOTE_HISTORY_KEY = 'TRUTH_ENGINE_REMOTE_SYNC';
+
+        // SERVER NORMALIZATION FUNCTIONS - Match server exactly
+        function normalizeQuery(query) {
+            return query.trim().toLowerCase()
+                .replace(/[^\w\s]/g, "")  // Remove punctuation  
+                .replace(/\s+/g, "-")     // Replace spaces with hyphens
+                .substring(0, 100);       // Limit to 100 chars
+        }
+
+        function buildCacheKey(input) {
+            return `truth:${normalizeQuery(input)}`;
+        }
 
         // Better State Management - Single Object
         const appState = {
@@ -983,22 +996,26 @@
         // ==================== ENHANCED HISTORY MANAGEMENT ====================
 
         function saveToLocalHistory(query, answer, model) {
+            // Use normalized query for consistency
+            const normalizedQuery = normalizeQuery(query);
+            
             // Prevent duplicates more intelligently
             const exists = appState.localHistory.some(entry => 
-                entry.query.trim().toLowerCase() === query.trim().toLowerCase() && 
+                normalizeQuery(entry.query) === normalizedQuery && 
                 entry.answer.trim() === answer.trim()
             );
             
             if (exists) {
                 console.log('Duplicate entry prevented');
                 return appState.localHistory.find(entry => 
-                    entry.query.trim().toLowerCase() === query.trim().toLowerCase()
+                    normalizeQuery(entry.query) === normalizedQuery
                 );
             }
 
             const entry = {
                 id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
                 query: query.trim(),
+                normalizedQuery: normalizedQuery,
                 answer: answer.trim(),
                 model: model,
                 timestamp: Math.floor(Date.now() / 1000),
@@ -1081,11 +1098,20 @@
                         }
 
                         // MERGE imported conversations with existing local history
-                        const newEntries = importedData.conversations.filter(conv =>
-                            conv.query && conv.answer && !appState.localHistory.some(existing =>
-                                existing.query === conv.query && existing.answer === conv.answer
-                            )
-                        );
+                        const newEntries = importedData.conversations.filter(conv => {
+                            if (!conv.query || !conv.answer) return false;
+                            
+                            const convNormalized = normalizeQuery(conv.query);
+                            return !appState.localHistory.some(existing =>
+                                normalizeQuery(existing.query) === convNormalized && 
+                                existing.answer.trim() === conv.answer.trim()
+                            );
+                        });
+
+                        // Add normalizedQuery to new entries
+                        newEntries.forEach(entry => {
+                            entry.normalizedQuery = normalizeQuery(entry.query);
+                        });
 
                         appState.localHistory = [...newEntries, ...appState.localHistory];
                         localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
@@ -1214,7 +1240,7 @@
                 <li class="history-item" data-id="${item.id}" tabindex="0" role="button" aria-label="Conversation from ${dateStr}">
                     <div class="history-item-content">
                         <p>${display || 'Empty conversation'}</p>
-                        <small>🤖 ${item.model} • 📅 ${dateStr} ${timeStr} • 📝 ${item.wordCount || 0} words</small>
+                        <small>🤖 ${item.model} • 📅 ${dateStr} ${timeStr} • 📝 ${item.wordCount || 0} words • 🔑 ${item.normalizedQuery || 'N/A'}</small>
                     </div>
                     <button class="menu-btn" title="Options" aria-label="More options">⋯</button>
                     <div class="item-menu" role="menu">
@@ -1303,13 +1329,14 @@
             const container = document.getElementById('resultContainer');
             const displayTitle = entry.title ? `<h3>${entry.title}</h3>` : '';
             const cacheIndicator = entry.source === 'local' ? '📱 Local' : '☁️ Remote';
+            const cacheKeyInfo = entry.normalizedQuery ? `<br><small>🔑 Cache Key: ${buildCacheKey(entry.query)}</small>` : '';
             
             container.innerHTML = `
                 <div class="conversation-block">
                     ${displayTitle}
                     <h4>❓ Query: ${entry.query}</h4>
                     <div class="content">${parse(entry.answer || 'No answer stored')}</div>
-                    <small>🤖 ${entry.model} • 📅 ${new Date(entry.timestamp * 1000).toLocaleString()} • ${cacheIndicator}</small>
+                    <small>🤖 ${entry.model} • 📅 ${new Date(entry.timestamp * 1000).toLocaleString()} • ${cacheIndicator}${cacheKeyInfo}</small>
                 </div>`;
             
             openModal();
@@ -1451,7 +1478,7 @@
             }
         }
 
-        // ==================== CORE LOGIC WITH BETTER ERROR HANDLING ====================
+        // ==================== CORE LOGIC WITH SERVER CONSISTENCY ====================
 
         async function performTruthQuery(query, challengeResponse = '') {
             if (!query?.trim()) {
@@ -1473,7 +1500,7 @@
             try {
                 const parse = await loadMarked();
                 const payload = {
-                    input: query,
+                    input: query,  // Send raw query - server will normalize
                     model: appState.MODEL
                 };
 
@@ -1524,15 +1551,22 @@
                 }
 
                 // Success!
-                saveToLocalHistory(query, data.answer, appState.MODEL);
+                const normalizedQuery = normalizeQuery(query);
+                const entry = saveToLocalHistory(query, data.answer, appState.MODEL);
+                entry.normalizedQuery = normalizedQuery; // Ensure normalized query is stored
+                
                 showMessage('✅ Answer ready!', 2000);
 
+                // Show cache key for debugging
+                const cacheKey = buildCacheKey(query);
+                
                 container.innerHTML = `
                     <div class="conversation-block">
                         <h4>❓ Query: ${query}</h4>
                         <div class="content">${parse(data.answer)}</div>
                         <small>🤖 ${data.model} • ${new Date(data.created).toLocaleString()}</small>
                         ${data.cached ? '<small><br>📦 <em>(Cached - faster response)</em></small>' : ''}
+                        <small><br>🔑 Cache Key: ${cacheKey}</small>
                     </div>`;
 
                 renderCombinedHistory();
@@ -1558,11 +1592,15 @@
                             ⚠️ <strong>Error:</strong> ${errorMessage}
                             <br><br>
                             <em>💾 Your query has been saved locally so you don't lose it.</em>
+                            <br><br>
+                            <small>🔑 Would use cache key: ${buildCacheKey(query)}</small>
                         </div>
                     </div>`;
                 
                 // Always save locally as backup
-                saveToLocalHistory(query, `❌ Error: ${err.message}`, appState.MODEL);
+                const normalizedQuery = normalizeQuery(query);
+                const entry = saveToLocalHistory(query, `❌ Error: ${err.message}`, appState.MODEL);
+                entry.normalizedQuery = normalizedQuery;
                 
                 showMessage('❌ ' + errorMessage + ' - Saved locally', 4000);
                 renderCombinedHistory();
@@ -1574,7 +1612,7 @@
 
             try {
                 // FIXED: Direct URL for new chat endpoint
-                const res = await fetch('https://truthengine.ai-n.workers.dev/conversation/new', { method: 'POST' });
+                const res = await fetch(`${API_BASE}/conversation/new`, { method: 'POST' });
                 if (res.ok) {
                     showMessage('New chat started. Remote context cleared.');
                     renderCombinedHistory();
@@ -1685,7 +1723,8 @@
             const query = document.querySelector('.conversation-block h4')?.textContent.replace('Query: ', '') || '';
             const answer = document.querySelector('.conversation-block .content')?.innerText || '';
             if (query && answer) {
-                saveToLocalHistory(query, answer, appState.MODEL);
+                const entry = saveToLocalHistory(query, answer, appState.MODEL);
+                entry.normalizedQuery = normalizeQuery(query);
                 showMessage('Saved to local history');
             }
         });
@@ -1751,6 +1790,7 @@
                 appState.editingEntry.title = document.getElementById('editTitle').value.trim() || undefined;
                 appState.editingEntry.query = document.getElementById('editQuery').value.trim();
                 appState.editingEntry.answer = document.getElementById('editAnswer').value.trim();
+                appState.editingEntry.normalizedQuery = normalizeQuery(appState.editingEntry.query);
                 localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
                 closeEditModal();
                 renderCombinedHistory();
@@ -1810,8 +1850,9 @@
                 }, 3500);
             }, 100);
 
-            // Show stats
+            // Show stats with normalization info
             console.log(`Truth Engine Ready - Local: ${appState.localHistory.length} conversations`);
+            console.log(`Normalization function loaded: ${normalizeQuery('Hello World!') === 'hello-world' ? '✅' : '❌'}`);
         }
 
         // Start the app
