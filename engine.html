@@ -1854,7 +1854,21 @@
             console.log(`Truth Engine Ready - Local: ${appState.localHistory.length} conversations`);
             console.log(`Normalization function loaded: ${normalizeQuery('Hello World!') === 'hello-world' ? '✅' : '❌'}`);
         }
+        // Function to get query parameter from URL
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
 
+        // On page load, check for query parameter
+        window.onload = function() {
+            const query = getQueryParam('q');
+            if (query) {
+                document.getElementById('queryInput').value = decodeURIComponent(query.replace(/\+/g, ' '));
+                // Automatically submit the query
+                document.getElementById('enterButton').click();
+            }
+        }
         // Start the app
         initializeApp();
     </script>
