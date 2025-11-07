@@ -942,935 +942,877 @@
     </div>
 
     <script>
-        // SERVER API ENDPOINTS - Consistent with server normalization
-        const API_BASE = 'https://truthengine.ai-n.workers.dev/api/ai';
-        const API_URL = `${API_BASE}/truth`;
-        
-        // Storage Keys - LOCAL is primary
-        const LOCAL_HISTORY_KEY = 'TRUTH_ENGINE_LOCAL_HISTORY';
-        const REMOTE_HISTORY_KEY = 'TRUTH_ENGINE_REMOTE_SYNC';
+    // SERVER API ENDPOINTS - Consistent with server normalization
+    const API_BASE = 'https://truthengine.ai-n.workers.dev/api/ai';
+    const API_URL = `${API_BASE}/truth`;
+    
+    // Storage Keys - LOCAL is primary
+    const LOCAL_HISTORY_KEY = 'TRUTH_ENGINE_LOCAL_HISTORY';
+    const REMOTE_HISTORY_KEY = 'TRUTH_ENGINE_REMOTE_SYNC';
+    const SESSION_KEY = 'TRUTH_ENGINE_SESSION_ID';
 
-        // SERVER NORMALIZATION FUNCTIONS - Match server exactly
-        function normalizeQuery(query) {
-            return query.trim().toLowerCase()
-                .replace(/[^\w\s]/g, "")  // Remove punctuation  
-                .replace(/\s+/g, "-")     // Replace spaces with hyphens
-                .substring(0, 100);       // Limit to 100 chars
+    // SERVER NORMALIZATION FUNCTIONS - Match server exactly
+    function normalizeQuery(query) {
+        return query.trim().toLowerCase()
+            .replace(/[^\w\s]/g, "")   // Remove punctuation
+            .replace(/\s+/g, "-")      // Replace spaces with hyphens
+            .substring(0, 100);        // Limit to 100 chars
+    }
+
+    function buildCacheKey(input) {
+        return `truth:${normalizeQuery(input)}`;
+    }
+
+    // Better State Management - Single Object
+    const appState = {
+        localHistory: JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY)) || [],
+        remoteHistory: JSON.parse(localStorage.getItem(REMOTE_HISTORY_KEY)) || [],
+        MODEL: localStorage.getItem('truth-model') || 'llama-3-8b',
+        isChallenging: false,
+        ttsUtterance: null,
+        isTtsPlaying: false,
+        editingEntry: null,
+        currentHistoryId: null,
+        sessionId: localStorage.getItem(SESSION_KEY) || null
+    };
+
+    function setSessionId(id) {
+        if (!id) return;
+        appState.sessionId = id;
+        localStorage.setItem(SESSION_KEY, id);
+    }
+
+    // Memory Leak Prevention
+    window.addEventListener('beforeunload', function() {
+        if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
+    });
+
+    // ==================== SMART LOADING STATES ====================
+    function showLoadingState(container, message = "Loading...") {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                <div style="color: var(--secondary-text);">${message}</div>
+                <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--secondary-text);">
+                    This usually takes 3-10 seconds...
+                </div>
+            </div>`;
+    }
+
+    // ==================== ENHANCED HISTORY MANAGEMENT ====================
+
+    function saveToLocalHistory(query, answer, model) {
+        const normalizedQuery = normalizeQuery(query);
+
+        const exists = appState.localHistory.some(entry =>
+            normalizeQuery(entry.query) === normalizedQuery &&
+            entry.answer.trim() === answer.trim()
+        );
+        if (exists) {
+            return appState.localHistory.find(entry =>
+                normalizeQuery(entry.query) === normalizedQuery
+            );
         }
 
-        function buildCacheKey(input) {
-            return `truth:${normalizeQuery(input)}`;
-        }
-
-        // Better State Management - Single Object
-        const appState = {
-            localHistory: JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY)) || [],
-            remoteHistory: JSON.parse(localStorage.getItem(REMOTE_HISTORY_KEY)) || [],
-            MODEL: localStorage.getItem('truth-model') || 'WORKERS_AI',
-            isChallenging: false,
-            ttsUtterance: null,
-            isTtsPlaying: false,
-            editingEntry: null,
-            currentHistoryId: null
+        const entry = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            query: query.trim(),
+            normalizedQuery,
+            answer: answer.trim(),
+            model,
+            timestamp: Math.floor(Date.now() / 1000),
+            source: 'local',
+            wordCount: answer.split(' ').length,
+            characterCount: answer.length
         };
 
-        // Memory Leak Prevention
-        window.addEventListener('beforeunload', function() {
-            if (window.speechSynthesis) {
-                window.speechSynthesis.cancel();
-            }
-        });
-
-        // ==================== SMART LOADING STATES ====================
-        function showLoadingState(container, message = "Loading...") {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 2rem;">
-                    <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
-                    <div style="color: var(--secondary-text);">${message}</div>
-                    <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--secondary-text);">
-                        This usually takes 3-10 seconds...
-                    </div>
-                </div>`;
+        appState.localHistory.unshift(entry);
+        if (appState.localHistory.length > 50) {
+            appState.localHistory = appState.localHistory.slice(0, 50);
         }
 
-        // ==================== ENHANCED HISTORY MANAGEMENT ====================
+        localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
 
-        function saveToLocalHistory(query, answer, model) {
-            // Use normalized query for consistency
-            const normalizedQuery = normalizeQuery(query);
-            
-            // Prevent duplicates more intelligently
-            const exists = appState.localHistory.some(entry => 
-                normalizeQuery(entry.query) === normalizedQuery && 
-                entry.answer.trim() === answer.trim()
-            );
-            
-            if (exists) {
-                console.log('Duplicate entry prevented');
-                return appState.localHistory.find(entry => 
-                    normalizeQuery(entry.query) === normalizedQuery
-                );
-            }
-
-            const entry = {
-                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                query: query.trim(),
-                normalizedQuery: normalizedQuery,
-                answer: answer.trim(),
-                model: model,
-                timestamp: Math.floor(Date.now() / 1000),
-                source: 'local',
-                wordCount: answer.split(' ').length,
-                characterCount: answer.length
-            };
-
-            appState.localHistory.unshift(entry);
-            
-            // Smart limits: Keep more recent entries
-            if (appState.localHistory.length > 50) {
-                appState.localHistory = appState.localHistory.slice(0, 50);
-            }
-
-            localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
-            
-            // Show storage size occasionally
-            const sizeKB = Math.round(JSON.stringify(appState.localHistory).length / 1024);
-            if (sizeKB > 400) {
-                showMessage(`⚠️ Local storage at ${sizeKB}KB - consider exporting`, 3000);
-            }
-            
-            return entry;
+        const sizeKB = Math.round(JSON.stringify(appState.localHistory).length / 1024);
+        if (sizeKB > 400) {
+            showMessage(`⚠️ Local storage at ${sizeKB}KB - consider exporting`, 3000);
         }
 
-        function getLocalHistory() {
-            return appState.localHistory;
-        }
+        return entry;
+    }
 
-        function clearLocalHistory() {
-            appState.localHistory = [];
-            localStorage.setItem(LOCAL_HISTORY_KEY, '[]');
-            return true;
-        }
+    function getLocalHistory() {
+        return appState.localHistory;
+    }
 
-        // ENHANCED EXPORT - Full session state
-        function exportLocalHistory() {
-            const exportData = {
-                version: "3.0",
-                exportedAt: new Date().toISOString(),
-                source: "truth-engine-free-tier",
-                // EVERYTHING gets exported
-                conversations: appState.localHistory,
-                currentModel: appState.MODEL,
-                theme: localStorage.getItem('theme') || 'silvery',
-                settings: {
-                    // Add any other settings you want to preserve
-                    localHistoryCount: appState.localHistory.length,
-                    hasRemoteHistory: appState.remoteHistory.length > 0
+    function clearLocalHistory() {
+        appState.localHistory = [];
+        localStorage.setItem(LOCAL_HISTORY_KEY, '[]');
+        return true;
+    }
+
+    function exportLocalHistory() {
+        const exportData = {
+            version: "3.0",
+            exportedAt: new Date().toISOString(),
+            source: "truth-engine-free-tier",
+            conversations: appState.localHistory,
+            currentModel: appState.MODEL,
+            theme: localStorage.getItem('theme') || 'silvery',
+            settings: {
+                localHistoryCount: appState.localHistory.length,
+                hasRemoteHistory: appState.remoteHistory.length > 0
+            }
+        };
+
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `truth-engine-full-session-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        return exportData;
+    }
+
+    function importLocalHistory(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (!importedData.conversations || !Array.isArray(importedData.conversations)) {
+                        throw new Error('Invalid file format: missing conversations array');
+                    }
+
+                    const newEntries = importedData.conversations.filter(conv => {
+                        if (!conv.query || !conv.answer) return false;
+                        const convNormalized = normalizeQuery(conv.query);
+                        return !appState.localHistory.some(existing =>
+                            normalizeQuery(existing.query) === convNormalized &&
+                            existing.answer.trim() === conv.answer.trim()
+                        );
+                    });
+
+                    newEntries.forEach(entry => {
+                        entry.normalizedQuery = normalizeQuery(entry.query);
+                    });
+
+                    appState.localHistory = [...newEntries, ...appState.localHistory];
+                    localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
+
+                    if (importedData.currentModel) {
+                        appState.MODEL = importedData.currentModel;
+                        localStorage.setItem('truth-model', appState.MODEL);
+                        const selector = document.getElementById('modelSelector');
+                        if ([...selector.options].some(o => o.value === appState.MODEL)) {
+                            selector.value = appState.MODEL;
+                        }
+                    }
+
+                    if (importedData.theme) {
+                        document.body.dataset.mode = importedData.theme;
+                        localStorage.setItem('theme', importedData.theme);
+                    }
+
+                    resolve({
+                        success: true,
+                        imported: newEntries.length,
+                        total: appState.localHistory.length,
+                        restoredModel: importedData.currentModel || 'none',
+                        restoredTheme: importedData.theme || 'none'
+                    });
+                } catch (error) {
+                    reject(error);
                 }
             };
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsText(file);
+        });
+    }
 
-            const dataStr = JSON.stringify(exportData, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    function deleteFromLocalHistory(id) {
+        appState.localHistory = appState.localHistory.filter(entry => entry.id !== id);
+        localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
+        renderCombinedHistory();
+        showMessage('Conversation deleted');
+    }
 
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `truth-engine-full-session-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+    // ==================== SESSION MANAGEMENT ====================
 
-            return exportData;
+    function getSessionContext() {
+        return appState.localHistory.slice(0, 5).reverse().map(entry =>
+            `User: ${entry.query}\nAI: ${entry.answer}`
+        ).join('\n\n');
+    }
+
+    // ==================== UI FUNCTIONS ====================
+
+    function showMessage(msg, duration = 3000) {
+        const el = document.getElementById('customMessage');
+        el.textContent = msg;
+        el.classList.add('visible');
+        setTimeout(() => el.classList.remove('visible'), duration);
+    }
+
+    function showExportPrompt() {
+        const prompt = document.getElementById('exportPrompt');
+        prompt.classList.add('visible');
+        setTimeout(() => prompt.classList.remove('visible'), 5000);
+    }
+
+    async function loadMarked() {
+        if (window.marked) return window.marked.parse;
+
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+        document.head.appendChild(script);
+        return new Promise((resolve) => {
+            script.onload = () => resolve(window.marked.parse);
+            script.onerror = () => {
+                console.warn('Marked failed to load, using plain text');
+                resolve(text => text);
+            };
+        });
+    }
+
+    function copyToClipboard(text, msg = 'Copied!') {
+        navigator.clipboard.writeText(text).then(() => showMessage(msg));
+    }
+
+    async function promptForPassphrase(challengeQuestion) {
+        return prompt(challengeQuestion || 'What is the passphrase?') || '';
+    }
+
+    function openModal() {
+        document.getElementById('modal-overlay').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').classList.remove('active');
+        stopTts();
+        closeTtsMiniModal();
+        if (appState.localHistory.length > 0) showExportPrompt();
+    }
+
+    function toggleHistory() {
+        const panel = document.getElementById('historyPanel');
+        panel.classList.toggle('open');
+        if (panel.classList.contains('open')) renderCombinedHistory();
+    }
+
+    function renderCombinedHistory() {
+        const list = document.getElementById('historyList');
+        const allHistory = appState.localHistory.slice(0, 30);
+
+        if (allHistory.length === 0) {
+            list.innerHTML = '<li style="text-align: center; color: var(--secondary-text); padding: 2rem;">No conversations yet. Ask your first question!</li>';
+            return;
         }
 
-        // ENHANCED IMPORT - Restores EVERYTHING
-        function importLocalHistory(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const importedData = JSON.parse(e.target.result);
+        list.innerHTML = allHistory.map(item => {
+            const query = (item.query || '').trim();
+            const title = (item.title || '').trim();
+            const display = (title || query).slice(0, 50) + ((title || query).length > 50 ? '...' : '');
+            const dateStr = new Date(item.timestamp * 1000).toLocaleDateString();
+            const timeStr = new Date(item.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-                        // Validate import format
-                        if (!importedData.conversations || !Array.isArray(importedData.conversations)) {
-                            throw new Error('Invalid file format: missing conversations array');
-                        }
+            return `
+            <li class="history-item" data-id="${item.id}" tabindex="0" role="button" aria-label="Conversation from ${dateStr}">
+                <div class="history-item-content">
+                    <p>${display || 'Empty conversation'}</p>
+                    <small>🤖 ${item.model} • 📅 ${dateStr} ${timeStr} • 📝 ${item.wordCount || 0} words • 🔑 ${item.normalizedQuery || 'N/A'}</small>
+                </div>
+                <button class="menu-btn" title="Options" aria-label="More options">⋯</button>
+                <div class="item-menu" role="menu">
+                    <button class="copy-option" role="menuitem">📋 Copy</button>
+                    <button class="edit-option" role="menuitem">✏️ Edit</button>
+                    <button class="delete-option" role="menuitem">🗑️ Delete</button>
+                </div>
+            </li>`;
+        }).join('');
 
-                        // MERGE imported conversations with existing local history
-                        const newEntries = importedData.conversations.filter(conv => {
-                            if (!conv.query || !conv.answer) return false;
-                            
-                            const convNormalized = normalizeQuery(conv.query);
-                            return !appState.localHistory.some(existing =>
-                                normalizeQuery(existing.query) === convNormalized && 
-                                existing.answer.trim() === conv.answer.trim()
-                            );
-                        });
+        document.querySelectorAll('.history-item').forEach(item => {
+            const id = item.dataset.id;
+            const entry = appState.localHistory.find(ent => ent.id === id);
+            if (!entry) return;
 
-                        // Add normalizedQuery to new entries
-                        newEntries.forEach(entry => {
-                            entry.normalizedQuery = normalizeQuery(entry.query);
-                        });
+            const menuBtn = item.querySelector('.menu-btn');
+            const menu = item.querySelector('.item-menu');
 
-                        appState.localHistory = [...newEntries, ...appState.localHistory];
-                        localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
-
-                        // RESTORE EVERYTHING ELSE
-                        if (importedData.currentModel) {
-                            appState.MODEL = importedData.currentModel;
-                            localStorage.setItem('truth-model', appState.MODEL);
-                            
-                            // Update UI
-                            const selector = document.getElementById('modelSelector');
-                            if ([...selector.options].some(o => o.value === appState.MODEL)) {
-                                selector.value = appState.MODEL;
-                            }
-                        }
-
-                        if (importedData.theme) {
-                            document.body.dataset.mode = importedData.theme;
-                            localStorage.setItem('theme', importedData.theme);
-                        }
-
-                        resolve({
-                            success: true,
-                            imported: newEntries.length,
-                            total: appState.localHistory.length,
-                            restoredModel: importedData.currentModel || 'none',
-                            restoredTheme: importedData.theme || 'none'
-                        });
-                    } catch (error) {
-                        reject(error);
-                    }
-                };
-                reader.onerror = () => reject(new Error('Failed to read file'));
-                reader.readAsText(file);
+            menuBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                menu.classList.toggle('active');
             });
-        }
 
-        function deleteFromLocalHistory(id) {
-            appState.localHistory = appState.localHistory.filter(entry => entry.id !== id);
-            localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
-            renderCombinedHistory();
-            showMessage('Conversation deleted');
-        }
-
-        // ==================== SESSION MANAGEMENT ====================
-
-        function getSessionContext() {
-            // Return last 5 interactions for context
-            return appState.localHistory.slice(0, 5).reverse().map(entry =>
-                `User: ${entry.query}\nAI: ${entry.answer}`
-            ).join('\n\n');
-        }
-
-        // ==================== UI FUNCTIONS ====================
-
-        function showMessage(msg, duration = 3000) {
-            const el = document.getElementById('customMessage');
-            el.textContent = msg;
-            el.classList.add('visible');
-            setTimeout(() => el.classList.remove('visible'), duration);
-        }
-
-        function showExportPrompt() {
-            const prompt = document.getElementById('exportPrompt');
-            prompt.classList.add('visible');
-            setTimeout(() => prompt.classList.remove('visible'), 5000);
-        }
-
-        async function loadMarked() {
-            if (window.marked) return window.marked.parse;
-
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-            document.head.appendChild(script);
-            return new Promise((resolve, reject) => {
-                script.onload = () => resolve(window.marked.parse);
-                script.onerror = () => {
-                    console.warn('Marked failed to load, using plain text');
-                    resolve(text => text);
-                };
+            item.querySelector('.copy-option').addEventListener('click', () => {
+                copyToClipboard(`Q: ${entry.query}\nA: ${entry.answer || ''}`, '📋 Conversation copied!');
+                menu.classList.remove('active');
             });
-        }
 
-        function copyToClipboard(text, msg = 'Copied!') {
-            navigator.clipboard.writeText(text).then(() => showMessage(msg));
-        }
+            item.querySelector('.edit-option').addEventListener('click', () => {
+                openEditModal(entry);
+                menu.classList.remove('active');
+            });
 
-        async function promptForPassphrase(challengeQuestion) {
-            return prompt(challengeQuestion || 'What is the passphrase?') || '';
-        }
+            item.querySelector('.delete-option').addEventListener('click', () => {
+                if (confirm('🗑️ Delete this conversation? This cannot be undone.')) {
+                    deleteFromLocalHistory(id);
+                }
+                menu.classList.remove('active');
+            });
 
-        function openModal() {
-            document.getElementById('modal-overlay').classList.add('active');
-        }
+            item.addEventListener('click', async e => {
+                if (e.target.closest('.menu-btn, .item-menu')) return;
+                appState.currentHistoryId = id;
+                await showConversation(entry);
+            });
 
-        function closeModal() {
-            document.getElementById('modal-overlay').classList.remove('active');
-            stopTts();
-            closeTtsMiniModal();
-            if (appState.localHistory.length > 0) showExportPrompt();
-        }
-
-        function toggleHistory() {
-            const panel = document.getElementById('historyPanel');
-            panel.classList.toggle('open');
-            if (panel.classList.contains('open')) renderCombinedHistory();
-        }
-
-        function renderCombinedHistory() {
-            const list = document.getElementById('historyList');
-            const allHistory = appState.localHistory.slice(0, 30); // Show fewer, recent ones
-
-            if (allHistory.length === 0) {
-                list.innerHTML = '<li style="text-align: center; color: var(--secondary-text); padding: 2rem;">No conversations yet. Ask your first question!</li>';
-                return;
-            }
-
-            list.innerHTML = allHistory.map(item => {
-                const query = (item.query || '').trim();
-                const title = (item.title || '').trim();
-                const display = (title || query).slice(0, 50) + ((title || query).length > 50 ? '...' : '');
-                const dateStr = new Date(item.timestamp * 1000).toLocaleDateString();
-                const timeStr = new Date(item.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-                return `
-                <li class="history-item" data-id="${item.id}" tabindex="0" role="button" aria-label="Conversation from ${dateStr}">
-                    <div class="history-item-content">
-                        <p>${display || 'Empty conversation'}</p>
-                        <small>🤖 ${item.model} • 📅 ${dateStr} ${timeStr} • 📝 ${item.wordCount || 0} words • 🔑 ${item.normalizedQuery || 'N/A'}</small>
-                    </div>
-                    <button class="menu-btn" title="Options" aria-label="More options">⋯</button>
-                    <div class="item-menu" role="menu">
-                        <button class="copy-option" role="menuitem">📋 Copy</button>
-                        <button class="edit-option" role="menuitem">✏️ Edit</button>
-                        <button class="delete-option" role="menuitem">🗑️ Delete</button>
-                    </div>
-                </li>`;
-            }).join('');
-
-            // Add event listeners with better error handling
-            document.querySelectorAll('.history-item').forEach(item => {
-                const id = item.dataset.id;
-                const entry = appState.localHistory.find(ent => ent.id === id);
-                if (!entry) return;
-
-                const menuBtn = item.querySelector('.menu-btn');
-                const menu = item.querySelector('.item-menu');
-
-                // Menu toggle
-                menuBtn.addEventListener('click', e => {
-                    e.stopPropagation();
-                    menu.classList.toggle('active');
-                });
-
-                // Copy function
-                item.querySelector('.copy-option').addEventListener('click', () => {
-                    copyToClipboard(`Q: ${entry.query}\nA: ${entry.answer || ''}`, '📋 Conversation copied!');
-                    menu.classList.remove('active');
-                });
-
-                // Edit function
-                item.querySelector('.edit-option').addEventListener('click', () => {
-                    openEditModal(entry);
-                    menu.classList.remove('active');
-                });
-
-                // Delete function
-                item.querySelector('.delete-option').addEventListener('click', () => {
-                    if (confirm('🗑️ Delete this conversation? This cannot be undone.')) {
-                        deleteFromLocalHistory(id);
-                    }
-                    menu.classList.remove('active');
-                });
-
-                // Click to view
-                item.addEventListener('click', async e => {
-                    if (e.target.closest('.menu-btn, .item-menu')) return;
-
+            item.addEventListener('keydown', async e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
                     appState.currentHistoryId = id;
                     await showConversation(entry);
-                });
-
-                // Keyboard support
-                item.addEventListener('keydown', async e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        appState.currentHistoryId = id;
-                        await showConversation(entry);
-                    }
-                });
+                }
             });
+        });
+    }
+
+    function openEditModal(entry) {
+        appState.editingEntry = entry;
+        document.getElementById('editTitle').value = entry.title || '';
+        document.getElementById('editQuery').value = entry.query || '';
+        document.getElementById('editAnswer').value = entry.answer || '';
+        updateEditPreview(entry.answer || '');
+        document.getElementById('edit-modal-overlay').classList.add('active');
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-modal-overlay').classList.remove('active');
+        appState.editingEntry = null;
+    }
+
+    async function updateEditPreview(text) {
+        const parse = await loadMarked();
+        document.getElementById('editPreview').innerHTML = parse(text);
+    }
+
+    async function showConversation(entry) {
+        const parse = await loadMarked();
+        const container = document.getElementById('resultContainer');
+        const displayTitle = entry.title ? `<h3>${entry.title}</h3>` : '';
+        const cacheIndicator = entry.source === 'local' ? '📱 Local' : '☁️ Remote';
+        const cacheKeyInfo = entry.normalizedQuery ? `<br><small>🔑 Cache Key: ${buildCacheKey(entry.query)}</small>` : '';
+
+        container.innerHTML = `
+            <div class="conversation-block">
+                ${displayTitle}
+                <h4>❓ Query: ${entry.query}</h4>
+                <div class="content">${parse(entry.answer || 'No answer stored')}</div>
+                <small>🤖 ${entry.model} • 📅 ${new Date(entry.timestamp * 1000).toLocaleString()} • ${cacheIndicator}${cacheKeyInfo}</small>
+            </div>`;
+
+        openModal();
+        toggleHistory();
+    }
+
+    // ==================== TTS FUNCTIONS ====================
+    function openTtsMiniModal() {
+        document.getElementById('ttsMiniModal').classList.add('active');
+    }
+    function closeTtsMiniModal() {
+        document.getElementById('ttsMiniModal').classList.remove('active');
+    }
+    function startTts(text) {
+        if (!('speechSynthesis' in window)) {
+            showMessage('Text-to-speech not supported in your browser');
+            return;
+        }
+        if (appState.ttsUtterance) speechSynthesis.cancel();
+        try {
+            appState.ttsUtterance = new SpeechSynthesisUtterance(text);
+        } catch (error) {
+            console.error('Error creating SpeechSynthesisUtterance:', error);
+            showMessage('Failed to create speech: ' + error.message);
+            return;
+        }
+        appState.ttsUtterance.rate = 1.0;
+        appState.ttsUtterance.pitch = 1.0;
+        appState.ttsUtterance.volume = 1.0;
+        appState.ttsUtterance.onstart = () => {
+            appState.isTtsPlaying = true;
+            document.getElementById('ttsPlayPause').textContent = '⏸️';
+            updateTtsProgress(0);
+        };
+        appState.ttsUtterance.onend = () => {
+            appState.isTtsPlaying = false;
+            document.getElementById('ttsPlayPause').textContent = '▶️';
+            updateTtsProgress(100);
+            setTimeout(() => updateTtsProgress(0), 1000);
+        };
+        appState.ttsUtterance.onpause = () => {
+            appState.isTtsPlaying = false;
+            document.getElementById('ttsPlayPause').textContent = '▶️';
+        };
+        appState.ttsUtterance.onresume = () => {
+            appState.isTtsPlaying = true;
+            document.getElementById('ttsPlayPause').textContent = '⏸️';
+        };
+        appState.ttsUtterance.onerror = (event) => {
+            console.error('TTS Error:', event.error);
+            appState.isTtsPlaying = false;
+            document.getElementById('ttsPlayPause').textContent = '▶️';
+            updateTtsProgress(0);
+        };
+        let startTime = Date.now();
+        const interval = setInterval(() => {
+            if (appState.isTtsPlaying) {
+                const elapsed = Date.now() - startTime;
+                const estimated = text.length * 80;
+                const progress = Math.min(100, (elapsed / estimated) * 100);
+                updateTtsProgress(progress);
+            } else {
+                clearInterval(interval);
+            }
+        }, 100);
+        appState.ttsUtterance.progressInterval = interval;
+        speechSynthesis.speak(appState.ttsUtterance);
+    }
+    function pauseTts() {
+        if (appState.isTtsPlaying && appState.ttsUtterance) {
+            speechSynthesis.pause();
+            appState.isTtsPlaying = false;
+        }
+    }
+    function resumeTts() {
+        if (!appState.isTtsPlaying && appState.ttsUtterance) {
+            speechSynthesis.resume();
+            appState.isTtsPlaying = true;
+        }
+    }
+    function stopTts() {
+        if (appState.ttsUtterance) {
+            if (appState.ttsUtterance.progressInterval) {
+                clearInterval(appState.ttsUtterance.progressInterval);
+                appState.ttsUtterance.progressInterval = null;
+            }
+            speechSynthesis.cancel();
+            appState.isTtsPlaying = false;
+            document.getElementById('ttsPlayPause').textContent = '▶️';
+            updateTtsProgress(0);
+            appState.ttsUtterance = null;
+        }
+    }
+    function updateTtsProgress(percent) {
+        const bar = document.getElementById('ttsProgressBar');
+        if (bar) bar.style.width = `${percent}%`;
+    }
+
+    // ==================== CORE LOGIC ====================
+
+    async function performTruthQuery(query, challengeResponse = '') {
+        if (!query?.trim()) {
+            showMessage('Please enter a question first.');
+            return;
+        }
+        if (appState.isChallenging) {
+            showMessage('Please answer the challenge first...');
+            return;
         }
 
-        function openEditModal(entry) {
-            appState.editingEntry = entry;
-            document.getElementById('editTitle').value = entry.title || '';
-            document.getElementById('editQuery').value = entry.query || '';
-            document.getElementById('editAnswer').value = entry.answer || '';
-            updateEditPreview(entry.answer || '');
-            document.getElementById('edit-modal-overlay').classList.add('active');
-        }
+        const container = document.getElementById('resultContainer');
+        openModal();
+        showLoadingState(container, '⏳ Thinking... Please wait.');
 
-        function closeEditModal() {
-            document.getElementById('edit-modal-overlay').classList.remove('active');
-            appState.editingEntry = null;
-        }
-
-        async function updateEditPreview(text) {
+        try {
             const parse = await loadMarked();
-            document.getElementById('editPreview').innerHTML = parse(text);
-        }
+            const payload = { input: query, model: appState.MODEL };
+            if (challengeResponse) payload.challengeResponse = challengeResponse;
 
-        async function showConversation(entry) {
-            const parse = await loadMarked();
-            const container = document.getElementById('resultContainer');
-            const displayTitle = entry.title ? `<h3>${entry.title}</h3>` : '';
-            const cacheIndicator = entry.source === 'local' ? '📱 Local' : '☁️ Remote';
-            const cacheKeyInfo = entry.normalizedQuery ? `<br><small>🔑 Cache Key: ${buildCacheKey(entry.query)}</small>` : '';
-            
+            showMessage('🔄 Sending to AI...', 1500);
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+            const url = new URL(API_URL);
+            if (appState.sessionId) {
+                url.searchParams.set('sessionId', appState.sessionId);
+            }
+
+            const res = await fetch(url.toString(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+            const data = await res.json();
+
+            if (!res.ok) {
+                if (data.error === 'CHALLENGE_FAILED' && !appState.isChallenging) {
+                    appState.isChallenging = true;
+                    const pass = prompt('🔐 ' + (data.challengeQuestion || 'Access requires passphrase:'));
+                    appState.isChallenging = false;
+                    if (pass) {
+                        return performTruthQuery(query, pass);
+                    } else {
+                        throw new Error('Access denied - no passphrase provided');
+                    }
+                }
+                let errorMsg = 'Unknown error occurred';
+                if (res.status === 404) errorMsg = 'AI service not found';
+                else if (res.status === 429) errorMsg = 'Too many requests - please wait';
+                else if (res.status === 500) errorMsg = 'AI service is having issues';
+                else if (data.error) errorMsg = data.error;
+                throw new Error(errorMsg);
+            }
+
+            if (data.sessionId && data.sessionId !== appState.sessionId) {
+                setSessionId(data.sessionId);
+            }
+
+            const normalizedQuery = normalizeQuery(query);
+            const entry = saveToLocalHistory(query, data.answer, data.model || appState.MODEL);
+            entry.normalizedQuery = normalizedQuery;
+
+            showMessage('✅ Answer ready!', 2000);
+
+            const cacheKey = buildCacheKey(query);
+
+            const flags = [];
+            if (data.verified) flags.push('✅ Expert verified');
+            if (data.cached && data.source === 'master_truth') flags.push('📚 Master truth');
+            else if (data.cached) flags.push('📦 Cached');
+
             container.innerHTML = `
                 <div class="conversation-block">
-                    ${displayTitle}
-                    <h4>❓ Query: ${entry.query}</h4>
-                    <div class="content">${parse(entry.answer || 'No answer stored')}</div>
-                    <small>🤖 ${entry.model} • 📅 ${new Date(entry.timestamp * 1000).toLocaleString()} • ${cacheIndicator}${cacheKeyInfo}</small>
+                    <h4>❓ Query: ${query}</h4>
+                    <div class="content">${parse(data.answer)}</div>
+                    <small>
+                        🤖 ${data.model || appState.MODEL}
+                        ${data.created ? ' • ' + new Date(data.created).toLocaleString() : ''}
+                        ${flags.length ? '<br>' + flags.join(' • ') : ''}
+                    </small>
+                    <small><br>🔑 Cache Key: ${cacheKey}</small>
                 </div>`;
-            
-            openModal();
-            toggleHistory();
+
+            renderCombinedHistory();
+
+        } catch (err) {
+            console.error('Query error:', err);
+
+            let errorMessage = 'Something went wrong';
+            if (err.name === 'AbortError') errorMessage = 'Request timed out - please try again';
+            else if (!navigator.onLine) errorMessage = 'No internet connection';
+            else if (err.message.includes('challenge')) errorMessage = 'Challenge failed - check your passphrase';
+            else errorMessage = err.message || 'Unknown error';
+
+            container.innerHTML = `
+                <div class="conversation-block">
+                    <h4>❓ Query: ${query}</h4>
+                    <div class="content" style="color: #d32f2f;">
+                        ⚠️ <strong>Error:</strong> ${errorMessage}
+                        <br><br>
+                        <em>💾 Your query has been saved locally so you don't lose it.</em>
+                        <br><br>
+                        <small>🔑 Would use cache key: ${buildCacheKey(query)}</small>
+                    </div>
+                </div>`;
+
+            const normalizedQuery = normalizeQuery(query);
+            const entry = saveToLocalHistory(query, `❌ Error: ${err.message}`, appState.MODEL);
+            entry.normalizedQuery = normalizedQuery;
+
+            showMessage('❌ ' + errorMessage + ' - Saved locally', 4000);
+            renderCombinedHistory();
         }
+    }
 
-        // ==================== TTS FUNCTIONS (WITH SAFETY CHECKS) ====================
-
-        function openTtsMiniModal() {
-            const modal = document.getElementById('ttsMiniModal');
-            modal.classList.add('active');
-        }
-
-        function closeTtsMiniModal() {
-            const modal = document.getElementById('ttsMiniModal');
-            modal.classList.remove('active');
-        }
-
-        function startTts(text) {
-            // Check for browser support
-            if (!('speechSynthesis' in window)) {
-                showMessage('Text-to-speech not supported in your browser');
-                return;
+    async function newChat() {
+        if (!confirm('Start new chat? This clears remote context but keeps your local history.')) return;
+        appState.sessionId = null;
+        localStorage.removeItem(SESSION_KEY);
+        showMessage('New chat started');
             }
 
-            // Stop any currently playing speech
-            if (appState.ttsUtterance) {
-                speechSynthesis.cancel();
-            }
+    // ==================== EVENT LISTENERS ====================
 
-            // Create new utterance
-            try {
-                appState.ttsUtterance = new SpeechSynthesisUtterance(text);
-            } catch (error) {
-                console.error('Error creating SpeechSynthesisUtterance:', error);
-                showMessage('Failed to create speech: ' + error.message);
-                return;
-            }
-
-            appState.ttsUtterance.rate = 1.0;
-            appState.ttsUtterance.pitch = 1.0;
-            appState.ttsUtterance.volume = 1.0;
-
-            // Event listeners
-            appState.ttsUtterance.onstart = function() {
-                appState.isTtsPlaying = true;
-                document.getElementById('ttsPlayPause').textContent = '⏸️';
-                console.log('TTS started:', text.substring(0, 50) + '...');
-                updateTtsProgress(0);
-            };
-
-            appState.ttsUtterance.onend = function() {
-                appState.isTtsPlaying = false;
-                document.getElementById('ttsPlayPause').textContent = '▶️';
-                console.log('TTS ended');
-                updateTtsProgress(100);
-                setTimeout(() => updateTtsProgress(0), 1000);
-            };
-
-            appState.ttsUtterance.onpause = function() {
-                appState.isTtsPlaying = false;
-                document.getElementById('ttsPlayPause').textContent = '▶️';
-                console.log('TTS paused');
-            };
-
-            appState.ttsUtterance.onresume = function() {
-                appState.isTtsPlaying = true;
-                document.getElementById('ttsPlayPause').textContent = '⏸️';
-                console.log('TTS resumed');
-            };
-
-            appState.ttsUtterance.onerror = function(event) {
-                console.error('TTS Error:', event.error);
-                appState.isTtsPlaying = false;
-                document.getElementById('ttsPlayPause').textContent = '▶️';
-                updateTtsProgress(0);
-            };
-
-            // Progress tracking
-            let startTime = Date.now();
-            let progressInterval;
-            
-            // Create a timer to simulate progress
-            progressInterval = setInterval(() => {
-                if (appState.isTtsPlaying) {
-                    const elapsed = Date.now() - startTime;
-                    const estimatedDuration = text.length * 80; // Average 80ms per character
-                    const progress = Math.min(100, (elapsed / estimatedDuration) * 100);
-                    updateTtsProgress(progress);
-                } else {
-                    clearInterval(progressInterval);
-                }
-            }, 100);
-
-            // Store interval reference
-            appState.ttsUtterance.progressInterval = progressInterval;
-
-            // Start speech synthesis
-            speechSynthesis.speak(appState.ttsUtterance);
-        }
-
-        function pauseTts() {
-            if (appState.isTtsPlaying && appState.ttsUtterance) {
-                speechSynthesis.pause();
-                appState.isTtsPlaying = false;
-                console.log('TTS paused');
-            }
-        }
-
-        function resumeTts() {
-            if (!appState.isTtsPlaying && appState.ttsUtterance) {
-                speechSynthesis.resume();
-                appState.isTtsPlaying = true;
-                console.log('TTS resumed');
-            }
-        }
-
-        function stopTts() {
-            if (appState.ttsUtterance) {
-                // Clear any progress intervals
-                if (appState.ttsUtterance.progressInterval) {
-                    clearInterval(appState.ttsUtterance.progressInterval);
-                    appState.ttsUtterance.progressInterval = null;
-                }
-                
-                window.speechSynthesis.cancel();
-                appState.isTtsPlaying = false;
-                document.getElementById('ttsPlayPause').textContent = '▶️';
-                updateTtsProgress(0);
-                appState.ttsUtterance = null;
-                console.log('TTS stopped');
-            }
-        }
-
-        function updateTtsProgress(percent) {
-            const progressBar = document.getElementById('ttsProgressBar');
-            if (progressBar) {
-                progressBar.style.width = `${percent}%`;
-            }
-        }
-
-        // ==================== CORE LOGIC WITH SERVER CONSISTENCY ====================
-
-        async function performTruthQuery(query, challengeResponse = '') {
-            if (!query?.trim()) {
-                showMessage('Please enter a question first.');
-                return;
-            }
-            
-            if (appState.isChallenging) {
-                showMessage('Please answer the challenge first...');
-                return;
-            }
-
-            // More specific error messages
-            const container = document.getElementById('resultContainer');
-            
-            openModal();
-            showLoadingState(container, '⏳ Thinking... Please wait.');
-
-            try {
-                const parse = await loadMarked();
-                const payload = {
-                    input: query,  // Send raw query - server will normalize
-                    model: appState.MODEL
-                };
-
-                if (challengeResponse) {
-                    payload.challengeResponse = challengeResponse;
-                }
-
-                const sessionContext = getSessionContext();
-                if (sessionContext) {
-                    payload.context = sessionContext;
-                }
-
-                showMessage('🔄 Sending to AI...', 1500);
-
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-                const data = await res.json();
-
-                if (!res.ok) {
-                    if (data.error === 'CHALLENGE_FAILED' && !appState.isChallenging) {
-                        appState.isChallenging = true;
-                        const pass = prompt('🔐 ' + (data.challengeQuestion || 'Access requires passphrase:'));
-                        appState.isChallenging = false;
-                        if (pass) {
-                            return performTruthQuery(query, pass);
-                        } else {
-                            throw new Error('Access denied - no passphrase provided');
-                        }
-                    }
-                    
-                    // More helpful error messages
-                    let errorMsg = 'Unknown error occurred';
-                    if (res.status === 404) errorMsg = 'AI service not found';
-                    else if (res.status === 429) errorMsg = 'Too many requests - please wait';
-                    else if (res.status === 500) errorMsg = 'AI service is having issues';
-                    else if (data.error) errorMsg = data.error;
-                    
-                    throw new Error(errorMsg);
-                }
-
-                // Success!
-                const normalizedQuery = normalizeQuery(query);
-                const entry = saveToLocalHistory(query, data.answer, appState.MODEL);
-                entry.normalizedQuery = normalizedQuery; // Ensure normalized query is stored
-                
-                showMessage('✅ Answer ready!', 2000);
-
-                // Show cache key for debugging
-                const cacheKey = buildCacheKey(query);
-                
-                container.innerHTML = `
-                    <div class="conversation-block">
-                        <h4>❓ Query: ${query}</h4>
-                        <div class="content">${parse(data.answer)}</div>
-                        <small>🤖 ${data.model} • ${new Date(data.created).toLocaleString()}</small>
-                        ${data.cached ? '<small><br>📦 <em>(Cached - faster response)</em></small>' : ''}
-                        <small><br>🔑 Cache Key: ${cacheKey}</small>
-                    </div>`;
-
-                renderCombinedHistory();
-
-            } catch (err) {
-                console.error('Query error:', err);
-                
-                let errorMessage = 'Something went wrong';
-                if (err.name === 'AbortError') {
-                    errorMessage = 'Request timed out - please try again';
-                } else if (!navigator.onLine) {
-                    errorMessage = 'No internet connection';
-                } else if (err.message.includes('challenge')) {
-                    errorMessage = 'Challenge failed - check your passphrase';
-                } else {
-                    errorMessage = err.message || 'Unknown error';
-                }
-                
-                container.innerHTML = `
-                    <div class="conversation-block">
-                        <h4>❓ Query: ${query}</h4>
-                        <div class="content" style="color: #d32f2f;">
-                            ⚠️ <strong>Error:</strong> ${errorMessage}
-                            <br><br>
-                            <em>💾 Your query has been saved locally so you don't lose it.</em>
-                            <br><br>
-                            <small>🔑 Would use cache key: ${buildCacheKey(query)}</small>
-                        </div>
-                    </div>`;
-                
-                // Always save locally as backup
-                const normalizedQuery = normalizeQuery(query);
-                const entry = saveToLocalHistory(query, `❌ Error: ${err.message}`, appState.MODEL);
-                entry.normalizedQuery = normalizedQuery;
-                
-                showMessage('❌ ' + errorMessage + ' - Saved locally', 4000);
-                renderCombinedHistory();
-            }
-        }
-
-        async function newChat() {
-            if (!confirm('Start new chat? This clears remote context but keeps your local history.')) return;
-
-            try {
-                // FIXED: Direct URL for new chat endpoint
-                const res = await fetch(`${API_BASE}/conversation/new`, { method: 'POST' });
-                if (res.ok) {
-                    showMessage('New chat started. Remote context cleared.');
-                    renderCombinedHistory();
-                } else {
-                    throw new Error(`HTTP ${res.status}`);
-                }
-            } catch (err) {
-                showMessage('New chat started (local only). Remote clear failed.');
-                renderCombinedHistory();
-            }
-        }
-
-        // ==================== EVENT LISTENERS ====================
-
-        // Enter key support (multi-line)
-        document.getElementById('queryInput').addEventListener('keydown', e => {
-            // Ctrl+Enter or Cmd+Enter to send
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                const input = document.getElementById('queryInput');
-                if (input.value.trim()) {
-                    performTruthQuery(input.value);
-                    input.value = '';
-                }
-            }
-        });
-
-        // Enter button
-        document.getElementById('enterButton').addEventListener('click', () => {
+    // Enter key support (multi-line)
+    document.getElementById('queryInput').addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
             const input = document.getElementById('queryInput');
             if (input.value.trim()) {
                 performTruthQuery(input.value);
                 input.value = '';
             }
-        });
+        }
+    });
 
-        // Modal controls
-        document.getElementById('historyToggle').addEventListener('click', toggleHistory);
-        document.getElementById('newChatBtn').addEventListener('click', newChat);
-        document.getElementById('closeHistory').addEventListener('click', toggleHistory);
-        document.getElementById('close-modal').addEventListener('click', closeModal);
+    // Enter button
+    document.getElementById('enterButton').addEventListener('click', () => {
+        const input = document.getElementById('queryInput');
+        if (input.value.trim()) {
+            performTruthQuery(input.value);
+            input.value = '';
+        }
+    });
 
-        // Copy result
-        document.getElementById('copyResult').addEventListener('click', () => {
-            const text = document.querySelector('.conversation-block .content')?.innerText || '';
-            copyToClipboard(text);
-        });
+    // Menu / modal controls
+    document.getElementById('historyToggle').addEventListener('click', toggleHistory);
+    document.getElementById('newChatBtn').addEventListener('click', newChat);
+    document.getElementById('closeHistory').addEventListener('click', toggleHistory);
+    document.getElementById('close-modal').addEventListener('click', closeModal);
 
-        // TTS functionality
-        document.getElementById('ttsBtn').addEventListener('click', function() {
-            let text = '';
-            
-            // Try to get text from current modal
-            const contentElement = document.querySelector('.conversation-block .content');
-            if (contentElement) {
-                text = contentElement.innerText || contentElement.textContent;
-            }
-            
-            // If we're dealing with history item content
-            if (!text.trim() && appState.currentHistoryId) {
-                const historyItem = appState.localHistory.find(item => item.id === appState.currentHistoryId);
-                if (historyItem && historyItem.answer) {
-                    text = historyItem.answer;
-                }
-            }
-            
-            // Validate text exists
-            if (text.trim()) {
-                openTtsMiniModal();
-                if (!appState.isTtsPlaying) {
-                    console.log('Starting TTS with:', text.substring(0, 100) + '...');
-                    startTts(text);
-                } else {
-                    console.log('Pausing TTS');
-                    pauseTts();
-                }
-            } else {
-                showMessage('No text available for TTS');
-                console.warn('No text found for TTS');
-            }
-        });
+    // Copy result
+    document.getElementById('copyResult').addEventListener('click', () => {
+        const text = document.querySelector('.conversation-block .content')?.innerText || '';
+        if (text) copyToClipboard(text);
+    });
 
-        document.getElementById('ttsMiniClose').addEventListener('click', closeTtsMiniModal);
-        document.getElementById('ttsPlayPause').addEventListener('click', function() {
-            const contentElement = document.querySelector('.conversation-block .content');
-            const text = contentElement ? contentElement.innerText || contentElement.textContent : '';
-            
-            if (text.trim()) {
-                if (appState.isTtsPlaying) {
-                    console.log('Pausing TTS');
-                    pauseTts();
-                } else if (appState.ttsUtterance) {
-                    console.log('Resuming TTS');
-                    resumeTts();
-                } else {
-                    console.log('Starting TTS with:', text.substring(0, 100) + '...');
-                    startTts(text);
-                }
-            } else {
-                showMessage('No text available for TTS');
-                console.warn('No text found for TTS');
-            }
-        });
-        document.getElementById('ttsStop').addEventListener('click', stopTts);
+    // TTS buttons
+    document.getElementById('ttsBtn').addEventListener('click', () => {
+        let text = '';
+        const contentElement = document.querySelector('.conversation-block .content');
+        if (contentElement) {
+            text = contentElement.innerText || contentElement.textContent || '';
+        }
+        if (!text.trim() && appState.currentHistoryId) {
+            const item = appState.localHistory.find(i => i.id === appState.currentHistoryId);
+            if (item && item.answer) text = item.answer;
+        }
+        if (text.trim()) {
+            openTtsMiniModal();
+            if (!appState.isTtsPlaying) startTts(text);
+            else pauseTts();
+        } else {
+            showMessage('No text available for TTS');
+        }
+    });
 
-        // Save locally
-        document.getElementById('saveLocal').addEventListener('click', () => {
-            const query = document.querySelector('.conversation-block h4')?.textContent.replace('Query: ', '') || '';
-            const answer = document.querySelector('.conversation-block .content')?.innerText || '';
-            if (query && answer) {
-                const entry = saveToLocalHistory(query, answer, appState.MODEL);
-                entry.normalizedQuery = normalizeQuery(query);
-                showMessage('Saved to local history');
-            }
-        });
+    document.getElementById('ttsMiniClose').addEventListener('click', closeTtsMiniModal);
+    document.getElementById('ttsPlayPause').addEventListener('click', () => {
+        const contentElement = document.querySelector('.conversation-block .content');
+        const text = contentElement ? (contentElement.innerText || contentElement.textContent || '') : '';
+        if (!text.trim()) {
+            showMessage('No text available for TTS');
+            return;
+        }
+        if (appState.isTtsPlaying) {
+            pauseTts();
+        } else if (appState.ttsUtterance) {
+            resumeTts();
+        } else {
+            startTts(text);
+        }
+    });
+    document.getElementById('ttsStop').addEventListener('click', stopTts);
 
-        // History management
-        document.getElementById('exportHistory').addEventListener('click', () => {
-            const exported = exportLocalHistory();
-            showMessage(`📦 Full session exported: ${exported.conversations.length} conversations + settings`);
-        });
+    // Save locally button
+    document.getElementById('saveLocal').addEventListener('click', () => {
+        const query = document.querySelector('.conversation-block h4')?.textContent.replace('❓ Query: ', '') || '';
+        const answer = document.querySelector('.conversation-block .content')?.innerText || '';
+        if (query && answer) {
+            const entry = saveToLocalHistory(query, answer, appState.MODEL);
+            entry.normalizedQuery = normalizeQuery(query);
+            showMessage('Saved to local history');
+        }
+    });
 
-        document.getElementById('importTrigger').addEventListener('click', () => {
-            document.getElementById('importHistory').click();
-        });
-
-        document.getElementById('importHistory').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
+    // History export (remote first, then local)
+    document.getElementById('exportHistory').addEventListener('click', async () => {
+        if (appState.sessionId) {
             try {
-                const result = await importLocalHistory(file);
-                showMessage(`Imported ${result.imported} conversations. Total: ${result.total}`);
-                renderCombinedHistory();
-            } catch (error) {
-                showMessage(`Import failed: ${error.message}`);
-            }
-
-            e.target.value = '';
-        });
-
-        document.getElementById('clearLocalHistory').addEventListener('click', () => {
-            if (confirm('Clear ALL local history? This cannot be undone.')) {
-                clearLocalHistory();
-                showMessage('Local history cleared');
-                renderCombinedHistory();
-            }
-        });
-
-        // Theme buttons in menu
-        document.querySelectorAll('.theme-buttons button').forEach(b => {
-            b.addEventListener('click', () => {
-                document.body.dataset.mode = b.dataset.mode;
-                localStorage.setItem('theme', b.dataset.mode);
-                showMessage(`Theme: ${b.dataset.mode}`);
-            });
-        });
-
-        // Model selector in menu
-        document.getElementById('modelSelector').addEventListener('change', e => {
-            appState.MODEL = e.target.value;
-            localStorage.setItem('truth-model', appState.MODEL);
-            showMessage(`Model: ${e.target.options[e.target.selectedIndex].text}`);
-        });
-
-        // Export prompt
-        document.getElementById('exportPromptBtn').addEventListener('click', () => {
-            exportLocalHistory();
-        });
-
-        // Edit Modal Listeners
-        document.getElementById('close-edit-modal').addEventListener('click', closeEditModal);
-        document.getElementById('saveEdit').addEventListener('click', () => {
-            if (appState.editingEntry) {
-                appState.editingEntry.title = document.getElementById('editTitle').value.trim() || undefined;
-                appState.editingEntry.query = document.getElementById('editQuery').value.trim();
-                appState.editingEntry.answer = document.getElementById('editAnswer').value.trim();
-                appState.editingEntry.normalizedQuery = normalizeQuery(appState.editingEntry.query);
-                localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
-                closeEditModal();
-                renderCombinedHistory();
-                showMessage('Conversation updated');
-            }
-        });
-
-        document.getElementById('editAnswer').addEventListener('input', (e) => {
-            updateEditPreview(e.target.value);
-        });
-
-        // ==================== ACCESSIBILITY - KEYBOARD NAVIGATION ====================
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                // Close any open modals
-                if (document.getElementById('modal-overlay').classList.contains('active')) {
-                    closeModal();
+                const url = new URL('/api/session/sync', 'https://truthengine.ai-n.workers.dev');
+                url.searchParams.set('sessionId', appState.sessionId);
+                const res = await fetch(url.toString(), { method: 'GET' });
+                if (res.ok) {
+                    const snapshot = await res.json();
+                    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `truth-engine-session-${appState.sessionId}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showMessage(`📦 Remote session exported (${snapshot.conversations?.length || 0} entries)`);
+                    return;
                 }
-                if (document.getElementById('edit-modal-overlay').classList.contains('active')) {
-                    closeEditModal();
-                }
-                if (document.getElementById('ttsMiniModal').classList.contains('active')) {
-                    closeTtsMiniModal();
-                }
+            } catch (e) {
+                console.warn('Remote session export failed, falling back to local:', e);
             }
-        });
+        }
+        const exported = exportLocalHistory();
+        showMessage(`📦 Local session exported: ${exported.conversations.length} conversations + settings`);
+    });
 
-        // ==================== INITIALIZATION ====================
+    // Import session (remote DO + local merge)
+    document.getElementById('importHistory').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-        function initializeApp() {
-            // Set theme
-            document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
+        try {
+            const text = await file.text();
+            const snapshot = JSON.parse(text);
 
-            // Set model
-            const savedModel = localStorage.getItem('truth-model');
-            if (savedModel) {
-                const selector = document.getElementById('modelSelector');
-                if ([...selector.options].some(o => o.value === savedModel)) {
-                    selector.value = savedModel;
-                    appState.MODEL = savedModel;
+            // Push snapshot to server
+            try {
+                const res = await fetch('https://truthengine.ai-n.workers.dev/api/session/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ snapshot })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.sessionId) {
+                        setSessionId(data.sessionId);
+                        showMessage(`☁️ Remote context restored. Session: ${data.sessionId}`);
+                    }
+                } else {
+                    console.warn('Remote import failed', await res.text());
                 }
+            } catch (err) {
+                console.warn('Remote import error (continuing with local only):', err);
             }
 
-            // Focus input
-            setTimeout(() => document.getElementById('queryInput').focus(), 100);
-
-            // Render initial history
+            // Merge into local history
+            const result = await importLocalHistory(file);
+            showMessage(`Imported ${result.imported} conversations. Total: ${result.total}`);
             renderCombinedHistory();
-
-            // Typing animation
-            setTimeout(() => {
-                const el = document.getElementById('typedText');
-                el.classList.add('is-typing');
-                setTimeout(() => {
-                    el.classList.remove('is-typing');
-                    el.classList.add('is-done');
-                }, 3500);
-            }, 100);
-
-            // Show stats with normalization info
-            console.log(`Truth Engine Ready - Local: ${appState.localHistory.length} conversations`);
-            console.log(`Normalization function loaded: ${normalizeQuery('Hello World!') === 'hello-world' ? '✅' : '❌'}`);
-        }
-        // Function to get query parameter from URL
-        function getQueryParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
+        } catch (error) {
+            showMessage(`Import failed: ${error.message}`);
         }
 
-        // On page load, check for query parameter
-        window.onload = function() {
-            const query = getQueryParam('q');
-            if (query) {
-                document.getElementById('queryInput').value = decodeURIComponent(query.replace(/\+/g, ' '));
-                // Automatically submit the query
-                document.getElementById('enterButton').click();
+        e.target.value = '';
+    });
+
+    // Trigger file chooser
+    document.getElementById('importTrigger').addEventListener('click', () => {
+        document.getElementById('importHistory').click();
+    });
+
+    // Clear local history
+    document.getElementById('clearLocalHistory').addEventListener('click', () => {
+        if (confirm('Clear ALL local history? This cannot be undone.')) {
+            clearLocalHistory();
+            showMessage('Local history cleared');
+            renderCombinedHistory();
+        }
+    });
+
+    // Theme buttons
+    document.querySelectorAll('.theme-buttons button').forEach(b => {
+        b.addEventListener('click', () => {
+            document.body.dataset.mode = b.dataset.mode;
+            localStorage.setItem('theme', b.dataset.mode);
+            showMessage(`Theme: ${b.dataset.mode}`);
+        });
+    });
+
+    // Model selector
+    document.getElementById('modelSelector').addEventListener('change', e => {
+        appState.MODEL = e.target.value;
+        localStorage.setItem('truth-model', appState.MODEL);
+        showMessage(`Model: ${e.target.options[e.target.selectedIndex].text}`);
+    });
+
+    // Export prompt quick button
+    document.getElementById('exportPromptBtn').addEventListener('click', () => {
+        exportLocalHistory();
+    });
+
+    // Edit modal listeners
+    document.getElementById('close-edit-modal').addEventListener('click', closeEditModal);
+    document.getElementById('saveEdit').addEventListener('click', () => {
+        if (appState.editingEntry) {
+            appState.editingEntry.title = document.getElementById('editTitle').value.trim() || undefined;
+            appState.editingEntry.query = document.getElementById('editQuery').value.trim();
+            appState.editingEntry.answer = document.getElementById('editAnswer').value.trim();
+            appState.editingEntry.normalizedQuery = normalizeQuery(appState.editingEntry.query);
+            localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
+            closeEditModal();
+            renderCombinedHistory();
+            showMessage('Conversation updated');
+        }
+    });
+    document.getElementById('editAnswer').addEventListener('input', (e) => {
+        updateEditPreview(e.target.value);
+    });
+
+    // Accessibility: ESC closes overlays
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (document.getElementById('modal-overlay').classList.contains('active')) {
+                closeModal();
+            }
+            if (document.getElementById('edit-modal-overlay').classList.contains('active')) {
+                closeEditModal();
+            }
+            if (document.getElementById('ttsMiniModal').classList.contains('active')) {
+                closeTtsMiniModal();
             }
         }
-        // Start the app
-        initializeApp();
+    });
+
+    // ==================== INITIALIZATION ====================
+
+    function initializeApp() {
+        // Theme
+        document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
+
+        // Model
+        const savedModel = localStorage.getItem('truth-model');
+        if (savedModel) {
+            const selector = document.getElementById('modelSelector');
+            if ([...selector.options].some(o => o.value === savedModel)) {
+                selector.value = savedModel;
+                appState.MODEL = savedModel;
+            }
+        }
+
+        // Focus input
+        setTimeout(() => document.getElementById('queryInput').focus(), 100);
+
+        // Initial history render
+        renderCombinedHistory();
+
+        // Typing animation
+        setTimeout(() => {
+            const el = document.getElementById('typedText');
+            if (!el) return;
+            el.classList.add('is-typing');
+            setTimeout(() => {
+                el.classList.remove('is-typing');
+                el.classList.add('is-done');
+            }, 3500);
+        }, 100);
+
+        console.log(`Truth Engine Ready - Local: ${appState.localHistory.length} conversations`);
+        console.log(`Normalization function loaded: ${normalizeQuery('Hello World!') === 'hello-world' ? '✅' : '❌'}`);
+    }
+
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    window.onload = function() {
+        const query = getQueryParam('q');
+        if (query) {
+            document.getElementById('queryInput').value = decodeURIComponent(query.replace(/\+/g, ' '));
+            document.getElementById('enterButton').click();
+        }
+    };
+
+    // Start the app
+    initializeApp();
     </script>
 </body>
 </html>
