@@ -1654,44 +1654,126 @@
     });
 
     // Import session (remote DO + local merge)
-    document.getElementById('importHistory').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+document.getElementById('importHistory').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
+    try {
+        const text = await file.text();
+        const snapshot = JSON.parse(text);
+
+        // Normalize shape
+        const conversations = Array.isArray(snapshot.conversations) ? snapshot.conversations : [];
+        const isServerExport = snapshot.source === 'truth-engine-server';
+        const isLegacyLocal = snapshot.source === 'truth-engine-free-tier';
+
+        // 1) Try to push snapshot to server (Durable Object context)
         try {
-            const text = await file.text();
-            const snapshot = JSON.parse(text);
+            const res = await fetch('https://truthengine.ai-n.workers.dev/api/session/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // Worker accepts { snapshot } OR full shape; we send { snapshot } for compatibility
+                body: JSON.stringify({ snapshot })
+            });
 
-            // Push snapshot to server
-            try {
-                const res = await fetch('https://truthengine.ai-n.workers.dev/api/session/sync', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ snapshot })
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.sessionId) {
-                        setSessionId(data.sessionId);
-                        showMessage(`☁️ Remote context restored. Session: ${data.sessionId}`);
-                    }
+            if (res.ok) {
+                const data = await res.json();
+                if (data.sessionId) {
+                    setSessionId(data.sessionId);
+                    showMessage(`☁️ Remote context restored. Session: ${data.sessionId}`);
                 } else {
-                    console.warn('Remote import failed', await res.text());
+                    console.warn('Remote import succeeded but no sessionId returned');
                 }
-            } catch (err) {
-                console.warn('Remote import error (continuing with local only):', err);
+            } else {
+                const errText = await res.text();
+                console.warn('Remote import failed:', errText);
             }
-
-            // Merge into local history
-            const result = await importLocalHistory(file);
-            showMessage(`Imported ${result.imported} conversations. Total: ${result.total}`);
-            renderCombinedHistory();
-        } catch (error) {
-            showMessage(`Import failed: ${error.message}`);
+        } catch (err) {
+            console.warn('Remote import error (continuing with local only):', err);
         }
 
-        e.target.value = '';
+        // 2) Local merge behavior depends on type
+
+        if (isLegacyLocal) {
+            // Old full-session export: merge its conversations into localHistory
+            const result = await importLocalHistoryFromObject(snapshot);
+            showMessage(`Imported ${result.imported} conversations from legacy file. Total: ${result.total}`);
+        } else if (isServerExport) {
+        // Helper: import from already-parsed snapshot object (no FileReader)
+async function importLocalHistoryFromObject(importedData) {
+    if (!importedData.conversations || !Array.isArray(importedData.conversations)) {
+        return { success: false, imported: 0, total: appState.localHistory.length };
+    }
+
+    const newEntries = importedData.conversations.filter(conv => {
+        if (!conv.query || !conv.answer) return false;
+        const convNormalized = normalizeQuery(conv.query);
+        return !appState.localHistory.some(existing =>
+            normalizeQuery(existing.query) === convNormalized &&
+            (existing.answer || '').trim() === (conv.answer || '').trim()
+        );
     });
+
+    newEntries.forEach(entry => {
+        entry.normalizedQuery = normalizeQuery(entry.query);
+        if (!entry.id) {
+            entry.id = Date.now().toString() + Math.random().toString(36).slice(2);
+        }
+        entry.model = entry.model || appState.MODEL;
+        entry.timestamp = entry.timestamp || Math.floor(Date.now() / 1000);
+        entry.source = entry.source || 'imported';
+        entry.wordCount = entry.wordCount || (entry.answer || '').split(/\s+/).length;
+        entry.characterCount = entry.characterCount || (entry.answer || '').length;
+    });
+
+    appState.localHistory = [...newEntries, ...appState.localHistory];
+    localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
+
+    if (importedData.currentModel) {
+        appState.MODEL = importedData.currentModel;
+        localStorage.setItem('truth-model', appState.MODEL);
+        const selector = document.getElementById('modelSelector');
+        if (selector && [...selector.options].some(o => o.value === appState.MODEL)) {
+            selector.value = appState.MODEL;
+        }
+    }
+
+    if (importedData.theme) {
+        document.body.dataset.mode = importedData.theme;
+        localStorage.setItem('theme', importedData.theme);
+    }
+
+    return {
+        success: true,
+        imported: newEntries.length,
+        total: appState.localHistory.length
+    };
+}
+            // Server snapshot: typically DO history; may or may not have conversations
+            if (conversations.length > 0) {
+                const result = await importLocalHistoryFromObject(snapshot);
+                showMessage(`Imported ${result.imported} conversations from server snapshot. Total: ${result.total}`);
+            } else {
+                showMessage('Server snapshot imported: no local conversations to merge (remote context is restored).');
+            }
+        } else {
+            // Fallback: try to treat as legacy-style if it has conversations
+            if (conversations.length > 0) {
+                const result = await importLocalHistoryFromObject(snapshot);
+                showMessage(`Imported ${result.imported} conversations. Total: ${result.total}`);
+            } else {
+                showMessage('Import file recognized, but contains no conversations to merge.');
+            }
+        }
+
+        renderCombinedHistory();
+    } catch (error) {
+        console.error('Import failed:', error);
+        showMessage(`Import failed: ${error.message}`);
+    }
+
+    e.target.value = '';
+});
 
     // Trigger file chooser
     document.getElementById('importTrigger').addEventListener('click', () => {
