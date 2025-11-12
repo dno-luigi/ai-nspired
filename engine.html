@@ -7,6 +7,7 @@
     <meta name="description" content="ai-nspired.com • truth-engine. memory keeper. Systems that don't forget—or flinch.">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&display=swap');
+
         :root {
             --bg-color: #f8f8ff;
             --text-color: #1a1a1a;
@@ -40,6 +41,7 @@
             --shadow-color: transparent;
             --accent-color-rgb: 0, 255, 0;
         }
+
         body {
             margin: 0;
             padding: 1.5rem 1rem;
@@ -56,11 +58,13 @@
             position: relative;
             transition: background-color 0.3s, color 0.3s;
         }
+
         .terminal-window {
             width: 100%;
             max-width: 800px;
             text-align: left;
         }
+
         .typed-text {
             font-weight: 700;
             font-size: 1.5rem;
@@ -71,16 +75,20 @@
             border-right: 3px solid var(--accent-color);
             animation: blink-caret .75s step-end infinite;
         }
+
         .typed-text.is-typing {
             animation: typing 3.5s steps(40, end) forwards, blink-caret .75s step-end infinite;
         }
+
         .typed-text.is-done {
             animation: none;
             border-right: none;
             width: auto;
         }
+
         @keyframes typing { from { width: 0 } to { width: 100% } }
         @keyframes blink-caret { 50% { border-color: transparent; } }
+
         .input-container {
             display: flex;
             flex-direction: column;
@@ -88,12 +96,20 @@
             width: 100%;
             gap: 1rem;
         }
+
+        .button-row {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-start;
+        }
+
         .input-row {
             display: flex;
             align-items: flex-end;
             gap: 0.5rem;
             width: 100%;
         }
+
         .command-line {
             display: flex;
             align-items: flex-end;
@@ -107,10 +123,12 @@
             padding: 0.5rem;
             transition: all 0.3s ease;
         }
+
         .command-line:focus-within {
             box-shadow: 0 0 20px rgba(var(--accent-color-rgb), 0.3);
             border-color: var(--accent-color);
         }
+
         .enter-button {
             margin: 0.5rem;
             font-weight: bold;
@@ -129,10 +147,12 @@
             border: none;
             align-self: flex-end;
         }
+
         .enter-button:hover {
             transform: scale(1.1);
             box-shadow: 0 0 15px var(--accent-color);
         }
+
         .search-input {
             background: transparent;
             border: none;
@@ -152,12 +172,7 @@
             white-space: pre-wrap;
             word-wrap: break-word;
         }
-        .button-row {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-            width: 100%;
-        }
+
         .icon-button {
             padding: 0.75rem;
             border: 2px solid var(--accent-color);
@@ -175,12 +190,14 @@
             transition: all 0.3s ease;
             text-decoration: none;
         }
+
         .icon-button:hover, .icon-button:focus {
             background-color: var(--accent-color);
             color: var(--bg-color);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(var(--accent-color-rgb), 0.3);
         }
+
         .modal-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -192,10 +209,11 @@
             z-index: 1000;
             padding: 1rem;
         }
+
         .modal-overlay.active { display: flex; }
+
         .modal-container {
             background-color: var(--modal-bg);
-            border: 1px solid var(--border-color);
             border-radius: 8px;
             width: 95%;
             max-width: 900px;
@@ -206,6 +224,7 @@
             padding: 1rem;
             overflow: hidden;
         }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -213,7 +232,9 @@
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 0.5rem;
         }
+
         .modal-title { font-weight: 700; color: var(--accent-color); }
+
         .close-modal {
             background: none;
             border: none;
@@ -222,11 +243,13 @@
             cursor: pointer;
             padding: 0.25rem;
         }
+
         .close-modal:hover {
             color: var(--bg-color);
             background: var(--accent-color);
             border-radius: 50%;
         }
+
         .result-container {
             padding: 1rem 0;
             flex-grow: 1;
@@ -234,12 +257,14 @@
             font-family: 'Crimson Pro', serif;
             color: var(--text-color);
         }
+
         .conversation-block .content {
             box-shadow: 0 4px 10px var(--shadow-color);
             margin-top: 1rem;
             padding: 1rem;
             border-radius: 4px;
         }
+
         .modal-footer {
             display: flex;
             gap: 0.5rem;
@@ -247,6 +272,7 @@
             padding-top: 0.5rem;
             border-top: 1px solid var(--border-color);
         }
+
         .modal-footer button {
             padding: 0.5rem;
             border: 1px solid var(--accent-color);
@@ -262,6 +288,9 @@
             justify-content: center;
             font-size: 1.2rem;
         }
+
+        /* History panel */
+
         #historyPanel {
             position: fixed;
             top: 0;
@@ -279,7 +308,11 @@
             flex-direction: column;
             overflow-y: auto;
         }
-        #historyPanel.open { transform: translateX(0); }
+
+        #historyPanel.open {
+            transform: translateX(0);
+        }
+
         .history-header {
             padding: 1.5rem;
             border-bottom: 1px solid var(--border-color);
@@ -289,15 +322,18 @@
             background: var(--accent-color);
             color: var(--bg-color);
         }
+
         .history-title {
             font-weight: 700;
             font-size: 1.2rem;
             margin: 0;
         }
+
         .menu-section {
             padding: 1.5rem;
             border-bottom: 1px solid var(--border-color);
         }
+
         .menu-section-title {
             font-weight: 700;
             color: var(--accent-color);
@@ -306,11 +342,13 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+
         .theme-buttons {
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
         }
+
         .theme-buttons button {
             padding: 0.75rem 1rem;
             border: 2px solid var(--accent-color);
@@ -323,6 +361,7 @@
             flex: 1;
             min-width: 80px;
         }
+
         .model-selector {
             width: 100%;
             padding: 0.75rem;
@@ -333,12 +372,15 @@
             border-radius: 8px;
             font-size: 1rem;
         }
+
         .history-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0.5rem;
         }
-        .history-actions button, .history-actions input {
+
+        .history-actions button,
+        .history-actions input {
             background: none;
             border: 2px solid var(--accent-color);
             color: var(--accent-color);
@@ -349,7 +391,11 @@
             font-weight: 700;
             transition: all 0.3s ease;
         }
-        #importHistory { display: none; }
+
+        #importHistory {
+            display: none;
+        }
+
         .close-history {
             background: none;
             border: none;
@@ -364,29 +410,31 @@
             justify-content: center;
             border-radius: 50%;
         }
+
         .close-history:hover {
             background: var(--bg-color);
             color: var(--accent-color);
         }
+
         #historyList {
             flex-grow: 1;
             overflow-y: auto;
-            padding: 0 1.5rem;
+            padding: 0 1.5rem 1.5rem;
             list-style: none;
             margin: 0;
         }
+
         .history-item {
-            padding: 1rem 0;
+            padding: 0.75rem 0;
             border-bottom: 1px dashed var(--border-color);
             font-size: 0.9rem;
-            transition: background-color 0.2s;
             cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 0.5rem;
         }
-        .history-item:hover { background-color: rgba(26,42,58,0.08); }
+
+        .history-item:hover {
+            background-color: rgba(26,42,58,0.08);
+        }
+
         .history-item-content p {
             margin: 0;
             white-space: nowrap;
@@ -394,12 +442,14 @@
             text-overflow: ellipsis;
             font-weight: 700;
         }
+
         .history-item-content small {
             color: var(--secondary-text);
             font-size: 0.75rem;
             display: block;
             margin-top: 2px;
         }
+
         #customMessage {
             position: fixed;
             bottom: 2rem;
@@ -411,17 +461,20 @@
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             opacity: 0;
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            transition: opacity 0.3s, transform 0.3s;
             pointer-events: none;
             z-index: 1001;
             font-weight: 700;
             font-size: 0.9rem;
             max-width: 90vw;
+            text-align: center;
         }
+
         #customMessage.visible {
             opacity: 1;
             transform: translate(-50%, -10px);
         }
+
         .disclaimer {
             position: fixed;
             bottom: 1rem;
@@ -430,6 +483,7 @@
             color: var(--secondary-text);
             font-size: 0.8rem;
             text-align: center;
+            max-width: 90vw;
         }
     </style>
 </head>
@@ -457,6 +511,7 @@
         <p class="history-title">Menu &amp; History</p>
         <button class="close-history" id="closeHistory">×</button>
     </div>
+
     <div class="menu-section">
         <div class="menu-section-title">Theme</div>
         <div class="theme-buttons">
@@ -465,13 +520,18 @@
             <button data-mode="neo">Neo</button>
         </div>
     </div>
+
     <div class="menu-section">
         <div class="menu-section-title">AI Model (label only)</div>
         <select class="model-selector" id="modelSelector">
-            <option value="ai-nspired">@preset/truth</option>
-            <option 
+            <option value="polaris-alpha">polaris-alpha</option>
+            <option value="granite-4.0-h-micro">granite-4.0-h-micro</option>
+            <option value="qwen2.5-7b-instruct">Qwen 2.5 7B</option>
+            <option value="gpt-oss-20b">GPT OSS 20B</option>
+            <option value="dolphin-mistral-24b-venice-edition">Dolphin 24B</option>
         </select>
     </div>
+
     <div class="menu-section">
         <div class="menu-section-title">Local Data</div>
         <div class="history-actions">
@@ -481,6 +541,7 @@
             <button id="clearLocalHistory">🗑️ Clear</button>
         </div>
     </div>
+
     <div class="menu-section" style="border-bottom:none;flex-grow:1;">
         <div class="menu-section-title">Recent Conversations</div>
         <ul id="historyList"></ul>
@@ -490,7 +551,7 @@
 <div class="modal-overlay" id="modal-overlay">
     <div class="modal-container">
         <div class="modal-header">
-            <p class="modal-title" id="modal-title">speakeasy // ai-n.org</p>
+            <p class="modal-title">speakeasy // ai-n.org</p>
             <button class="close-modal" id="close-modal">×</button>
         </div>
         <div class="result-container" id="resultContainer"></div>
@@ -503,7 +564,7 @@
 
 <div id="customMessage"></div>
 <div class="disclaimer">
-    Session context lives in SessionMemory (2h TTL). Truthengine → truth → proxy. Local history stays in your browser.
+    Local history lives in your browser. Backend untouched. Import/Export matches local history format.
 </div>
 
 <script>
@@ -523,27 +584,32 @@
             .replace(/\s+/g, '-')
             .substring(0, 100);
     }
+
     function buildCacheKey(q) {
         return 'truth:' + normalizeQuery(q);
     }
+
     function setSessionId(id) {
         if (!id) return;
         appState.sessionId = id;
         localStorage.setItem(SESSION_KEY, id);
     }
+
     function ensureSessionId() {
         if (appState.sessionId) return appState.sessionId;
         const bytes = crypto.getRandomValues(new Uint8Array(16));
-        const id = 'sess_' + Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+        const id = 'sess_' + Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
         setSessionId(id);
         return id;
     }
-    function showMessage(msg, ms=2500) {
+
+    function showMessage(msg, ms = 2500) {
         const el = document.getElementById('customMessage');
         el.textContent = msg;
         el.classList.add('visible');
-        setTimeout(()=>el.classList.remove('visible'), ms);
+        setTimeout(() => el.classList.remove('visible'), ms);
     }
+
     async function loadMarked() {
         if (window.marked) return window.marked.parse;
         const s = document.createElement('script');
@@ -554,25 +620,29 @@
             s.onerror = () => res(t => t);
         });
     }
+
     function openModal() {
         document.getElementById('modal-overlay').classList.add('active');
     }
+
     function closeModal() {
         document.getElementById('modal-overlay').classList.remove('active');
     }
+
     function toggleHistory() {
         const p = document.getElementById('historyPanel');
         p.classList.toggle('open');
         if (p.classList.contains('open')) renderHistory();
     }
+
     function saveToLocalHistory(entryLike) {
-        const now = Math.floor(Date.now()/1000);
+        const now = Math.floor(Date.now() / 1000);
         const e = {
-            id: entryLike.id || (Date.now().toString(36)+Math.random().toString(36).slice(2,8)),
+            id: entryLike.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 8)),
             query: entryLike.query || '',
             answer: entryLike.answer || '',
             model: entryLike.model || appState.MODEL,
-            layer: entryLike.layer || 'unknown',
+            layer: entryLike.layer || entryLike.layer === '' ? entryLike.layer : (entryLike.status === 'miss' ? 'miss' : (entryLike.verified ? 'master' : (entryLike.provisional ? 'provisional' : (entryLike.layer || 'unknown')))),
             source: entryLike.source || 'truthengine',
             status: entryLike.status || 'ok',
             verified: !!entryLike.verified,
@@ -580,12 +650,13 @@
             timestamp: entryLike.timestamp || now
         };
         appState.localHistory.unshift(e);
-        if (appState.localHistory.length > 100) {
-            appState.localHistory = appState.localHistory.slice(0,100);
+        if (appState.localHistory.length > 200) {
+            appState.localHistory = appState.localHistory.slice(0, 200);
         }
         localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
         return e;
     }
+
     function renderHistory() {
         const ul = document.getElementById('historyList');
         const hist = appState.localHistory;
@@ -594,45 +665,51 @@
             return;
         }
         ul.innerHTML = hist.map(h => {
-            const label = (h.query || '').slice(0,60)+(h.query && h.query.length>60?'…':'');
-            const icon = h.layer==='master'?'👑':h.layer==='provisional'?'🧪':h.layer==='miss'?'⚠️':'✨';
+            const label = (h.query || '').slice(0, 60) + ((h.query || '').length > 60 ? '…' : '');
+            const icon = h.layer === 'master' ? '👑'
+                        : h.layer === 'provisional' ? '🧪'
+                        : h.layer === 'miss' ? '⚠️'
+                        : '✨';
             return `<li class="history-item" data-id="${h.id}">
                 <div class="history-item-content">
                     <p>${label}</p>
-                    <small>${icon} ${h.layer||'unknown'} • ${h.model} • ${new Date(h.timestamp*1000).toLocaleString()}</small>
+                    <small>${icon} ${h.layer || 'unknown'} • ${h.model || ''} • ${new Date(h.timestamp * 1000).toLocaleString()}</small>
                 </div>
             </li>`;
         }).join('');
-        Array.from(ul.querySelectorAll('.history-item')).forEach(li=>{
-            li.onclick = ()=>{
-                const id=li.dataset.id;
-                const e=appState.localHistory.find(x=>x.id===id);
+        Array.from(ul.querySelectorAll('.history-item')).forEach(li => {
+            li.onclick = () => {
+                const id = li.dataset.id;
+                const e = appState.localHistory.find(x => x.id === id);
                 if (e) showConversation(e);
             };
         });
     }
+
     async function showConversation(entry) {
         const parse = await loadMarked();
         const c = document.getElementById('resultContainer');
-        const icon = entry.layer==='master'?'👑 Master truth':
-                     entry.layer==='provisional'?'🧪 Provisional':
-                     entry.layer==='miss'?'⚠️ Miss':
-                     '✨';
+        const icon = entry.layer === 'master' ? '👑 Master truth'
+                    : entry.layer === 'provisional' ? '🧪 Provisional'
+                    : entry.layer === 'miss' ? '⚠️ Miss'
+                    : '✨';
         c.innerHTML = `<div class="conversation-block">
             <h4>❓ Query: ${entry.query}</h4>
-            <div class="content">${parse(entry.answer||'')}</div>
-            <small>${icon} • 🤖 ${entry.model} • ${new Date(entry.timestamp*1000).toLocaleString()}<br>🔑 ${buildCacheKey(entry.query||'')}</small>
+            <div class="content">${parse(entry.answer || '')}</div>
+            <small>${icon} • 🤖 ${entry.model || ''} • ${new Date(entry.timestamp * 1000).toLocaleString()}<br>🔑 ${buildCacheKey(entry.query || '')}</small>
         </div>`;
         openModal();
         document.getElementById('historyPanel').classList.remove('open');
     }
+
     function showLoading() {
         const c = document.getElementById('resultContainer');
         c.innerHTML = `<div style="text-align:center;padding:2rem;">
             <div style="font-size:2rem;margin-bottom:1rem;">⏳</div>
-            <div style="color:var(--secondary-text);">Asking the truth-keeper...</div>
+            <div style="color:var(--secondary-text);">Thinking...</div>
         </div>`;
     }
+
     async function performTruthQuery(query) {
         if (!query || !query.trim()) {
             showMessage('Please enter a question.');
@@ -644,45 +721,46 @@
         try {
             const parse = await loadMarked();
             const res = await fetch(API_URL, {
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({
-                    input:query,
-                    model:appState.MODEL,
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    input: query,
+                    model: appState.MODEL,
                     sessionId
                 })
             });
-            const data = await res.json().catch(()=>({}));
-            if (!res.ok) throw new Error(data.error||'Error from truthengine');
-            const answer = data.answer || (data.status==='miss'
-                ? 'No committed truth yet. (MISS from truth layer)'
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || 'Error');
+            const answer = data.answer || (data.status === 'miss'
+                ? 'No committed truth yet. (MISS)'
                 : '');
-            const layer = data.layer || (data.status==='miss'?'miss':'none');
-            const entry = saveToLocalHistory({
-                id:(data.id||normalizeQuery(query))+':'+Date.now(),
+            const e = saveToLocalHistory({
+                id: (data.id || normalizeQuery(query)) + ':' + Date.now(),
                 query,
                 answer,
-                model:data.model||appState.MODEL,
-                layer,
-                source:data.source||'truth',
-                status:data.status||'ok',
-                verified:!!data.verified,
-                provisional:!!data.provisional
+                model: data.model || appState.MODEL,
+                layer: data.layer,
+                source: data.source,
+                status: data.status,
+                verified: data.verified,
+                provisional: data.provisional,
+                timestamp: Math.floor(Date.now() / 1000)
             });
             const flags = [];
-            if (layer==='master' || data.verified) flags.push('👑 Master');
-            if (layer==='provisional' || data.provisional) flags.push('🧪 Provisional');
-            if (layer==='miss') flags.push('⚠️ Miss');
+            if (e.layer === 'master' || e.verified) flags.push('👑 Master');
+            if (e.layer === 'provisional' || e.provisional) flags.push('🧪 Provisional');
+            if (e.layer === 'miss') flags.push('⚠️ Miss');
+
             const c = document.getElementById('resultContainer');
             c.innerHTML = `<div class="conversation-block">
                 <h4>❓ Query: ${query}</h4>
                 <div class="content">${parse(answer)}</div>
                 <small>
-                    🤖 ${entry.model}
-                    ${flags.length?' • '+flags.join(' • '):''}
-                    <br>📚 Source: ${data.source||'truth'}
-                    <br>🆔 Truth ID: ${data.id||normalizeQuery(query)}
-                    <br>🔑 Cache Key: ${buildCacheKey(query)}
+                    🤖 ${e.model || ''}
+                    ${flags.length ? ' • ' + flags.join(' • ') : ''}
+                    <br>📚 Source: ${e.source || ''}
+                    <br>🆔 Truth ID: ${data.id || normalizeQuery(query)}
+                    <br>🔑 ${buildCacheKey(query)}
                 </small>
             </div>`;
             renderHistory();
@@ -694,177 +772,224 @@
             c.innerHTML = `<div class="conversation-block">
                 <h4>❓ Query: ${query}</h4>
                 <div class="content" style="color:#d32f2f;">
-                    ⚠️ ${msg}<br><br>
-                    <em>Saved locally. Try again soon.</em>
+                    ⚠️ ${msg}<br><br><em>Saved locally.</em>
                 </div>
             </div>`;
             saveToLocalHistory({
                 query,
-                answer:'Error: '+msg,
-                model:appState.MODEL,
-                layer:'error',
-                source:'truthengine',
-                status:'error'
+                answer: 'Error: ' + msg,
+                model: appState.MODEL,
+                layer: 'error',
+                source: 'truthengine',
+                status: 'error'
             });
             renderHistory();
-            showMessage('❌ '+msg, 4000);
+            showMessage('❌ ' + msg, 4000);
         }
     }
+
     function exportLocalHistory() {
-    try {
-        // Make sure we’re exporting the real local history
-        const conversations = Array.isArray(appState.localHistory)
-            ? appState.localHistory
-            : [];
-
-        const data = {
-            version: 'local-1',
-            exportedAt: new Date().toISOString(),
-            conversations
-        };
-
-        const blob = new Blob([JSON.stringify(data, null, 2)], {
-            type: 'application/json'
-        });
-
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `truth-local-${new Date().toISOString().slice(0,10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        showMessage(`📦 Exported ${conversations.length} conversations`);
-    } catch (err) {
-        console.error('Export failed:', err);
-        showMessage('Export failed');
-    }
-}
-
-function clearLocalHistory() {
-    appState.localHistory = [];
-    localStorage.setItem(LOCAL_HISTORY_KEY, '[]');
-}
-
-// Export button
-document.getElementById('exportHistory').onclick = exportLocalHistory;
-
-// Import button (open file chooser)
-document.getElementById('importTrigger').onclick = () => {
-    const input = document.getElementById('importHistory');
-    if (input) input.click();
-};
-
-// Import handler
-document.getElementById('importHistory').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    try {
-        const text = await file.text();
-        let json;
-
         try {
-            json = JSON.parse(text);
-        } catch (parseErr) {
-            console.error('Import JSON parse error:', parseErr);
-            showMessage('Invalid JSON file');
-            return;
+            const conversations = Array.isArray(appState.localHistory)
+                ? appState.localHistory
+                : [];
+            const data = {
+                version: 'local-1',
+                exportedAt: new Date().toISOString(),
+                conversations
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {
+                type: 'application/json'
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `truth-local-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showMessage(`📦 Exported ${conversations.length} conversations`);
+        } catch (err) {
+            console.error('Export failed:', err);
+            showMessage('Export failed');
         }
-
-        // Accept either:
-        // { conversations: [...] }
-        // or [...] directly
-        let imported = null;
-
-        if (Array.isArray(json.conversations)) {
-            imported = json.conversations;
-        } else if (Array.isArray(json)) {
-            imported = json;
-        }
-
-        if (!imported) {
-            console.error('Import: no conversations array found in file', json);
-            showMessage('Invalid import file format');
-            return;
-        }
-
-        // Basic normalize to your internal format
-        imported = imported.map((item, idx) => ({
-            id: item.id || (Date.now().toString(36) + '-' + idx),
-            query: typeof item.query === 'string' ? item.query : '',
-            answer: typeof item.answer === 'string' ? item.answer : '',
-            model: item.model || appState.MODEL || 'unknown',
-            layer: item.layer || 'unknown',
-            source: item.source || 'import',
-            status: item.status || 'ok',
-            verified: !!item.verified,
-            provisional: !!item.provisional,
-            timestamp: Number.isFinite(item.timestamp)
-                ? item.timestamp
-                : Math.floor(Date.now() / 1000)
-        }));
-
-        appState.localHistory = imported;
-        localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
-        renderHistory();
-        showMessage(`📥 Imported ${imported.length} conversations`);
-    } catch (err) {
-        console.error('Import failed:', err);
-        showMessage('Import failed');
-    } finally {
-        // reset so same file can be chosen again if needed
-        e.target.value = '';
     }
-});
 
-// Clear button
-document.getElementById('clearLocalHistory').onclick = () => {
-    if (!confirm('Clear all local history?')) return;
-    clearLocalHistory();
-    renderHistory();
-    showMessage('Cleared');
-};
-    document.querySelectorAll('.theme-buttons button').forEach(b=>{
-        b.onclick = ()=>{
+    function clearLocalHistory() {
+        appState.localHistory = [];
+        localStorage.setItem(LOCAL_HISTORY_KEY, '[]');
+    }
+
+    // Wire events
+
+    document.getElementById('enterButton').onclick = () => {
+        const q = document.getElementById('queryInput').value;
+        if (q.trim()) {
+            performTruthQuery(q);
+            document.getElementById('queryInput').value = '';
+        }
+    };
+
+    document.getElementById('queryInput').addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            const q = e.target.value;
+            if (q.trim()) {
+                performTruthQuery(q);
+                e.target.value = '';
+            }
+        }
+    });
+
+    document.getElementById('historyToggle').onclick = toggleHistory;
+    document.getElementById('closeHistory').onclick = toggleHistory;
+
+    document.getElementById('newChatBtn').onclick = () => {
+        if (!confirm('New chat id? Local stays.')) return;
+        localStorage.removeItem(SESSION_KEY);
+        ensureSessionId();
+        showMessage('New session id created');
+    };
+
+    document.getElementById('close-modal').onclick = closeModal;
+
+    document.getElementById('copyResult').onclick = () => {
+        const t = document.querySelector('.conversation-block .content')?.innerText || '';
+        if (t) {
+            navigator.clipboard.writeText(t).then(() => showMessage('Copied'));
+        }
+    };
+
+    document.getElementById('saveLocal').onclick = () => {
+        const q = document.querySelector('.conversation-block h4')?.textContent.replace('❓ Query: ', '') || '';
+        const a = document.querySelector('.conversation-block .content')?.innerText || '';
+        if (q && a) {
+            saveToLocalHistory({
+                query: q,
+                answer: a,
+                model: appState.MODEL,
+                layer: 'manual',
+                source: 'ui'
+            });
+            renderHistory();
+            showMessage('Saved locally');
+        }
+    };
+
+    document.getElementById('exportHistory').onclick = exportLocalHistory;
+
+    document.getElementById('importTrigger').onclick = () => {
+        document.getElementById('importHistory').click();
+    };
+
+    document.getElementById('importHistory').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            const text = await file.text();
+            let json;
+            try {
+                json = JSON.parse(text);
+            } catch (parseErr) {
+                console.error('Import JSON parse error:', parseErr);
+                showMessage('Invalid JSON file');
+                return;
+            }
+
+            let imported = null;
+            if (Array.isArray(json.conversations)) {
+                imported = json.conversations;
+            } else if (Array.isArray(json)) {
+                imported = json;
+            }
+
+            if (!imported) {
+                console.error('Import: no conversations array found in file', json);
+                showMessage('Invalid import file format');
+                return;
+            }
+
+            imported = imported.map((item, idx) => ({
+                id: item.id || (Date.now().toString(36) + '-' + idx),
+                query: typeof item.query === 'string' ? item.query : '',
+                answer: typeof item.answer === 'string' ? item.answer : '',
+                model: item.model || appState.MODEL || 'unknown',
+                layer: item.layer || 'unknown',
+                source: item.source || 'import',
+                status: item.status || 'ok',
+                verified: !!item.verified,
+                provisional: !!item.provisional,
+                timestamp: Number.isFinite(item.timestamp)
+                    ? item.timestamp
+                    : Math.floor(Date.now() / 1000)
+            }));
+
+            appState.localHistory = imported;
+            localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
+            renderHistory();
+            showMessage(`📥 Imported ${imported.length} conversations`);
+        } catch (err) {
+            console.error('Import failed:', err);
+            showMessage('Import failed');
+        } finally {
+            e.target.value = '';
+        }
+    });
+
+    document.getElementById('clearLocalHistory').onclick = () => {
+        if (!confirm('Clear all local history?')) return;
+        clearLocalHistory();
+        renderHistory();
+        showMessage('Cleared');
+    };
+
+    document.querySelectorAll('.theme-buttons button').forEach(b => {
+        b.onclick = () => {
             document.body.dataset.mode = b.dataset.mode;
             localStorage.setItem('theme', b.dataset.mode);
-            showMessage('Theme: '+b.dataset.mode);
+            showMessage('Theme: ' + b.dataset.mode);
         };
     });
-    document.getElementById('modelSelector').onchange = e=>{
+
+    document.getElementById('modelSelector').onchange = (e) => {
         appState.MODEL = e.target.value;
         localStorage.setItem('truth-model', appState.MODEL);
-        showMessage('Model label: '+e.target.value);
+        showMessage('Model label: ' + e.target.value);
     };
-    document.addEventListener('keydown', e=>{
-        if (e.key==='Escape') {
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
             if (document.getElementById('modal-overlay').classList.contains('active')) closeModal();
             if (document.getElementById('historyPanel').classList.contains('open')) toggleHistory();
         }
     });
+
     function init() {
         document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
+
         const savedModel = localStorage.getItem('truth-model');
         if (savedModel) {
             const sel = document.getElementById('modelSelector');
-            if ([...sel.options].some(o=>o.value===savedModel)) {
+            if ([...sel.options].some(o => o.value === savedModel)) {
                 sel.value = savedModel;
                 appState.MODEL = savedModel;
             }
         }
+
         ensureSessionId();
         renderHistory();
+
         const tt = document.getElementById('typedText');
         tt.classList.add('is-typing');
-        setTimeout(()=>{
+        setTimeout(() => {
             tt.classList.remove('is-typing');
             tt.classList.add('is-done');
-        },3500);
-        setTimeout(()=>document.getElementById('queryInput').focus(),200);
+        }, 3500);
+
+        setTimeout(() => document.getElementById('queryInput').focus(), 200);
     }
+
     window.addEventListener('load', init);
 </script>
 </body>
