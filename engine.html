@@ -714,92 +714,122 @@
         }
     }
     function exportLocalHistory() {
+    try {
+        // Make sure we’re exporting the real local history
+        const conversations = Array.isArray(appState.localHistory)
+            ? appState.localHistory
+            : [];
+
         const data = {
-            version:'local-1',
-            exportedAt:new Date().toISOString(),
-            conversations:appState.localHistory
+            version: 'local-1',
+            exportedAt: new Date().toISOString(),
+            conversations
         };
-        const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+            type: 'application/json'
+        });
+
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href=url;
-        a.download='truth-local-'+new Date().toISOString().slice(0,10)+'.json';
+        a.href = url;
+        a.download = `truth-local-${new Date().toISOString().slice(0,10)}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showMessage('📦 Exported');
+
+        showMessage(`📦 Exported ${conversations.length} conversations`);
+    } catch (err) {
+        console.error('Export failed:', err);
+        showMessage('Export failed');
     }
-    function clearLocalHistory() {
-        appState.localHistory = [];
-        localStorage.setItem(LOCAL_HISTORY_KEY, '[]');
-    }
-    // Events
-    document.getElementById('enterButton').onclick = ()=>{
-        const q = document.getElementById('queryInput').value;
-        if (q.trim()) {
-            performTruthQuery(q);
-            document.getElementById('queryInput').value = '';
-        }
-    };
-    document.getElementById('queryInput').addEventListener('keydown', e=>{
-        if ((e.ctrlKey || e.metaKey) && e.key==='Enter') {
-            e.preventDefault();
-            const q = e.target.value;
-            if (q.trim()) {
-                performTruthQuery(q);
-                e.target.value='';
-            }
-        }
-    });
-    document.getElementById('historyToggle').onclick = toggleHistory;
-    document.getElementById('closeHistory').onclick = toggleHistory;
-    document.getElementById('newChatBtn').onclick = ()=>{
-        if (!confirm('New chat id? SessionMemory history will effectively reset. Local stays.')) return;
-        localStorage.removeItem(SESSION_KEY);
-        ensureSessionId();
-        showMessage('New session id created');
-    };
-    document.getElementById('close-modal').onclick = closeModal;
-    document.getElementById('copyResult').onclick = ()=>{
-        const t = document.querySelector('.conversation-block .content')?.innerText || '';
-        if (t) {
-            navigator.clipboard.writeText(t).then(()=>showMessage('Copied'));
-        }
-    };
-    document.getElementById('saveLocal').onclick = ()=>{
-        const q = document.querySelector('.conversation-block h4')?.textContent.replace('❓ Query: ','') || '';
-        const a = document.querySelector('.conversation-block .content')?.innerText || '';
-        if (q && a) {
-            saveToLocalHistory({query:q,answer:a,model:appState.MODEL,layer:'manual',source:'ui'});
-            renderHistory();
-            showMessage('Saved locally');
-        }
-    };
-    document.getElementById('exportHistory').onclick = exportLocalHistory;
-    document.getElementById('importTrigger').onclick = ()=>document.getElementById('importHistory').click();
-    document.getElementById('importHistory').addEventListener('change', async e=>{
-        const f = e.target.files[0];
-        if (!f) return;
+}
+
+function clearLocalHistory() {
+    appState.localHistory = [];
+    localStorage.setItem(LOCAL_HISTORY_KEY, '[]');
+}
+
+// Export button
+document.getElementById('exportHistory').onclick = exportLocalHistory;
+
+// Import button (open file chooser)
+document.getElementById('importTrigger').onclick = () => {
+    const input = document.getElementById('importHistory');
+    if (input) input.click();
+};
+
+// Import handler
+document.getElementById('importHistory').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+        const text = await file.text();
+        let json;
+
         try {
-            const text = await f.text();
-            const json = JSON.parse(text);
-            if (Array.isArray(json.conversations)) {
-                appState.localHistory = json.conversations;
-                localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
-                renderHistory();
-                showMessage('Imported');
-            } else showMessage('Invalid file');
-        } catch {
-            showMessage('Import failed');
+            json = JSON.parse(text);
+        } catch (parseErr) {
+            console.error('Import JSON parse error:', parseErr);
+            showMessage('Invalid JSON file');
+            return;
         }
-    });
-    document.getElementById('clearLocalHistory').onclick = ()=>{
-        if (!confirm('Clear all local history?')) return;
-        clearLocalHistory();
+
+        // Accept either:
+        // { conversations: [...] }
+        // or [...] directly
+        let imported = null;
+
+        if (Array.isArray(json.conversations)) {
+            imported = json.conversations;
+        } else if (Array.isArray(json)) {
+            imported = json;
+        }
+
+        if (!imported) {
+            console.error('Import: no conversations array found in file', json);
+            showMessage('Invalid import file format');
+            return;
+        }
+
+        // Basic normalize to your internal format
+        imported = imported.map((item, idx) => ({
+            id: item.id || (Date.now().toString(36) + '-' + idx),
+            query: typeof item.query === 'string' ? item.query : '',
+            answer: typeof item.answer === 'string' ? item.answer : '',
+            model: item.model || appState.MODEL || 'unknown',
+            layer: item.layer || 'unknown',
+            source: item.source || 'import',
+            status: item.status || 'ok',
+            verified: !!item.verified,
+            provisional: !!item.provisional,
+            timestamp: Number.isFinite(item.timestamp)
+                ? item.timestamp
+                : Math.floor(Date.now() / 1000)
+        }));
+
+        appState.localHistory = imported;
+        localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
         renderHistory();
-        showMessage('Cleared');
-    };
+        showMessage(`📥 Imported ${imported.length} conversations`);
+    } catch (err) {
+        console.error('Import failed:', err);
+        showMessage('Import failed');
+    } finally {
+        // reset so same file can be chosen again if needed
+        e.target.value = '';
+    }
+});
+
+// Clear button
+document.getElementById('clearLocalHistory').onclick = () => {
+    if (!confirm('Clear all local history?')) return;
+    clearLocalHistory();
+    renderHistory();
+    showMessage('Cleared');
+};
     document.querySelectorAll('.theme-buttons button').forEach(b=>{
         b.onclick = ()=>{
             document.body.dataset.mode = b.dataset.mode;
