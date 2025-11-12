@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-Nspired :: Truth Engine Interface</title>
-    <meta name="description" content="ai-nspired.com • truth-engine. memory keeper. Systems that don't forget—or flinch.">
+    <title>AI-Nspired :: Truth Interface (via truth orchestrator)</title>
+    <meta name="description" content="ai-nspired.com • truth orchestrator shell.">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&display=swap');
 
@@ -75,17 +75,14 @@
             border-right: 3px solid var(--accent-color);
             animation: blink-caret .75s step-end infinite;
         }
-
         .typed-text.is-typing {
             animation: typing 3.5s steps(40, end) forwards, blink-caret .75s step-end infinite;
         }
-
         .typed-text.is-done {
             animation: none;
             border-right: none;
             width: auto;
         }
-
         @keyframes typing { from { width: 0 } to { width: 100% } }
         @keyframes blink-caret { 50% { border-color: transparent; } }
 
@@ -191,7 +188,8 @@
             text-decoration: none;
         }
 
-        .icon-button:hover, .icon-button:focus {
+        .icon-button:hover,
+        .icon-button:focus {
             background-color: var(--accent-color);
             color: var(--bg-color);
             transform: translateY(-2px);
@@ -288,8 +286,6 @@
             justify-content: center;
             font-size: 1.2rem;
         }
-
-        /* History panel */
 
         #historyPanel {
             position: fixed;
@@ -394,26 +390,6 @@
 
         #importHistory {
             display: none;
-        }
-
-        .close-history {
-            background: none;
-            border: none;
-            color: var(--bg-color);
-            font-size: 1.8rem;
-            cursor: pointer;
-            padding: 0.25rem;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-
-        .close-history:hover {
-            background: var(--bg-color);
-            color: var(--accent-color);
         }
 
         #historyList {
@@ -522,17 +498,6 @@
     </div>
 
     <div class="menu-section">
-        <div class="menu-section-title">AI Model (label only)</div>
-        <select class="model-selector" id="modelSelector">
-            <option value="polaris-alpha">polaris-alpha</option>
-            <option value="granite-4.0-h-micro">granite-4.0-h-micro</option>
-            <option value="qwen2.5-7b-instruct">Qwen 2.5 7B</option>
-            <option value="gpt-oss-20b">GPT OSS 20B</option>
-            <option value="dolphin-mistral-24b-venice-edition">Dolphin 24B</option>
-        </select>
-    </div>
-
-    <div class="menu-section">
         <div class="menu-section-title">Local Data</div>
         <div class="history-actions">
             <button id="exportHistory">📦 Export</button>
@@ -564,42 +529,40 @@
 
 <div id="customMessage"></div>
 <div class="disclaimer">
-    Local history lives in your browser. Backend untouched. Import/Export matches local history format.
+    This shell calls /api/truth/resolve first. Local export/import uses the same conversations shape.
 </div>
 
 <script>
-    const API_URL = 'https://truthengine.ai-n.workers.dev/api/ai/truth';
-    const LOCAL_HISTORY_KEY = 'TRUTH_ENGINE_LOCAL_HISTORY';
-    const SESSION_KEY = 'TRUTH_ENGINE_SESSION_ID';
+    // Point directly at truth orchestrator
+    const TRUTH_BASE = ''; // set if needed, otherwise same origin
+    const TRUTH_URL = TRUTH_BASE + '/api/truth/resolve';
+
+    const LOCAL_HISTORY_KEY = 'TRUTH_SHELL_LOCAL_HISTORY';
+    const SESSION_KEY = 'TRUTH_SHELL_SESSION_ID';
 
     const appState = {
         localHistory: JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY) || '[]'),
-        MODEL: localStorage.getItem('truth-model') || 'polaris-alpha',
         sessionId: localStorage.getItem(SESSION_KEY) || null
     };
 
-    function normalizeQuery(q) {
-        return (q || '').trim().toLowerCase()
+    function normalizeId(q) {
+        if (!q) return 'unknown-query';
+        return q.trim().toLowerCase()
             .replace(/[^\w\s]/g, '')
             .replace(/\s+/g, '-')
-            .substring(0, 100);
+            .substring(0, 100) || 'unknown-query';
     }
 
     function buildCacheKey(q) {
-        return 'truth:' + normalizeQuery(q);
-    }
-
-    function setSessionId(id) {
-        if (!id) return;
-        appState.sessionId = id;
-        localStorage.setItem(SESSION_KEY, id);
+        return 'truth:' + normalizeId(q);
     }
 
     function ensureSessionId() {
         if (appState.sessionId) return appState.sessionId;
-        const bytes = crypto.getRandomValues(new Uint8Array(16));
-        const id = 'sess_' + Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
-        setSessionId(id);
+        const b = crypto.getRandomValues(new Uint8Array(16));
+        const id = 'sess_' + Array.from(b).map(x => x.toString(16).padStart(2, '0')).join('');
+        appState.sessionId = id;
+        localStorage.setItem(SESSION_KEY, id);
         return id;
     }
 
@@ -635,19 +598,25 @@
         if (p.classList.contains('open')) renderHistory();
     }
 
-    function saveToLocalHistory(entryLike) {
+    function saveToLocalHistory(fromTruth) {
         const now = Math.floor(Date.now() / 1000);
         const e = {
-            id: entryLike.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 8)),
-            query: entryLike.query || '',
-            answer: entryLike.answer || '',
-            model: entryLike.model || appState.MODEL,
-            layer: entryLike.layer || entryLike.layer === '' ? entryLike.layer : (entryLike.status === 'miss' ? 'miss' : (entryLike.verified ? 'master' : (entryLike.provisional ? 'provisional' : (entryLike.layer || 'unknown')))),
-            source: entryLike.source || 'truthengine',
-            status: entryLike.status || 'ok',
-            verified: !!entryLike.verified,
-            provisional: !!entryLike.provisional,
-            timestamp: entryLike.timestamp || now
+            id: fromTruth.id || (normalizeId(fromTruth.query) + ':' + Date.now()),
+            query: fromTruth.query || '',
+            answer: fromTruth.answer || '',
+            model: fromTruth.meta?.model || '',
+            layer: fromTruth.layer || (fromTruth.status === 'miss'
+                   ? 'miss'
+                   : fromTruth.verified
+                   ? 'master'
+                   : fromTruth.provisional
+                   ? 'provisional'
+                   : 'unknown'),
+            source: fromTruth.source || 'truth',
+            status: fromTruth.status || 'ok',
+            verified: !!fromTruth.verified,
+            provisional: !!fromTruth.provisional,
+            timestamp: Math.floor((fromTruth.meta?.created || Date.now()) / 1000)
         };
         appState.localHistory.unshift(e);
         if (appState.localHistory.length > 200) {
@@ -666,10 +635,11 @@
         }
         ul.innerHTML = hist.map(h => {
             const label = (h.query || '').slice(0, 60) + ((h.query || '').length > 60 ? '…' : '');
-            const icon = h.layer === 'master' ? '👑'
-                        : h.layer === 'provisional' ? '🧪'
-                        : h.layer === 'miss' ? '⚠️'
-                        : '✨';
+            const icon =
+                h.layer === 'master' ? '👑' :
+                h.layer === 'provisional' ? '🧪' :
+                h.layer === 'miss' ? '⚠️' :
+                '✨';
             return `<li class="history-item" data-id="${h.id}">
                 <div class="history-item-content">
                     <p>${label}</p>
@@ -689,10 +659,11 @@
     async function showConversation(entry) {
         const parse = await loadMarked();
         const c = document.getElementById('resultContainer');
-        const icon = entry.layer === 'master' ? '👑 Master truth'
-                    : entry.layer === 'provisional' ? '🧪 Provisional'
-                    : entry.layer === 'miss' ? '⚠️ Miss'
-                    : '✨';
+        const icon =
+            entry.layer === 'master' ? '👑 Master truth' :
+            entry.layer === 'provisional' ? '🧪 Provisional' :
+            entry.layer === 'miss' ? '⚠️ Miss' :
+            '✨';
         c.innerHTML = `<div class="conversation-block">
             <h4>❓ Query: ${entry.query}</h4>
             <div class="content">${parse(entry.answer || '')}</div>
@@ -706,7 +677,7 @@
         const c = document.getElementById('resultContainer');
         c.innerHTML = `<div style="text-align:center;padding:2rem;">
             <div style="font-size:2rem;margin-bottom:1rem;">⏳</div>
-            <div style="color:var(--secondary-text);">Thinking...</div>
+            <div style="color:var(--secondary-text);">Querying truth orchestrator...</div>
         </div>`;
     }
 
@@ -715,54 +686,58 @@
             showMessage('Please enter a question.');
             return;
         }
-        const sessionId = ensureSessionId();
+
+        ensureSessionId();
         openModal();
         showLoading();
+
         try {
-            const parse = await loadMarked();
-            const res = await fetch(API_URL, {
+            const res = await fetch(TRUTH_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    input: query,
-                    model: appState.MODEL,
-                    sessionId
-                })
+                body: JSON.stringify({ input: query })
             });
             const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data.error || 'Error');
-            const answer = data.answer || (data.status === 'miss'
-                ? 'No committed truth yet. (MISS)'
-                : '');
-            const e = saveToLocalHistory({
-                id: (data.id || normalizeQuery(query)) + ':' + Date.now(),
-                query,
-                answer,
-                model: data.model || appState.MODEL,
-                layer: data.layer,
-                source: data.source,
-                status: data.status,
-                verified: data.verified,
-                provisional: data.provisional,
-                timestamp: Math.floor(Date.now() / 1000)
-            });
+
+            if (!res.ok || (!data.answer && data.status !== 'miss')) {
+                throw new Error(data.error || 'Error from truth');
+            }
+
+            const truthObj = {
+                status: data.status || 'ok',
+                layer: data.layer || (data.status === 'miss' ? 'miss' : 'none'),
+                id: data.id || normalizeId(query),
+                query: data.query || query,
+                answer: data.answer || (data.status === 'miss'
+                    ? 'No committed truth yet. (MISS from truth)'
+                    : ''),
+                source: data.source || 'truth',
+                verified: !!data.verified,
+                provisional: !!data.provisional,
+                meta: data.meta || {}
+            };
+
+            const entry = saveToLocalHistory(truthObj);
+
+            const parse = await loadMarked();
             const flags = [];
-            if (e.layer === 'master' || e.verified) flags.push('👑 Master');
-            if (e.layer === 'provisional' || e.provisional) flags.push('🧪 Provisional');
-            if (e.layer === 'miss') flags.push('⚠️ Miss');
+            if (entry.layer === 'master' || entry.verified) flags.push('👑 Master');
+            if (entry.layer === 'provisional' || entry.provisional) flags.push('🧪 Provisional');
+            if (entry.layer === 'miss') flags.push('⚠️ Miss');
 
             const c = document.getElementById('resultContainer');
             c.innerHTML = `<div class="conversation-block">
-                <h4>❓ Query: ${query}</h4>
-                <div class="content">${parse(answer)}</div>
+                <h4>❓ Query: ${entry.query}</h4>
+                <div class="content">${parse(entry.answer || '')}</div>
                 <small>
-                    🤖 ${e.model || ''}
+                    🤖 ${entry.model || ''}
                     ${flags.length ? ' • ' + flags.join(' • ') : ''}
-                    <br>📚 Source: ${e.source || ''}
-                    <br>🆔 Truth ID: ${data.id || normalizeQuery(query)}
-                    <br>🔑 ${buildCacheKey(query)}
+                    <br>📚 Source: ${entry.source || ''}
+                    <br>🆔 Truth ID: ${entry.id}
+                    <br>🔑 ${buildCacheKey(entry.query || '')}
                 </small>
             </div>`;
+
             renderHistory();
             showMessage('✅ Answer ready');
         } catch (err) {
@@ -776,12 +751,16 @@
                 </div>
             </div>`;
             saveToLocalHistory({
+                id: normalizeId(query) + ':error:' + Date.now(),
                 query,
                 answer: 'Error: ' + msg,
-                model: appState.MODEL,
+                model: '',
                 layer: 'error',
-                source: 'truthengine',
-                status: 'error'
+                source: 'truth-shell',
+                status: 'error',
+                verified: false,
+                provisional: false,
+                meta: {}
             });
             renderHistory();
             showMessage('❌ ' + msg, 4000);
@@ -821,7 +800,7 @@
         localStorage.setItem(LOCAL_HISTORY_KEY, '[]');
     }
 
-    // Wire events
+    // Event wiring
 
     document.getElementById('enterButton').onclick = () => {
         const q = document.getElementById('queryInput').value;
@@ -846,7 +825,7 @@
     document.getElementById('closeHistory').onclick = toggleHistory;
 
     document.getElementById('newChatBtn').onclick = () => {
-        if (!confirm('New chat id? Local stays.')) return;
+        if (!confirm('New session id?')) return;
         localStorage.removeItem(SESSION_KEY);
         ensureSessionId();
         showMessage('New session id created');
@@ -856,9 +835,7 @@
 
     document.getElementById('copyResult').onclick = () => {
         const t = document.querySelector('.conversation-block .content')?.innerText || '';
-        if (t) {
-            navigator.clipboard.writeText(t).then(() => showMessage('Copied'));
-        }
+        if (t) navigator.clipboard.writeText(t).then(() => showMessage('Copied'));
     };
 
     document.getElementById('saveLocal').onclick = () => {
@@ -866,11 +843,16 @@
         const a = document.querySelector('.conversation-block .content')?.innerText || '';
         if (q && a) {
             saveToLocalHistory({
+                id: normalizeId(q) + ':manual:' + Date.now(),
                 query: q,
                 answer: a,
-                model: appState.MODEL,
+                model: '',
                 layer: 'manual',
-                source: 'ui'
+                source: 'ui',
+                status: 'ok',
+                verified: false,
+                provisional: false,
+                meta: {}
             });
             renderHistory();
             showMessage('Saved locally');
@@ -886,6 +868,7 @@
     document.getElementById('importHistory').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
         try {
             const text = await file.text();
             let json;
@@ -905,16 +888,16 @@
             }
 
             if (!imported) {
-                console.error('Import: no conversations array found in file', json);
+                console.error('Import: no conversations array found', json);
                 showMessage('Invalid import file format');
                 return;
             }
 
             imported = imported.map((item, idx) => ({
-                id: item.id || (Date.now().toString(36) + '-' + idx),
+                id: item.id || (normalizeId(item.query || 'q') + ':' + idx),
                 query: typeof item.query === 'string' ? item.query : '',
                 answer: typeof item.answer === 'string' ? item.answer : '',
-                model: item.model || appState.MODEL || 'unknown',
+                model: item.model || '',
                 layer: item.layer || 'unknown',
                 source: item.source || 'import',
                 status: item.status || 'ok',
@@ -952,12 +935,6 @@
         };
     });
 
-    document.getElementById('modelSelector').onchange = (e) => {
-        appState.MODEL = e.target.value;
-        localStorage.setItem('truth-model', appState.MODEL);
-        showMessage('Model label: ' + e.target.value);
-    };
-
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (document.getElementById('modal-overlay').classList.contains('active')) closeModal();
@@ -967,16 +944,6 @@
 
     function init() {
         document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
-
-        const savedModel = localStorage.getItem('truth-model');
-        if (savedModel) {
-            const sel = document.getElementById('modelSelector');
-            if ([...sel.options].some(o => o.value === savedModel)) {
-                sel.value = savedModel;
-                appState.MODEL = savedModel;
-            }
-        }
-
         ensureSessionId();
         renderHistory();
 
