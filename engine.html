@@ -7,21 +7,16 @@
     <meta name="description" content="ai-nspired.com • truth-engine. memory keeper. Systems that don't forget—or flinch.">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&display=swap');
-
         :root {
             --bg-color: #f8f8ff;
             --text-color: #1a1a1a;
             --border-color: #d0d0d0;
             --modal-bg: #ffffff;
             --content-bg: #f8f8ff;
-            --content-text: #1a1a1a;
             --accent-color: #1a2a3a;
             --secondary-text: #6c757d;
             --shadow-color: rgba(0,0,0,0.05);
             --accent-color-rgb: 26, 42, 58;
-            --grid-bg: #e8e8e8;
-            --grid-cell-off: #cccccc;
-            --grid-cell-on: #1a2a3a;
         }
         [data-mode="dark"] {
             --bg-color: #1a1a1a;
@@ -29,14 +24,10 @@
             --border-color: #333333;
             --modal-bg: #2a2a2a;
             --content-bg: #111111;
-            --content-text: #f0f0f0;
             --accent-color: #c7a17a;
             --secondary-text: #9fa8da;
             --shadow-color: rgba(0,0,0,0.3);
             --accent-color-rgb: 199, 161, 122;
-            --grid-bg: #1a1a1a;
-            --grid-cell-off: #333333;
-            --grid-cell-on: #c7a17a;
         }
         [data-mode="neo"] {
             --bg-color: #000000;
@@ -44,36 +35,11 @@
             --border-color: #008800;
             --modal-bg: #0d0d0d;
             --content-bg: #1a1a1a;
-            --content-text: #00FF00;
             --accent-color: #00FF00;
             --secondary-text: #00AA00;
             --shadow-color: transparent;
             --accent-color-rgb: 0, 255, 0;
-            --grid-bg: #0d0d0d;
-            --grid-cell-off: #1a1a1a;
-            --grid-cell-on: #00FF00;
         }
-
-        @media (max-width: 768px) {
-            .history-item {
-                min-height: 60px;
-                padding: 1rem;
-                font-size: 1rem;
-            }
-            .icon-button {
-                min-width: 48px;
-                min-height: 48px;
-            }
-            .menu-btn {
-                min-width: 44px;
-                min-height: 44px;
-                font-size: 1.2rem;
-            }
-            .search-input {
-                font-size: 16px !important;
-            }
-        }
-
         body {
             margin: 0;
             padding: 1.5rem 1rem;
@@ -86,31 +52,15 @@
             align-items: center;
             min-height: 100vh;
             box-sizing: border-box;
-            transition: background-color 0.3s, color 0.3s;
             width: 100%;
             position: relative;
+            transition: background-color 0.3s, color 0.3s;
         }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-                align-items: flex-start;
-                min-height: 90vh;
-            }
-        }
-
         .terminal-window {
             width: 100%;
             max-width: 800px;
             text-align: left;
         }
-
-        @media (max-width: 768px) {
-            .terminal-window {
-                margin-top: 2rem;
-            }
-        }
-
         .typed-text {
             font-weight: 700;
             font-size: 1.5rem;
@@ -121,15 +71,6 @@
             border-right: 3px solid var(--accent-color);
             animation: blink-caret .75s step-end infinite;
         }
-
-        @media (max-width: 768px) {
-            .typed-text {
-                font-size: 1.3rem;
-                text-align: center;
-                display: block;
-            }
-        }
-
         .typed-text.is-typing {
             animation: typing 3.5s steps(40, end) forwards, blink-caret .75s step-end infinite;
         }
@@ -138,10 +79,8 @@
             border-right: none;
             width: auto;
         }
-
         @keyframes typing { from { width: 0 } to { width: 100% } }
         @keyframes blink-caret { 50% { border-color: transparent; } }
-
         .input-container {
             display: flex;
             flex-direction: column;
@@ -149,27 +88,12 @@
             width: 100%;
             gap: 1rem;
         }
-
-        @media (max-width: 768px) {
-            .input-container {
-                margin-top: 3rem;
-            }
-        }
-
         .input-row {
             display: flex;
             align-items: flex-end;
             gap: 0.5rem;
             width: 100%;
         }
-
-        @media (max-width: 768px) {
-            .input-row {
-                flex-direction: column;
-                gap: 1rem;
-            }
-        }
-
         .command-line {
             display: flex;
             align-items: flex-end;
@@ -183,19 +107,10 @@
             padding: 0.5rem;
             transition: all 0.3s ease;
         }
-
         .command-line:focus-within {
             box-shadow: 0 0 20px rgba(var(--accent-color-rgb), 0.3);
             border-color: var(--accent-color);
         }
-
-        @media (max-width: 768px) {
-            .command-line {
-                order: 2;
-                border-radius: 20px;
-            }
-        }
-
         .enter-button {
             margin: 0.5rem;
             font-weight: bold;
@@ -214,24 +129,10 @@
             border: none;
             align-self: flex-end;
         }
-
         .enter-button:hover {
             transform: scale(1.1);
             box-shadow: 0 0 15px var(--accent-color);
         }
-
-        @media (max-width: 768px) {
-            .enter-button {
-                width: 50px;
-                height: 50px;
-                font-size: 1.8rem;
-                position: absolute;
-                right: 8px;
-                bottom: 8px;
-                z-index: 2;
-            }
-        }
-
         .search-input {
             background: transparent;
             border: none;
@@ -251,34 +152,12 @@
             white-space: pre-wrap;
             word-wrap: break-word;
         }
-
-        @media (max-width: 768px) {
-            .search-input {
-                font-size: 1.2rem;
-                padding: 1.2rem;
-                min-height: 80px;
-                padding-right: 70px;
-            }
-        }
-
-        .search-input:focus {
-            outline: none;
-        }
-
         .button-row {
             display: flex;
             gap: 0.5rem;
             justify-content: center;
             width: 100%;
         }
-
-        @media (max-width: 768px) {
-            .button-row {
-                order: 1;
-                justify-content: space-between;
-            }
-        }
-
         .icon-button {
             padding: 0.75rem;
             border: 2px solid var(--accent-color);
@@ -296,22 +175,12 @@
             transition: all 0.3s ease;
             text-decoration: none;
         }
-
-        @media (max-width: 768px) {
-            .icon-button {
-                width: 55px;
-                height: 55px;
-                font-size: 1.3rem;
-            }
-        }
-
         .icon-button:hover, .icon-button:focus {
             background-color: var(--accent-color);
             color: var(--bg-color);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(var(--accent-color-rgb), 0.3);
         }
-
         .modal-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -335,7 +204,6 @@
             display: flex;
             flex-direction: column;
             padding: 1rem;
-            transition: background-color 0.3s, color 0.3s;
             overflow: hidden;
         }
         .modal-header {
@@ -365,18 +233,12 @@
             overflow-y: auto;
             font-family: 'Crimson Pro', serif;
             color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
-            scroll-behavior: smooth;
         }
         .conversation-block .content {
             box-shadow: 0 4px 10px var(--shadow-color);
             margin-top: 1rem;
             padding: 1rem;
             border-radius: 4px;
-            transition: box-shadow 0.3s;
-        }
-        [data-mode="neo"] .conversation-block .content {
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
         }
         .modal-footer {
             display: flex;
@@ -384,13 +246,6 @@
             justify-content: flex-end;
             padding-top: 0.5rem;
             border-top: 1px solid var(--border-color);
-            flex-wrap: wrap;
-            position: relative;
-            top: -1rem;
-            background: var(--modal-bg);
-            padding: 0.5rem 1rem;
-            border-radius: 0 0 8px 8px;
-            margin: 0 -1rem -1rem;
         }
         .modal-footer button {
             padding: 0.5rem;
@@ -400,7 +255,6 @@
             font-weight: 700;
             cursor: pointer;
             border-radius: 50%;
-            min-width: auto;
             width: 40px;
             height: 40px;
             display: flex;
@@ -408,11 +262,6 @@
             justify-content: center;
             font-size: 1.2rem;
         }
-        .modal-footer button:hover, .modal-footer button:focus {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-        }
-
         #historyPanel {
             position: fixed;
             top: 0;
@@ -428,7 +277,6 @@
             z-index: 999;
             display: flex;
             flex-direction: column;
-            touch-action: pan-y;
             overflow-y: auto;
         }
         #historyPanel.open { transform: translateX(0); }
@@ -446,12 +294,10 @@
             font-size: 1.2rem;
             margin: 0;
         }
-
         .menu-section {
             padding: 1.5rem;
             border-bottom: 1px solid var(--border-color);
         }
-        .menu-section:last-child { border-bottom: none; }
         .menu-section-title {
             font-weight: 700;
             color: var(--accent-color);
@@ -460,7 +306,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
         .theme-buttons {
             display: flex;
             gap: 0.5rem;
@@ -478,7 +323,6 @@
             flex: 1;
             min-width: 80px;
         }
-
         .model-selector {
             width: 100%;
             padding: 0.75rem;
@@ -489,12 +333,6 @@
             border-radius: 8px;
             font-size: 1rem;
         }
-        .model-selector:focus {
-            outline: none;
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-        }
-
         .history-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -511,9 +349,7 @@
             font-weight: 700;
             transition: all 0.3s ease;
         }
-
         #importHistory { display: none; }
-
         .close-history {
             background: none;
             border: none;
@@ -532,7 +368,6 @@
             background: var(--bg-color);
             color: var(--accent-color);
         }
-
         #historyList {
             flex-grow: 1;
             overflow-y: auto;
@@ -550,16 +385,8 @@
             justify-content: space-between;
             align-items: flex-start;
             gap: 0.5rem;
-            position: relative;
-            outline: none;
         }
-        .history-item:hover { background-color: rgba(var(--accent-color-rgb), 0.1); }
-        .history-item:focus {
-            background-color: rgba(var(--accent-color-rgb), 0.2);
-            outline: 2px solid var(--accent-color);
-            outline-offset: 2px;
-        }
-        .history-item-content { flex-grow: 1; overflow: hidden; }
+        .history-item:hover { background-color: rgba(26,42,58,0.08); }
         .history-item-content p {
             margin: 0;
             white-space: nowrap;
@@ -573,7 +400,6 @@
             display: block;
             margin-top: 2px;
         }
-
         #customMessage {
             position: fixed;
             bottom: 2rem;
@@ -596,7 +422,6 @@
             opacity: 1;
             transform: translate(-50%, -10px);
         }
-
         .disclaimer {
             position: fixed;
             bottom: 1rem;
@@ -605,7 +430,6 @@
             color: var(--secondary-text);
             font-size: 0.8rem;
             text-align: center;
-            max-width: 90vw;
         }
     </style>
 </head>
@@ -630,10 +454,9 @@
 
 <div id="historyPanel">
     <div class="history-header">
-        <p class="history-title">Menu & History</p>
+        <p class="history-title">Menu &amp; History</p>
         <button class="close-history" id="closeHistory">×</button>
     </div>
-
     <div class="menu-section">
         <div class="menu-section-title">Theme</div>
         <div class="theme-buttons">
@@ -642,83 +465,70 @@
             <button data-mode="neo">Neo</button>
         </div>
     </div>
-
     <div class="menu-section">
         <div class="menu-section-title">AI Model (label only)</div>
-        <select class="model-selector" id="modelSelector" aria-label="Select AI Model">
-            <option value="polaris-alpha">polaris-alpha (data donate)</option>
+        <select class="model-selector" id="modelSelector">
+            <option value="polaris-alpha">polaris-alpha</option>
             <option value="granite-4.0-h-micro">granite-4.0-h-micro</option>
             <option value="qwen2.5-7b-instruct">Qwen 2.5 7B</option>
             <option value="gpt-oss-20b">GPT OSS 20B</option>
             <option value="dolphin-mistral-24b-venice-edition">Dolphin 24B</option>
         </select>
     </div>
-
     <div class="menu-section">
-        <div class="menu-section-title">Data Management</div>
+        <div class="menu-section-title">Local Data</div>
         <div class="history-actions">
-            <button id="exportHistory">📦 Session Backup</button>
-            <button id="importTrigger">📥 Import Session</button>
+            <button id="exportHistory">📦 Export</button>
+            <button id="importTrigger">📥 Import</button>
             <input type="file" id="importHistory" accept=".json">
-            <button id="clearLocalHistory">🗑️ Clear Local</button>
+            <button id="clearLocalHistory">🗑️ Clear</button>
         </div>
     </div>
-
-    <div class="menu-section" style="border-bottom:none;flex-grow:1;display:flex;flex-direction:column;">
+    <div class="menu-section" style="border-bottom:none;flex-grow:1;">
         <div class="menu-section-title">Recent Conversations</div>
         <ul id="historyList"></ul>
     </div>
 </div>
 
-<div class="modal-overlay" id="modal-overlay" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
-    <div class="modal-container" role="document">
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal-container">
         <div class="modal-header">
             <p class="modal-title" id="modal-title">speakeasy // ai-n.org</p>
-            <button class="close-modal" id="close-modal" aria-label="Close dialog">×</button>
+            <button class="close-modal" id="close-modal">×</button>
         </div>
-        <div class="result-container" id="resultContainer" role="main" aria-live="polite"></div>
+        <div class="result-container" id="resultContainer"></div>
         <div class="modal-footer">
-            <button id="copyResult" title="Copy" aria-label="Copy response">📋</button>
-            <button id="saveLocal" title="Save Locally" aria-label="Save locally">💾</button>
+            <button id="copyResult">📋</button>
+            <button id="saveLocal">💾</button>
         </div>
     </div>
 </div>
 
 <div id="customMessage"></div>
 <div class="disclaimer">
-    Primary storage: Local browser. Truth resolution via truthengine → truth. Export to backup.
+    Session context lives in SessionMemory (2h TTL). Truthengine → truth → proxy. Local history stays in your browser.
 </div>
 
 <script>
-    // ================= BACKEND ENDPOINTS =================
-    // Front-door (onboarding champion)
-    const API_BASE = 'https://truthengine.ai-n.workers.dev';
-    const API_URL = `${API_BASE}/api/ai/truth`;
-
-    // Session Memory Service (UVP support)
-    const SESSION_API_BASE = 'https://session-memory-mvp.ai-n.workers.dev';
-
-    // Local storage keys
+    const API_URL = 'https://truthengine.ai-n.workers.dev/api/ai/truth';
     const LOCAL_HISTORY_KEY = 'TRUTH_ENGINE_LOCAL_HISTORY';
     const SESSION_KEY = 'TRUTH_ENGINE_SESSION_ID';
 
     const appState = {
         localHistory: JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY) || '[]'),
         MODEL: localStorage.getItem('truth-model') || 'polaris-alpha',
-        sessionId: localStorage.getItem(SESSION_KEY) || null,
-        currentHistoryId: null
+        sessionId: localStorage.getItem(SESSION_KEY) || null
     };
 
-    function normalizeQuery(query) {
-        return query.trim().toLowerCase()
-            .replace(/[^\w\s]/g, "")
-            .replace(/\s+/g, "-")
+    function normalizeQuery(q) {
+        return (q || '').trim().toLowerCase()
+            .replace(/[^\w\s]/g, '')
+            .replace(/\s+/g, '-')
             .substring(0, 100);
     }
-    function buildCacheKey(input) {
-        return `truth:${normalizeQuery(input)}`;
+    function buildCacheKey(q) {
+        return 'truth:' + normalizeQuery(q);
     }
-
     function setSessionId(id) {
         if (!id) return;
         appState.sessionId = id;
@@ -726,75 +536,42 @@
     }
     function ensureSessionId() {
         if (appState.sessionId) return appState.sessionId;
-        const arr = crypto.getRandomValues(new Uint8Array(16));
-        const id = 'sess_' + Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+        const bytes = crypto.getRandomValues(new Uint8Array(16));
+        const id = 'sess_' + Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
         setSessionId(id);
         return id;
     }
-
-    async function recordSessionInteraction(user, assistant, meta = {}) {
-        const sessionId = ensureSessionId();
-        try {
-            await fetch(`${SESSION_API_BASE}/session/add-interaction`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sessionId,
-                    user,
-                    assistant,
-                    lastModelUsed: appState.MODEL,
-                    truthLayer: meta.layer,
-                    truthId: meta.id,
-                    verified: meta.verified,
-                    provisional: meta.provisional
-                })
-            });
-        } catch (err) {
-            console.warn('SessionMemory add-interaction failed:', err);
-        }
-    }
-
-    function showMessage(msg, duration = 3000) {
+    function showMessage(msg, ms=2500) {
         const el = document.getElementById('customMessage');
         el.textContent = msg;
         el.classList.add('visible');
-        setTimeout(() => el.classList.remove('visible'), duration);
+        setTimeout(()=>el.classList.remove('visible'), ms);
     }
-
     async function loadMarked() {
         if (window.marked) return window.marked.parse;
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-        document.head.appendChild(script);
-        return new Promise((resolve) => {
-            script.onload = () => resolve(window.marked.parse);
-            script.onerror = () => {
-                console.warn('Marked failed to load, using plain text');
-                resolve(text => text);
-            };
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+        document.head.appendChild(s);
+        return new Promise(res => {
+            s.onload = () => res(window.marked.parse);
+            s.onerror = () => res(t => t);
         });
     }
-
-    function copyToClipboard(text, msg = 'Copied!') {
-        navigator.clipboard.writeText(text).then(() => showMessage(msg));
-    }
-
     function openModal() {
         document.getElementById('modal-overlay').classList.add('active');
     }
     function closeModal() {
         document.getElementById('modal-overlay').classList.remove('active');
     }
-
     function toggleHistory() {
-        const panel = document.getElementById('historyPanel');
-        panel.classList.toggle('open');
-        if (panel.classList.contains('open')) renderHistory();
+        const p = document.getElementById('historyPanel');
+        p.classList.toggle('open');
+        if (p.classList.contains('open')) renderHistory();
     }
-
     function saveToLocalHistory(entryLike) {
-        const entry = {
-            id: entryLike.id || (Date.now().toString() + Math.random().toString(36).substr(2, 6)),
+        const now = Math.floor(Date.now()/1000);
+        const e = {
+            id: entryLike.id || (Date.now().toString(36)+Math.random().toString(36).slice(2,8)),
             query: entryLike.query || '',
             answer: entryLike.answer || '',
             model: entryLike.model || appState.MODEL,
@@ -803,330 +580,265 @@
             status: entryLike.status || 'ok',
             verified: !!entryLike.verified,
             provisional: !!entryLike.provisional,
-            normalizedQuery: normalizeQuery(entryLike.query || ''),
-            timestamp: entryLike.timestamp || Math.floor(Date.now() / 1000),
-            wordCount: (entryLike.answer || '').split(/\s+/).filter(Boolean).length
+            timestamp: entryLike.timestamp || now
         };
-        appState.localHistory.unshift(entry);
-        if (appState.localHistory.length > 50) {
-            appState.localHistory = appState.localHistory.slice(0, 50);
+        appState.localHistory.unshift(e);
+        if (appState.localHistory.length > 100) {
+            appState.localHistory = appState.localHistory.slice(0,100);
         }
         localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
-        return entry;
+        return e;
     }
-
     function renderHistory() {
-        const list = document.getElementById('historyList');
-        const all = appState.localHistory;
-        if (!all.length) {
-            list.innerHTML = '<li style="text-align:center;color:var(--secondary-text);padding:1.5rem 0;">No conversations yet.</li>';
+        const ul = document.getElementById('historyList');
+        const hist = appState.localHistory;
+        if (!hist.length) {
+            ul.innerHTML = '<li style="padding:1rem 0;color:var(--secondary-text);text-align:center;">No conversations yet.</li>';
             return;
         }
-        list.innerHTML = all.map(item => {
-            const label = (item.query || '').slice(0, 60) + ((item.query || '').length > 60 ? '…' : '');
-            const layerIcon =
-                item.layer === 'master' ? '👑' :
-                item.layer === 'provisional' ? '🧪' :
-                '✨';
-            return `
-            <li class="history-item" data-id="${item.id}">
+        ul.innerHTML = hist.map(h => {
+            const label = (h.query || '').slice(0,60)+(h.query && h.query.length>60?'…':'');
+            const icon = h.layer==='master'?'👑':h.layer==='provisional'?'🧪':h.layer==='miss'?'⚠️':'✨';
+            return `<li class="history-item" data-id="${h.id}">
                 <div class="history-item-content">
-                    <p>${label || 'Empty conversation'}</p>
-                    <small>${layerIcon} ${item.layer || 'unknown'} • ${item.model} • ${new Date(item.timestamp*1000).toLocaleString()}</small>
+                    <p>${label}</p>
+                    <small>${icon} ${h.layer||'unknown'} • ${h.model} • ${new Date(h.timestamp*1000).toLocaleString()}</small>
                 </div>
             </li>`;
         }).join('');
-
-        document.querySelectorAll('.history-item').forEach(li => {
-            li.onclick = async () => {
-                const id = li.dataset.id;
-                const entry = appState.localHistory.find(e => e.id === id);
-                if (entry) await showConversation(entry);
+        Array.from(ul.querySelectorAll('.history-item')).forEach(li=>{
+            li.onclick = ()=>{
+                const id=li.dataset.id;
+                const e=appState.localHistory.find(x=>x.id===id);
+                if (e) showConversation(e);
             };
         });
     }
-
     async function showConversation(entry) {
         const parse = await loadMarked();
-        const container = document.getElementById('resultContainer');
-        const layerIcon =
-            entry.layer === 'master' ? '👑 Master truth' :
-            entry.layer === 'provisional' ? '🧪 Provisional truth' :
-            entry.layer === 'miss' ? '⚠️ No committed truth' :
-            '✨ Candidate';
-        container.innerHTML = `
-            <div class="conversation-block">
-                <h4>❓ Query: ${entry.query}</h4>
-                <div class="content">${parse(entry.answer || '')}</div>
-                <small>${layerIcon} • 🤖 ${entry.model} • 📅 ${new Date(entry.timestamp*1000).toLocaleString()}<br>🔑 Cache Key: ${buildCacheKey(entry.query || '')}</small>
-            </div>`;
+        const c = document.getElementById('resultContainer');
+        const icon = entry.layer==='master'?'👑 Master truth':
+                     entry.layer==='provisional'?'🧪 Provisional':
+                     entry.layer==='miss'?'⚠️ Miss':
+                     '✨';
+        c.innerHTML = `<div class="conversation-block">
+            <h4>❓ Query: ${entry.query}</h4>
+            <div class="content">${parse(entry.answer||'')}</div>
+            <small>${icon} • 🤖 ${entry.model} • ${new Date(entry.timestamp*1000).toLocaleString()}<br>🔑 ${buildCacheKey(entry.query||'')}</small>
+        </div>`;
         openModal();
         document.getElementById('historyPanel').classList.remove('open');
     }
-
-    function showLoadingState(container, message = "Resolving truth...") {
-        container.innerHTML = `
-            <div style="text-align:center;padding:2rem;">
-                <div style="font-size:2rem;margin-bottom:1rem;">⏳</div>
-                <div style="color:var(--secondary-text);">${message}</div>
-            </div>`;
+    function showLoading() {
+        const c = document.getElementById('resultContainer');
+        c.innerHTML = `<div style="text-align:center;padding:2rem;">
+            <div style="font-size:2rem;margin-bottom:1rem;">⏳</div>
+            <div style="color:var(--secondary-text);">Asking the truth-keeper...</div>
+        </div>`;
     }
-
     async function performTruthQuery(query) {
         if (!query || !query.trim()) {
-            showMessage('Please enter a question first.');
+            showMessage('Please enter a question.');
             return;
         }
-
-        const container = document.getElementById('resultContainer');
-        openModal();
-        showLoadingState(container);
-
         const sessionId = ensureSessionId();
-
+        openModal();
+        showLoading();
         try {
             const parse = await loadMarked();
-
             const res = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    input: query,
-                    model: appState.MODEL,
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({
+                    input:query,
+                    model:appState.MODEL,
                     sessionId
                 })
             });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                const msg = data.error || 'Unknown error';
-                throw new Error(msg);
-            }
-
-            // Expected shape from truthengine:
-            // { answer, model, layer, source, verified, provisional, id, status, meta, cached }
-            const answer = data.answer || '';
-            const layer = data.layer || (data.verified ? 'master' : (data.provisional ? 'provisional' : 'candidate'));
-            const status = data.status || 'ok';
-            const model = data.model || appState.MODEL;
-            const source = data.source || 'truth';
-            const truthId = data.id || normalizeQuery(query);
-            const created = data.meta?.created || Date.now();
-
-            const flags = [];
-            if (layer === 'master' || data.verified) flags.push('👑 Master truth');
-            if (layer === 'provisional' || data.provisional) flags.push('🧪 Provisional');
-            if (data.cached) flags.push('📦 Cached');
-            if (status === 'miss') flags.push('⚠️ No committed truth yet');
-
-            container.innerHTML = `
-                <div class="conversation-block">
-                    <h4>❓ Query: ${query}</h4>
-                    <div class="content">${parse(answer)}</div>
-                    <small>
-                        🤖 ${model}
-                        ${flags.length ? ' • ' + flags.join(' • ') : ''}
-                        <br>📚 Source: ${source}
-                        <br>🆔 Truth ID: ${truthId}
-                        <br>🔑 Cache Key: ${buildCacheKey(query)}
-                    </small>
-                </div>`;
-
+            const data = await res.json().catch(()=>({}));
+            if (!res.ok) throw new Error(data.error||'Error from truthengine');
+            const answer = data.answer || (data.status==='miss'
+                ? 'No committed truth yet. (MISS from truth layer)'
+                : '');
+            const layer = data.layer || (data.status==='miss'?'miss':'none');
             const entry = saveToLocalHistory({
-                id: truthId + ':' + Date.now(),
+                id:(data.id||normalizeQuery(query))+':'+Date.now(),
                 query,
                 answer,
-                model,
+                model:data.model||appState.MODEL,
                 layer,
-                source,
-                status,
-                verified: !!data.verified,
-                provisional: !!data.provisional,
-                timestamp: Math.floor((created || Date.now()) / 1000)
+                source:data.source||'truth',
+                status:data.status||'ok',
+                verified:!!data.verified,
+                provisional:!!data.provisional
             });
-
-            await recordSessionInteraction(query, answer, {
-                id: truthId,
-                layer,
-                verified: !!data.verified,
-                provisional: !!data.provisional
-            });
-
-            showMessage('✅ Answer ready');
+            const flags = [];
+            if (layer==='master' || data.verified) flags.push('👑 Master');
+            if (layer==='provisional' || data.provisional) flags.push('🧪 Provisional');
+            if (layer==='miss') flags.push('⚠️ Miss');
+            const c = document.getElementById('resultContainer');
+            c.innerHTML = `<div class="conversation-block">
+                <h4>❓ Query: ${query}</h4>
+                <div class="content">${parse(answer)}</div>
+                <small>
+                    🤖 ${entry.model}
+                    ${flags.length?' • '+flags.join(' • '):''}
+                    <br>📚 Source: ${data.source||'truth'}
+                    <br>🆔 Truth ID: ${data.id||normalizeQuery(query)}
+                    <br>🔑 Cache Key: ${buildCacheKey(query)}
+                </small>
+            </div>`;
             renderHistory();
-
+            showMessage('✅ Answer ready');
         } catch (err) {
-            console.error('Query error:', err);
-            const msg =
-                err.name === 'AbortError' ? 'Request timed out' :
-                !navigator.onLine ? 'No internet connection' :
-                err.message || 'Something went wrong';
-
-            container.innerHTML = `
-                <div class="conversation-block">
-                    <h4>❓ Query: ${query}</h4>
-                    <div class="content" style="color:#d32f2f;">
-                        ⚠️ ${msg}<br><br>
-                        <em>Your query is saved locally.</em><br>
-                        <small>🔑 Cache Key (planned): ${buildCacheKey(query)}</small>
-                    </div>
-                </div>`;
-
+            console.error(err);
+            const msg = err.message || 'Something went wrong';
+            const c = document.getElementById('resultContainer');
+            c.innerHTML = `<div class="conversation-block">
+                <h4>❓ Query: ${query}</h4>
+                <div class="content" style="color:#d32f2f;">
+                    ⚠️ ${msg}<br><br>
+                    <em>Saved locally. Try again soon.</em>
+                </div>
+            </div>`;
             saveToLocalHistory({
                 query,
-                answer: `Error: ${msg}`,
-                model: appState.MODEL,
-                layer: 'error',
-                source: 'truthengine',
-                status: 'error'
+                answer:'Error: '+msg,
+                model:appState.MODEL,
+                layer:'error',
+                source:'truthengine',
+                status:'error'
             });
-
-            showMessage('❌ ' + msg, 4000);
             renderHistory();
+            showMessage('❌ '+msg, 4000);
         }
     }
-
-    function newChat() {
-        if (!confirm('Start new chat? Local history stays, remote session id resets.')) return;
-        appState.sessionId = null;
-        localStorage.removeItem(SESSION_KEY);
-        ensureSessionId();
-        showMessage('New chat started');
+    function exportLocalHistory() {
+        const data = {
+            version:'local-1',
+            exportedAt:new Date().toISOString(),
+            conversations:appState.localHistory
+        };
+        const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href=url;
+        a.download='truth-local-'+new Date().toISOString().slice(0,10)+'.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showMessage('📦 Exported');
     }
-
-    // ============ EVENT LISTENERS ============
-
-    document.getElementById('queryInput').addEventListener('keydown', e => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    function clearLocalHistory() {
+        appState.localHistory = [];
+        localStorage.setItem(LOCAL_HISTORY_KEY, '[]');
+    }
+    // Events
+    document.getElementById('enterButton').onclick = ()=>{
+        const q = document.getElementById('queryInput').value;
+        if (q.trim()) {
+            performTruthQuery(q);
+            document.getElementById('queryInput').value = '';
+        }
+    };
+    document.getElementById('queryInput').addEventListener('keydown', e=>{
+        if ((e.ctrlKey || e.metaKey) && e.key==='Enter') {
             e.preventDefault();
-            const input = document.getElementById('queryInput');
-            if (input.value.trim()) {
-                performTruthQuery(input.value);
-                input.value = '';
+            const q = e.target.value;
+            if (q.trim()) {
+                performTruthQuery(q);
+                e.target.value='';
             }
         }
     });
-
-    document.getElementById('enterButton').addEventListener('click', () => {
-        const input = document.getElementById('queryInput');
-        if (input.value.trim()) {
-            performTruthQuery(input.value);
-            input.value = '';
+    document.getElementById('historyToggle').onclick = toggleHistory;
+    document.getElementById('closeHistory').onclick = toggleHistory;
+    document.getElementById('newChatBtn').onclick = ()=>{
+        if (!confirm('New chat id? SessionMemory history will effectively reset. Local stays.')) return;
+        localStorage.removeItem(SESSION_KEY);
+        ensureSessionId();
+        showMessage('New session id created');
+    };
+    document.getElementById('close-modal').onclick = closeModal;
+    document.getElementById('copyResult').onclick = ()=>{
+        const t = document.querySelector('.conversation-block .content')?.innerText || '';
+        if (t) {
+            navigator.clipboard.writeText(t).then(()=>showMessage('Copied'));
         }
-    });
-
-    document.getElementById('historyToggle').addEventListener('click', toggleHistory);
-    document.getElementById('closeHistory').addEventListener('click', toggleHistory);
-    document.getElementById('newChatBtn').addEventListener('click', newChat);
-    document.getElementById('close-modal').addEventListener('click', closeModal);
-
-    document.getElementById('copyResult').addEventListener('click', () => {
-        const text = document.querySelector('.conversation-block .content')?.innerText || '';
-        if (text) copyToClipboard(text);
-    });
-
-    document.getElementById('saveLocal').addEventListener('click', () => {
-        const q = document.querySelector('.conversation-block h4')?.textContent.replace('❓ Query: ', '') || '';
+    };
+    document.getElementById('saveLocal').onclick = ()=>{
+        const q = document.querySelector('.conversation-block h4')?.textContent.replace('❓ Query: ','') || '';
         const a = document.querySelector('.conversation-block .content')?.innerText || '';
         if (q && a) {
-            saveToLocalHistory({ query: q, answer: a, model: appState.MODEL, layer: 'manual-save', source: 'ui' });
+            saveToLocalHistory({query:q,answer:a,model:appState.MODEL,layer:'manual',source:'ui'});
             renderHistory();
-            showMessage('Saved to local history');
+            showMessage('Saved locally');
         }
-    });
-
-    document.getElementById('exportHistory').addEventListener('click', exportLocalHistory);
-
-    document.getElementById('importTrigger').addEventListener('click', () => {
-        document.getElementById('importHistory').click();
-    });
-    document.getElementById('importHistory').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    };
+    document.getElementById('exportHistory').onclick = exportLocalHistory;
+    document.getElementById('importTrigger').onclick = ()=>document.getElementById('importHistory').click();
+    document.getElementById('importHistory').addEventListener('change', async e=>{
+        const f = e.target.files[0];
+        if (!f) return;
         try {
-            const text = await file.text();
+            const text = await f.text();
             const json = JSON.parse(text);
             if (Array.isArray(json.conversations)) {
                 appState.localHistory = json.conversations;
                 localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
                 renderHistory();
-                showMessage('Imported history');
-            } else {
-                showMessage('Invalid import format');
-            }
+                showMessage('Imported');
+            } else showMessage('Invalid file');
         } catch {
             showMessage('Import failed');
         }
     });
-
-    document.getElementById('clearLocalHistory').addEventListener('click', () => {
-        if (!confirm('Clear ALL local history?')) return;
+    document.getElementById('clearLocalHistory').onclick = ()=>{
+        if (!confirm('Clear all local history?')) return;
         clearLocalHistory();
         renderHistory();
-        showMessage('Local history cleared');
-    });
-
-    document.querySelectorAll('.theme-buttons button').forEach(b => {
-        b.addEventListener('click', () => {
+        showMessage('Cleared');
+    };
+    document.querySelectorAll('.theme-buttons button').forEach(b=>{
+        b.onclick = ()=>{
             document.body.dataset.mode = b.dataset.mode;
             localStorage.setItem('theme', b.dataset.mode);
-            showMessage(`Theme: ${b.dataset.mode}`);
-        });
+            showMessage('Theme: '+b.dataset.mode);
+        };
     });
-
-    document.getElementById('modelSelector').addEventListener('change', e => {
+    document.getElementById('modelSelector').onchange = e=>{
         appState.MODEL = e.target.value;
         localStorage.setItem('truth-model', appState.MODEL);
-        showMessage(`Model label: ${e.target.value}`);
-    });
-
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') {
+        showMessage('Model label: '+e.target.value);
+    };
+    document.addEventListener('keydown', e=>{
+        if (e.key==='Escape') {
             if (document.getElementById('modal-overlay').classList.contains('active')) closeModal();
             if (document.getElementById('historyPanel').classList.contains('open')) toggleHistory();
         }
     });
-
-    function initializeApp() {
+    function init() {
         document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
         const savedModel = localStorage.getItem('truth-model');
         if (savedModel) {
             const sel = document.getElementById('modelSelector');
-            if ([...sel.options].some(o => o.value === savedModel)) {
+            if ([...sel.options].some(o=>o.value===savedModel)) {
                 sel.value = savedModel;
                 appState.MODEL = savedModel;
             }
         }
         ensureSessionId();
-        setTimeout(() => document.getElementById('queryInput').focus(), 100);
         renderHistory();
-
-        setTimeout(() => {
-            const el = document.getElementById('typedText');
-            if (!el) return;
-            el.classList.add('is-typing');
-            setTimeout(() => {
-                el.classList.remove('is-typing');
-                el.classList.add('is-done');
-            }, 3500);
-        }, 100);
+        const tt = document.getElementById('typedText');
+        tt.classList.add('is-typing');
+        setTimeout(()=>{
+            tt.classList.remove('is-typing');
+            tt.classList.add('is-done');
+        },3500);
+        setTimeout(()=>document.getElementById('queryInput').focus(),200);
     }
-
-    function getQueryParam(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
-    }
-
-    window.onload = function() {
-        initializeApp();
-        const q = getQueryParam('q');
-        if (q) {
-            const decoded = decodeURIComponent(q.replace(/\+/g, ' '));
-            document.getElementById('queryInput').value = decoded;
-            performTruthQuery(decoded);
-        }
-    };
+    window.addEventListener('load', init);
 </script>
 </body>
 </html>
