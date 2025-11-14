@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Truth Orchestrator - Endpoint Tester</title>
+  <style>
+    body { font-family: monospace; margin: 2em; background: #121212; color: #eee; }
+    h1, h2 { color: #b388ff; }
+    label { display: block; margin-top: 1em; font-weight: bold; }
+    input, textarea, select, button { margin-top: 0.5em; width: 100%; padding: 0.5em; background: #222; color: #fff; border: 1px solid #444; }
+    .endpoint { border: 1px solid #444; padding: 1em; margin-bottom: 2em; border-radius: 8px; background: #1e1e1e; }
+    .output { margin-top: 1em; background: #111; color: #a8ffc4; padding: 1em; border-radius: 4px; font-size: 0.95em; white-space: pre-wrap; }
+    .error { color: #ff557c; }
+    .status { font-weight: bold; margin-left: 1em; }
+    .time { color: #888; font-size: 0.9em; }
+    .collapsible { cursor: pointer; background: #2c2c2c; color: #b388ff; padding: 0.5em; border: none; text-align: left; outline: none; display: block; width: 100%; margin-top: 1em; }
+    .collapsible:after { content: '\002B'; float: right; }
+    .active:after { content: "\2212"; }
+    .content { padding: 0 1em; display: block; max-height: none; }
+    .filters { display: flex; gap: 1em; flex-wrap: wrap; }
+    .filters > * { flex: 1; min-width: 200px; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Truth Orchestrator - All Endpoint Tester</h1>
+  <p>Test every endpoint in the <code>worker.js</code> Truth Orchestrator.</p>
+
+  <form id="base">
+    <label>Base URL <span style="color: grey">(e.g. https://your-worker.dev)</span></label>
+    <input type="url" id="baseUrl" value="http://localhost:8787" required />
+
+    <label>Optional Auth Token (if required)</label>
+    <input type="text" id="authToken" placeholder="Bearer ..." />
+  </form>
+
+  <!-- Endpoints -->
+  <button class="collapsible active">▶️ /api/truth/resolve (POST)</button>
+  <div class="endpoint content">
+    <label>Input <span style="color: grey">(Natural query)</span></label>
+    <input type="text" id="resolveInput" value="How do I debug a JS runtime?" />
+    <button onclick="testResolve()">Send</button>
+    <div class="output" id="resolveOutput"></div>
+  </div>
+
+  <button class="collapsible active">▶️ /api/truth/master/create (POST)</button>
+  <div class="endpoint content">
+    <label>Input (Query)</label>
+    <input type="text" id="masterCreateInput" value="What is the meaning of life?" />
+    <label>Answer</label>
+    <textarea id="masterCreateAnswer" rows="2">42 - The universe's secret number.</textarea>
+    <label>Editor</label>
+    <input type="text" id="masterCreateEditor" value="admin" />
+    <button onclick="testMasterCreate()">Create Master</button>
+    <div class="output" id="masterCreateOutput"></div>
+  </div>
+
+  <button class="collapsible">▶️ /api/truth/master/update (POST)</button>
+  <div class="endpoint content">
+    <label>Input (Query/ID)</label>
+    <input type="text" id="masterUpdateInput" value="What is the meaning of life?" />
+    <label>Answer</label>
+    <textarea id="masterUpdateAnswer" rows="2">The answer is actually 42.001 due to cosmic drift.</textarea>
+    <label>Editor</label>
+    <input type="text" id="masterUpdateEditor" value="admin" />
+    <label>Expected Version (timestamp or null)</label>
+    <input type="text" id="masterUpdateVersion" value="" placeholder="Leave empty to ignore" />
+    <button onclick="testMasterUpdate()">Update Master</button>
+    <div class="output" id="masterUpdateOutput"></div>
+  </div>
+
+  <button class="collapsible">▶️ /api/truth/master/delete (POST)</button>
+  <div class="endpoint content">
+    <label>Input (Query/ID)</label>
+    <input type="text" id="masterDeleteInput" value="What is the meaning of life?" />
+    <button onclick="testMasterDelete()">Delete Master</button>
+    <div class="output" id="masterDeleteOutput"></div>
+  </div>
+
+  <button class="collapsible">▶️ /api/truth/provisional/update (POST)</button>
+  <div class="endpoint content">
+    <label>Input (Query/ID)</label>
+    <input type="text" id="provUpdateInput" value="How do I debug a node app?" />
+    <label>Answer</label>
+    <textarea id="provUpdateAnswer" rows="2">Use `node --inspect` and Chrome DevTools.</textarea>
+    <label>Confidence</label>
+    <input type="number" step="0.01" id="provUpdateConfidence" value="0.75" />
+    <button onclick="testProvUpdate()">Create/Update Provisional</button>
+    <div class="output" id="provUpdateOutput"></div>
+  </div>
+
+  <button class="collapsible">▶️ /api/truth/provisional/delete (POST)</button>
+  <div class="endpoint content">
+    <label>Input (Query/ID)</label>
+    <input type="text" id="provDeleteInput" value="How do I debug a node app?" />
+    <button onclick="testProvDelete()">Delete Provisional</button>
+    <div class="output" id="provDeleteOutput"></div>
+  </div>
+
+  <button class="collapsible">▶️ /api/truth/provisional/query (POST) 🌟NEW</button>
+  <div class="endpoint content">
+    <label>Search Mode</label>
+    <select id="queryMode" onchange="toggleQueryMode()">
+      <option value="id">by ID</option>
+      <option value="prefix" selected>by Query Prefix</option>
+      <option value="all">All (limit 100)</option>
+    </select>
+
+    <label id="querySearchLabel">Prefix to search</label>
+    <input type="text" id="querySearchValue" value="debug" placeholder="e.g. debug, How do I..." />
+
+    <div class="filters">
+      <input type="text" id="queryMetaSource" placeholder="Source (e.g. proxy_ai_candidate)" />
+      <input type="text" id="queryMetaModel" placeholder="Model (e.g. mistral)" />
+      <input type="number" id="queryMinConfidence" step="0.01" placeholder="Min Conf (0-0.8)" />
+      <label style="margin:0;align-self:center;">
+        <input type="checkbox" id="queryQcPassed" checked /> Only QC-passed
+      </label>
+    </div>
+
+    <button onclick="testProvisionalQuery()">Search / List Provisionals</button>
+    <div class="output" id="queryOutput"></div>
+  </div>
+
+  <button class="collapsible">▶️ /api/truth/promote (POST)</button>
+  <div class="endpoint content">
+    <label>Query (ID) to promote</label>
+    <input type="text" id="promoteInput" value="How do I debug a node app?" />
+    <label>Editor</label>
+    <input type="text" id="promoteEditor" value="justice" />
+    <button onclick="testPromote()">Promote to Master</button>
+    <div class="output" id="promoteOutput"></div>
+  </div>
+
+  <button class="collapsible">▶️ /debug/kv-status (GET)</button>
+  <div class="endpoint content">
+    <button onclick="testKVStatus()">Get KV Status</button>
+    <div class="output" id="kvStatusOutput"></div>
+  </div>
+
+  <script>
+    function fmtErr(err) {
+      return `<span class="error">Error: ${err}</span>`;
+    }
+
+    function fmtResp({ status, data, duration, url, method }) {
+      let out = `[${new Date().toISOString()}] ${method} ${url}\n`;
+      out += `<span class="status" style="color:${status==200||status==201?'#0f6':'error'}">${status}</span> `;
+      out += `<span class="time">⏱️ ${duration?.toFixed(2)}ms</span>\n\n`;
+      out += `RESPONSE:\n${JSON.stringify(data, null, 2)}`;
+      return out;
+    }
+
+    async function apiFetch(path, payload, method = "POST") {
+      const base = document.getElementById("baseUrl").value.trim().replace(/\/+$/, "");
+      const url = `${base}${path}`;
+      const headers = { "Content-Type": "application/json" };
+      const auth = document.getElementById("authToken").value.trim();
+      if (auth) headers["Authorization"] = auth;
+
+      const start = performance.now();
+      try {
+        const res = await fetch(url, {
+          method,
+          headers,
+          ...(payload && method !== "GET" ? { body: JSON.stringify(payload) } : {})
+        });
+
+        const data = await res.text().catch(() => "");
+        let json;
+        try { json = JSON.parse(data); } catch { json = { raw: data, parseError: true }; }
+        const end = performance.now();
+        return { ok: res.ok, data: json, status: res.status, duration: end - start, url, method };
+      } catch (err) {
+        const end = performance.now();
+        return { ok: false, data: { error: err.message }, status: null, duration: end - start, url, method };
+      }
+    }
+
+    function addPreflightTest(path, name, method = "POST") {
+      const btn = document.createElement("button");
+      btn.textContent = "Preflight ✅";
+      btn.style.marginTop = "0.5em";
+      btn.onclick = async () => {
+        const res = await apiFetch(path, undefined, "OPTIONS");
+        document.getElementById(name + "Output").textContent += "\n" + fmtResp(res);
+      };
+      document.getElementById(name + "Output").parentNode.insertBefore(btn, document.getElementById(name + "Output"));
+    }
+
+    // Collapsible
+    document.querySelectorAll(".collapsible").forEach(btn => {
+      btn.onclick = function () {
+        this.classList.toggle("active");
+        const content = this.nextElementSibling;
+        content.style.display = content.style.display === "none" ? "block" : "none";
+      };
+    });
+
+    function toggleQueryMode() {
+      const mode = document.getElementById("queryMode").value;
+      const label = document.getElementById("querySearchLabel");
+      if (mode === "id") label.textContent = "Provisional ID";
+      else if (mode === "prefix") label.textContent = "Query Prefix";
+      else label.textContent = "Ignored (all)";
+    }
+    toggleQueryMode();
+
+    async function testProvisionalQuery() {
+      const mode = document.getElementById("queryMode").value;
+      const value = document.getElementById("querySearchValue").value.trim();
+      const source = document.getElementById("queryMetaSource").value.trim();
+      const model = document.getElementById("queryMetaModel").value.trim();
+      const minConfidence = parseFloat(document.getElementById("queryMinConfidence").value);
+      const qcPassed = document.getElementById("queryQcPassed").checked;
+
+      let body = { limit: 100 };
+      if (mode === "id") body.id = value;
+      if (mode === "prefix") body.prefix = value;
+      if (mode === "all") body.prefix = "";
+
+      body.meta_filter = {};
+      if (source) body.meta_filter.source = source;
+      if (model) body.meta_filter.model = model;
+      if (isFinite(minConfidence)) body.meta_filter.min_confidence = minConfidence;
+      if (!qcPassed) body.meta_filter.qc_passed = false;
+      if (Object.keys(body.meta_filter).length === 0) delete body.meta_filter;
+
+      const out = document.getElementById("queryOutput");
+      out.innerHTML = "Searching...";
+      const res = await apiFetch("/api/truth/provisional/query", body);
+      out.innerHTML = fmtResp(res);
+    }
+
+    // Add preflight buttons for all endpoints
+    addPreflightTest("/api/truth/resolve", "resolve");
+    addPreflightTest("/api/truth/master/create", "masterCreate");
+    addPreflightTest("/api/truth/master/update", "masterUpdate");
+    addPreflightTest("/api/truth/master/delete", "masterDelete");
+    addPreflightTest("/api/truth/provisional/update", "provUpdate");
+    addPreflightTest("/api/truth/provisional/delete", "provDelete");
+    addPreflightTest("/api/truth/provisional/query", "query");
+    addPreflightTest("/api/truth/promote", "promote");
+    addPreflightTest("/debug/kv-status", "kvStatus", "GET");
+
+    // Existing handlers (testResolve, testMasterCreate, ...) unchanged
+    async function testResolve() {
+      const input = document.getElementById("resolveInput").value.trim();
+      const out = document.getElementById("resolveOutput");
+      out.innerHTML = "Loading...";
+      const res = await apiFetch("/api/truth/resolve", { input });
+      out.innerHTML = fmtResp(res);
+    }
+    async function testMasterCreate() {
+      const input = document.getElementById("masterCreateInput").value.trim();
+      const answer = document.getElementById("masterCreateAnswer").value.trim();
+      const editor = document.getElementById("masterCreateEditor").value.trim() || "justice";
+      const out = document.getElementById("masterCreateOutput");
+      out.innerHTML = "Loading...";
+      const res = await apiFetch("/api/truth/master/create", {
+        input, answer, editor, meta: { model: "test", confidence: 0.99 }
+      });
+      out.innerHTML = fmtResp(res);
+    }
+    async function testMasterUpdate() {
+      const input = document.getElementById("masterUpdateInput").value.trim();
+      const answer = document.getElementById("masterUpdateAnswer").value.trim();
+      const editor = document.getElementById("masterUpdateEditor").value.trim() || "justice";
+      const expectedVersion = document.getElementById("masterUpdateVersion").value.trim();
+      const out = document.getElementById("masterUpdateOutput");
+      out.innerHTML = "Loading...";
+      const res = await apiFetch("/api/truth/master/update", {
+        input, answer, editor, expectedVersion: expectedVersion || undefined,
+        meta: { model: "test", confidence: 0.999 }
+      });
+      out.innerHTML = fmtResp(res);
+    }
+    async function testMasterDelete() {
+      const input = document.getElementById("masterDeleteInput").value.trim();
+      const out = document.getElementById("masterDeleteOutput");
+      out.innerHTML = "Loading...";
+      const res = await apiFetch("/api/truth/master/delete", { input });
+      out.innerHTML = fmtResp(res);
+    }
+    async function testProvUpdate() {
+      const input = document.getElementById("provUpdateInput").value.trim();
+      const answer = document.getElementById("provUpdateAnswer").value.trim();
+      const confidence = parseFloat(document.getElementById("provUpdateConfidence").value) || 0.5;
+      const out = document.getElementById("provUpdateOutput");
+      out.innerHTML = "Loading...";
+      const res = await apiFetch("/api/truth/provisional/update", {
+        id: input, answer, meta: { model: "test-proxy", confidence, qc_passed: true }
+      });
+      out.innerHTML = fmtResp(res);
+    }
+    async function testProvDelete() {
+      const input = document.getElementById("provDeleteInput").value.trim();
+      const out = document.getElementById("provDeleteOutput");
+      out.innerHTML = "Loading...";
+      const res = await apiFetch("/api/truth/provisional/delete", { id: input });
+      out.innerHTML = fmtResp(res);
+    }
+    async function testPromote() {
+      const input = document.getElementById("promoteInput").value.trim();
+      const editor = document.getElementById("promoteEditor").value.trim() || "justice";
+      const out = document.getElementById("promoteOutput");
+      out.innerHTML = "Loading...";
+      const res = await apiFetch("/api/truth/promote", {
+        input, editor, literalVsMythos: "literal", model: "justice-approved", confidence: 0.97, eitlVerifier: editor
+      });
+      out.innerHTML = fmtResp(res);
+    }
+    async function testKVStatus() {
+      const out = document.getElementById("kvStatusOutput");
+      out.innerHTML = "Loading...";
+      const res = await apiFetch("/debug/kv-status", undefined, "GET");
+      out.innerHTML = fmtResp(res);
+    }
+  </script>
+</body>
+</html>
