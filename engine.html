@@ -3,1897 +3,407 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-Nspired :: Truth Engine Interface</title>
-    <meta name="description" content="ai-nspired.com • truth-engine. memory keeper. Systems that don't forget—or flinch.">
+    <title>Matrix Construct | NeoForge - Collaborative Card Containers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&display=swap');
-
         :root {
-            --bg-color: #f8f8ff;
-            --text-color: #1a1a1a;
-            --border-color: #d0d0d0;
-            --modal-bg: #ffffff;
-            --content-bg: #f8f8ff;
-            --content-text: #1a1a1a;
-            --accent-color: #1a2a3a;
-            --secondary-text: #6c757d;
-            --shadow-color: rgba(0,0,0,0.05);
-            --accent-color-rgb: 26, 42, 58;
-            --grid-bg: #e8e8e8;
-            --grid-cell-off: #cccccc;
-            --grid-cell-on: #1a2a3a;
+            --bg-primary: #faf9f6;
+            --bg-secondary: #f5f3ee;
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a4a4a;
+            --accent-primary: #2d5016;
+            --accent-secondary: #4a7c59;
+            --card-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            --border-subtle: rgba(0,0,0,0.06);
+            --serif: 'EB Garamond', serif;
+            --sans: 'Inter', sans-serif;
         }
-        [data-mode="dark"] {
-            --bg-color: #1a1a1a;
-            --text-color: #f0f0f0;
-            --border-color: #333333;
-            --modal-bg: #2a2a2a;
-            --content-bg: #111111;
-            --content-text: #f0f0f0;
-            --accent-color: #c7a17a;
-            --secondary-text: #9fa8da;
-            --shadow-color: rgba(0,0,0,0.3);
-            --accent-color-rgb: 199, 161, 122;
-            --grid-bg: #1a1a1a;
-            --grid-cell-off: #333333;
-            --grid-cell-on: #c7a17a;
+        .dark {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #4ade80;
+            --accent-secondary: #22c55e;
         }
-        [data-mode="neo"] {
-            --bg-color: #000000;
-            --text-color: #00FF00;
-            --border-color: #008800;
-            --modal-bg: #0d0d0d;
-            --content-bg: #1a1a1a;
-            --content-text: #00FF00;
-            --accent-color: #00FF00;
-            --secondary-text: #00AA00;
-            --shadow-color: transparent;
-            --accent-color-rgb: 0, 255, 0;
-            --grid-bg: #0d0d0d;
-            --grid-cell-off: #1a1a1a;
-            --grid-cell-on: #00FF00;
+        .neo {
+            --bg-primary: #000;
+            --bg-secondary: #0a0a0a;
+            --text-primary: #00ff41;
+            --text-secondary: #00aa2f;
+            --accent-primary: #00ff41;
+            --accent-secondary: #00ff88;
+            font-family: var(--sans);
         }
-
-        /* Better mobile touch targets */
-        @media (max-width: 768px) {
-            .history-item {
-                min-height: 60px;
-                padding: 1rem;
-                font-size: 1rem;
-            }
-            
-            .icon-button {
-                min-width: 48px;
-                min-height: 48px;
-            }
-            
-            .menu-btn {
-                min-width: 44px;
-                min-height: 44px;
-                font-size: 1.2rem;
-            }
-            
-            /* Prevent zoom on input focus */
-            .search-input {
-                font-size: 16px !important;
-            }
-        }
-
-        body {
-            margin: 0;
-            padding: 1.5rem 1rem;
-            font-family: 'Crimson Pro', serif;
+        body { 
+            font-family: var(--serif);
+            line-height: 1.8;
             font-size: 1.1rem;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-            transition: background-color 0.3s, color 0.3s;
-            width: 100%;
+            letter-spacing: 0.025em;
+        }
+        .e-reader { 
+            max-width: 800px; margin: 0 auto; 
+            font-feature-settings: 'kern' 1, 'liga' 1, 'clig' 1, 'calt' 1;
+        }
+        .card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
+            overflow: hidden;
             position: relative;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-                align-items: flex-start;
-                min-height: 90vh;
-            }
-        }
-
-        .terminal-window {
-            width: 100%;
-            max-width: 800px;
-            text-align: left;
-        }
-
-        @media (max-width: 768px) {
-            .terminal-window {
-                margin-top: 2rem;
-            }
-        }
-
-        .typed-text {
-            font-weight: 700;
-            font-size: 1.5rem;
-            display: inline-block;
-            overflow: hidden;
-            white-space: nowrap;
-            width: 0;
-            border-right: 3px solid var(--accent-color);
-            animation: blink-caret .75s step-end infinite;
-        }
-
-        @media (max-width: 768px) {
-            .typed-text {
-                font-size: 1.3rem;
-                text-align: center;
-                display: block;
-            }
-        }
-
-        .typed-text.is-typing {
-            animation: typing 3.5s steps(40, end) forwards, blink-caret .75s step-end infinite;
-        }
-        .typed-text.is-done {
-            animation: none;
-            border-right: none;
-            width: auto;
-        }
-
-        @keyframes typing { from { width: 0 } to { width: 100% } }
-        @keyframes blink-caret { 50% { border-color: transparent; } }
-
-        .input-container {
-            display: flex;
-            flex-direction: column;
-            margin-top: 2rem;
-            width: 100%;
-            gap: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .input-container {
-                margin-top: 3rem;
-            }
-        }
-
-        .input-row {
-            display: flex;
-            align-items: flex-end;
-            gap: 0.5rem;
-            width: 100%;
-        }
-
-        @media (max-width: 768px) {
-            .input-row {
-                flex-direction: column;
-                gap: 1rem;
-            }
-        }
-
-        .command-line {
-            display: flex;
-            align-items: flex-end;
-            flex-grow: 1;
-            min-width: 0;
-            width: 100%;
-            position: relative;
-            background: var(--content-bg);
-            border: 2px solid var(--accent-color);
-            border-radius: 16px;
-            padding: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .command-line:focus-within {
-            box-shadow: 0 0 20px rgba(var(--accent-color-rgb), 0.3);
-            border-color: var(--accent-color);
-        }
-
-        @media (max-width: 768px) {
-            .command-line {
-                order: 2;
-                border-radius: 20px;
-            }
-        }
-
-        .enter-button {
-            margin: 0.5rem;
-            font-weight: bold;
-            flex-shrink: 0;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background: var(--accent-color);
-            color: var(--bg-color);
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            align-self: flex-end;
-        }
-
-        .enter-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 15px var(--accent-color);
-        }
-
-        @media (max-width: 768px) {
-            .enter-button {
-                width: 50px;
-                height: 50px;
-                font-size: 1.8rem;
-                position: absolute;
-                right: 8px;
-                bottom: 8px;
-                z-index: 2;
-            }
-        }
-
-        .search-input {
-            background: transparent;
-            border: none;
-            color: var(--text-color);
-            font-family: 'Crimson Pro', serif;
-            font-size: 1.3rem;
-            flex-grow: 1;
-            outline: none;
-            min-width: 0;
-            width: 100%;
-            padding: 1rem;
-            resize: none;
-            min-height: 60px;
-            max-height: 200px;
-            line-height: 1.5;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        @media (max-width: 768px) {
-            .search-input {
-                font-size: 1.2rem;
-                padding: 1.2rem;
-                min-height: 80px;
-                padding-right: 70px;
-            }
-        }
-
-        .search-input:focus {
-            outline: none;
-        }
-
-        .button-row {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-            width: 100%;
-        }
-
-        @media (max-width: 768px) {
-            .button-row {
-                order: 1;
-                justify-content: space-between;
-            }
-        }
-
-        .icon-button {
-            padding: 0.75rem;
-            border: 2px solid var(--accent-color);
-            background: none;
-            color: var(--accent-color);
-            font-weight: 700;
-            cursor: pointer;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-
-        @media (max-width: 768px) {
-            .icon-button {
-                width: 55px;
-                height: 55px;
-                font-size: 1.3rem;
-            }
-        }
-
-        .icon-button:hover, .icon-button:focus {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(var(--accent-color-rgb), 0.3);
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 1rem;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-container {
-            background-color: var(--modal-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            width: 95%;
-            max-width: 900px;
-            height: 95vh;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-            transition: background-color 0.3s, color 0.3s;
-            overflow: hidden;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem;
-        }
-        .modal-title { font-weight: 700; color: var(--accent-color); }
-        .close-modal {
-            background: none;
-            border: none;
-            color: var(--accent-color);
-            font-size: 2rem;
-            cursor: pointer;
-            padding: 0.25rem;
-        }
-        .close-modal:hover {
-            color: var(--bg-color);
-            background: var(--accent-color);
-            border-radius: 50%;
-        }
-        .result-container {
-            padding: 1rem 0;
-            flex-grow: 1;
-            overflow-y: auto;
-            font-family: 'Crimson Pro', serif;
-            color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
-            scroll-behavior: smooth;
-        }
-        .conversation-block .content {
-            box-shadow: 0 4px 10px var(--shadow-color);
-            margin-top: 1rem;
-            padding: 1rem;
-            border-radius: 4px;
-            transition: box-shadow 0.3s;
-        }
-        [data-mode="neo"] .conversation-block .content {
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
-        }
-        .modal-footer {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: flex-end;
-            padding-top: 0.5rem;
-            border-top: 1px solid var(--border-color);
-            flex-wrap: wrap;
-            position: relative;
-            top: -1rem;
-            background: var(--modal-bg);
-            padding: 0.5rem 1rem;
-            border-radius: 0 0 8px 8px;
-            margin: 0 -1rem -1rem;
-        }
-        .modal-footer button {
-            padding: 0.5rem;
-            border: 1px solid var(--accent-color);
-            background: none;
-            color: var(--accent-color);
-            font-weight: 700;
-            cursor: pointer;
-            border-radius: 50%;
-            min-width: auto;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-        .modal-footer button:hover, .modal-footer button:focus {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-        }
-
-        /* TTS Mini Modal */
-        .tts-mini-modal {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            background: var(--modal-bg);
-            border: 2px solid var(--accent-color);
-            border-radius: 12px;
-            padding: 1rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: 1001;
-            display: none;
-            flex-direction: column;
-            gap: 0.5rem;
-            min-width: 200px;
-            max-width: 300px;
-        }
-        .tts-mini-modal.active {
-            display: flex;
-        }
-        .tts-mini-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .tts-mini-title {
-            font-weight: 700;
-            color: var(--accent-color);
-            font-size: 1rem;
-        }
-        .tts-mini-close {
-            background: none;
-            border: none;
-            color: var(--accent-color);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .tts-mini-close:hover {
-            color: var(--bg-color);
-            background: var(--accent-color);
-            border-radius: 50%;
-        }
-        .tts-controls {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-        }
-        .tts-controls button {
-            padding: 0.5rem;
-            border: 1px solid var(--accent-color);
-            background: none;
-            color: var(--accent-color);
-            cursor: pointer;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-        }
-        .tts-controls button:hover {
-            background: var(--accent-color);
-            color: var(--bg-color);
-        }
-        .tts-progress {
-            height: 4px;
-            background: var(--border-color);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 0.5rem;
-        }
-        .tts-progress-bar {
-            height: 100%;
-            background: var(--accent-color);
-            width: 0%;
-            transition: width 0.1s ease;
-        }
-
-        /* Menu Panel Styles */
-        #historyPanel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 350px;
-            max-width: 85vw;
-            background-color: var(--modal-bg);
-            border-right: 1px solid var(--border-color);
-            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
-            transform: translateX(-100%);
-            transition: transform 0.3s ease-in-out;
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-            touch-action: pan-y;
-            overflow-y: auto;
-        }
-        #historyPanel.open { transform: translateX(0); }
-        .history-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--accent-color);
-            color: var(--bg-color);
-        }
-        .history-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin: 0;
-        }
-
-        .menu-section {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .menu-section:last-child {
-            border-bottom: none;
-        }
-        .menu-section-title {
-            font-weight: 700;
-            color: var(--accent-color);
-            margin-bottom: 1rem;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .theme-buttons {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .theme-buttons button {
-            padding: 0.75rem 1rem;
-            border: 2px solid var(--accent-color);
-            background: none;
-            color: var(--accent-color);
-            font-weight: 700;
-            cursor: pointer;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            flex: 1;
-            min-width: 80px;
-          }
-                 .model-selector {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid var(--accent-color);
-            background: var(--modal-bg);
-            color: var(--accent-color);
-            font-weight: 700;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-        .model-selector:focus {
-            outline: none;
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-        }
-
-        .history-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-        }
-        .history-actions button, .history-actions input {
-            background: none;
-            border: 2px solid var(--accent-color);
-            color: var(--accent-color);
-            font-size: 0.9rem;
-            padding: 0.75rem;
-            cursor: pointer;
-            border-radius: 8px;
-            font-weight: 700;
-            transition: all 0.3s ease;
-        }
-        .history-actions button:hover, .history-actions input:hover {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-            transform: translateY(-2px);
-        }
-
-        #importHistory {
-            display: none;
-        }
-
-        .close-history {
-            background: none;
-            border: none;
-            color: var(--bg-color);
-            font-size: 1.8rem;
-            cursor: pointer;
-            padding: 0.25rem;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-        .close-history:hover {
-            background: var(--bg-color);
-            color: var(--accent-color);
-        }
-
-        #historyList {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 0 1.5rem;
-            list-style: none;
-            margin: 0;
-        }
-        .history-item {
-            padding: 1rem 0;
-            border-bottom: 1px dashed var(--border-color);
-            font-size: 0.9rem;
-            transition: background-color 0.2s;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 0.5rem;
-            position: relative;
-            outline: none;
-        }
-        .history-item:hover {
-            background-color: rgba(var(--accent-color-rgb), 0.1);
-        }
-        .history-item:focus {
-            background-color: rgba(var(--accent-color-rgb), 0.2);
-            outline: 2px solid var(--accent-color);
-            outline-offset: 2px;
-        }
-        .history-item-content {
-            flex-grow: 1;
-            overflow: hidden;
-        }
-        .history-item-content p {
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-weight: 700;
-        }
-        .history-item-content small {
-            color: var(--secondary-text);
-            font-size: 0.75rem;
-            display: block;
-            margin-top: 2px;
-        }
-        .menu-btn {
-            background: none;
-            border: none;
-            color: var(--secondary-text);
-            cursor: pointer;
-            padding: 0.25rem;
-            font-size: 1rem;
-            line-height: 1;
-        }
-        .menu-btn:hover { color: var(--accent-color); }
-        .item-menu {
-            position: absolute;
-            right: 0;
-            top: 100%;
-            background: var(--modal-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            cursor: grab;
+        }
+        .card:hover { 
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        .card.fullscreen {
+            position: fixed !important; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1000; border-radius: 0; max-width: none;
+        }
+        .card.fullscreen::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 60px;
+            background: linear-gradient(to bottom, var(--bg-primary), transparent);
             z-index: 10;
-            display: none;
         }
-        .item-menu.active {
-            display: block;
+        .card-header {
+            display: flex; justify-content: between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-secondary);
         }
-        .item-menu button {
-            display: block;
-            width: 100%;
-            padding: 0.5rem 1rem;
-            background: none;
-            border: none;
-            color: var(--text-color);
-            text-align: left;
-            cursor: pointer;
+        .card-content { padding: 2.5rem; max-height: 500px; overflow-y: auto; }
+        .card.fullscreen .card-content { max-height: none; height: calc(100vh - 120px); padding: 4rem 3rem; }
+        .prose { color: var(--text-primary); }
+        .prose code { background: rgba(45,80,22,0.1); padding: 0.25rem 0.5rem; border-radius: 8px; font-family: var(--sans); }
+        .neo .prose code { background: rgba(0,255,65,0.2); }
+        .slide-panel { 
+            transform: translateX(-100%); transition: transform 0.4s ease-out;
         }
-        .item-menu button:hover {
-            background: rgba(var(--accent-color-rgb), 0.1);
+        .slide-panel.open { transform: translateX(0); }
+        .panel-overlay { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px); z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s;
         }
-
-        #customMessage {
-            position: fixed;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--accent-color);
-            color: var(--bg-color);
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            pointer-events: none;
-            z-index: 1001;
-            font-weight: 700;
-            font-size: 0.9rem;
-            max-width: 90vw;
-        }
-        [data-mode="neo"] #customMessage { color: #000000; }
-        #customMessage.visible {
-            opacity: 1;
-            transform: translate(-50%, -10px);
-        }
-        #exportPrompt {
-            display: none;
-            position: fixed;
-            bottom: 4rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--accent-color);
-            color: var(--bg-color);
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            z-index: 1001;
-            font-weight: 700;
-            font-size: 0.9rem;
-            max-width: 90vw;
-            text-align: center;
-        }
-        #exportPrompt button {
-            margin-top: 0.5rem;
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--bg-color);
-            background: var(--bg-color);
-            color: var(--accent-color);
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        #exportPrompt button:hover {
-            background: var(--modal-bg);
-        }
-        #exportPrompt.visible {
-            display: block;
-        }
-        .disclaimer {
-            position: fixed;
-            bottom: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            color: var(--secondary-text);
-            font-size: 0.8rem;
-            text-align: center;
-            max-width: 90vw;
-        }
-        .edit-form label {
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-        .edit-form input, .edit-form textarea {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid var(--border-color);
-            background: var(--content-bg);
-            color: var(--content-text);
-            font-family: 'Crimson Pro', serif;
-            border-radius: 4px;
-        }
-        .edit-form textarea {
-            min-height: 100px;
-        }
-        .edit-form button {
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--accent-color);
-            background: none;
-            color: var(--accent-color);
-            font-weight: 700;
-            cursor: pointer;
-            border-radius: 4px;
-            margin-top: 1rem;
-        }
-        .edit-form button:hover {
-            background: var(--accent-color);
-            color: var(--bg-color);
-        }
-        .edit-preview {
-            margin-top: 1rem;
-            padding: 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background: var(--content-bg);
-        }
+        .panel-overlay.open { opacity: 1; visibility: visible; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .card.fade-in { animation: fadeInUp 0.6s ease-out; }
+        .drag-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1001; pointer-events: none; }
+        .code-editor { background: #1e1e1e; color: #d4d4d4; font-family: 'Fira Code', monospace; }
+        .sandbox-output { background: #0f0f0f; color: #00ff41; padding: 1rem; border-radius: 12px; font-family: var(--sans); }
     </style>
 </head>
-<body data-mode="silvery">
-    <div class="terminal-window">
-        <p class="typed-text" id="typedText">the truth engine</p>
-
-        <div class="input-container">
-            <div class="button-row">
-                <button class="icon-button" id="historyToggle" title="Menu">☰</button>
-                <button class="icon-button" id="newChatBtn" title="New Chat">+</button>
+<body class="min-h-screen bg-gradient-to-br from-[var(--bg-primary)] to-[var(--bg-secondary)] p-4 md:p-8">
+    <div class="e-reader relative">
+        <!-- Header -->
+        <header class="flex items-center justify-between mb-12">
+            <div class="flex gap-4">
+                <button id="menuBtn" class="w-14 h-14 bg-[var(--bg-secondary)] rounded-3xl flex items-center justify-center text-xl hover:bg-[var(--accent-primary)] transition-all" title="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <button id="historyBtn" class="w-14 h-14 bg-[var(--bg-secondary)] rounded-3xl flex items-center justify-center text-xl hover:bg-[var(--accent-primary)] transition-all" title="History">
+                    <i class="fas fa-history"></i>
+                </button>
             </div>
+            <div class="text-3xl font-bold text-[var(--accent-primary)] flex items-center gap-3">
+                <i class="fas fa-cube text-2xl"></i>
+                ai-nspired 
+            </div>
+            <div class="flex gap-4">
+                <button id="newSessionBtn" class="w-14 h-14 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white rounded-3xl flex items-center justify-center text-xl font-bold hover:scale-110 transition-all" title="New Session">
+                    ➕
+                </button>
+            </div>
+        </header>
 
-            <div class="input-row">
-                <div class="command-line">
-                    <textarea class="search-input" id="queryInput" placeholder="who is the architect..." rows="3"></textarea>
-                    <button class="enter-button" id="enterButton">⏎</button>
+        <!-- Cards Grid -->
+        <main id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            <!-- Dynamic cards here -->
+        </main>
+
+        <!-- Input Bar -->
+        <div class="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-2xl bg-[var(--bg-secondary)] backdrop-blur-xl rounded-3xl p-6 border border-[var(--border-subtle)] shadow-2xl">
+            <div class="flex gap-4 items-end">
+                <div class="flex-1 relative">
+                    <textarea 
+                        id="inputQuery" 
+                        rows="2" 
+                        class="w-full bg-transparent border-none outline-none text-lg resize-none font-serif placeholder-[var(--text-secondary)] pr-20 pb-4"
+                        placeholder="ask... "
+                    ></textarea>
+                    <div class="absolute bottom-0 right-0 text-xs text-[var(--text-secondary)]">Supports /truth /code /sandbox /combine</div>
                 </div>
+                <button id="sendBtn" class="w-20 h-20 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white rounded-3xl flex items-center justify-center text-2xl font-bold hover:scale-110 shadow-xl transition-all">
+                    <i class="fas fa-rocket"></i>
+                </button>
             </div>
         </div>
     </div>
 
-    <div id="historyPanel">
-        <div class="history-header">
-            <p class="history-title">Menu & History</p>
-            <button class="close-history" id="closeHistory">×</button>
-        </div>
-
-        <!-- Theme Selection Section -->
-        <div class="menu-section">
-            <div class="menu-section-title">Theme</div>
-            <div class="theme-buttons">
-                <button data-mode="silvery">Silver</button>
-                <button data-mode="dark">Dark</button>
-                <button data-mode="neo">Neo</button>
-            </div>
-        </div>
-
-        <!-- Model Selection Section -->
-        <div class="menu-section">
-            <div class="menu-section-title">AI Model</div>
-            <select class="model-selector" id="modelSelector" aria-label="Select AI Model">
-
-                
-                <option value="granite-4.0-h-micro">granite-4.0-h-micro (Almost Free, 131K)</option>
-                <option value="gpt-oss-20b">GPT OSS 20B (Easter Egg)</option>
-                <option value="dolphin-mistral-24b-venice-edition">Dolphin 24B (unfiltered, 32K)</option>
-            </select>
-        </div>
-
-        <!-- History Actions Section -->
-        <div class="menu-section">
-            <div class="menu-section-title">Data Management</div>
-            <div class="history-actions">
-                <button id="exportHistory">📦 Session Backup</button>
-                <button id="importTrigger">📥 Import Session</button>
-                <input type="file" id="importHistory" accept=".json">
-                <button id="clearLocalHistory">🗑️ Clear Local</button>
-            </div>
-        </div>
-
-        <!-- Conversation History Section -->
-        <div class="menu-section" style="border-bottom: none; flex-grow: 1; display: flex; flex-direction: column;">
-            <div class="menu-section-title">Recent Conversations</div>
-            <ul id="historyList"></ul>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="modal-overlay" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
-        <div class="modal-container" role="document">
-            <div class="modal-header">
-                <p class="modal-title" id="modal-title">speakeasy // ai-n.org</p>
-                <button class="close-modal" id="close-modal" aria-label="Close dialog">×</button>
-            </div>
-            <div class="result-container" id="resultContainer" role="main" aria-live="polite"></div>
-            <div class="modal-footer">
-                <button id="copyResult" title="Copy" aria-label="Copy response">📋</button>
-                <button id="ttsBtn" title="TTS" aria-label="Read aloud">🔊</button>
-                <button id="saveLocal" title="Save Locally" aria-label="Save locally">💾</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TTS Mini Modal -->
-    <div class="tts-mini-modal" id="ttsMiniModal">
-        <div class="tts-mini-header">
-            <span class="tts-mini-title">Text-to-Speech</span>
-            <button class="tts-mini-close" id="ttsMiniClose">×</button>
-        </div>
-        <div class="tts-controls">
-            <button id="ttsPlayPause">⏸️</button>
-            <button id="ttsStop">⏹️</button>
-        </div>
-        <div class="tts-progress">
-            <div class="tts-progress-bar" id="ttsProgressBar"></div>
-        </div>
-    </div>
-
-    <!-- Edit Modal -->
-    <div class="modal-overlay" id="edit-modal-overlay">
-        <div class="modal-container">
-            <div class="modal-header">
-                <p class="modal-title">Edit Conversation</p>
-                <button class="close-modal" id="close-edit-modal">×</button>
-            </div>
-            <div class="result-container edit-form" id="editContainer">
-                <label>Title: <input id="editTitle" type="text" placeholder="Optional title"></label>
-                <label>Query: <textarea id="editQuery" rows="5"></textarea></label>
-                <label>Answer: <textarea id="editAnswer" rows="10"></textarea></label>
-                <div class="edit-preview" id="editPreview">Preview will appear here...</div>
-                <button id="saveEdit">Save</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="customMessage"></div>
-    <div id="exportPrompt">
-        Your conversation context will reset in 2 hours—export to preserve your history!
-        <button id="exportPromptBtn">Export Now</button>
-    </div>
-    <div class="disclaimer">
-        Primary storage: Local browser. Export to backup. "New Chat" clears remote context only.
-    </div>
-
-    <script>
-    // SERVER API ENDPOINTS - Consistent with server normalization
-    const API_BASE = 'https://truthengine.ai-n.workers.dev/api/ai';
-    const API_URL = `${API_BASE}/truth`;
-    
-    // Storage Keys - LOCAL is primary
-    const LOCAL_HISTORY_KEY = 'TRUTH_ENGINE_LOCAL_HISTORY';
-    const REMOTE_HISTORY_KEY = 'TRUTH_ENGINE_REMOTE_SYNC';
-    const SESSION_KEY = 'TRUTH_ENGINE_SESSION_ID';
-
-    // SERVER NORMALIZATION FUNCTIONS - Match server exactly
-    function normalizeQuery(query) {
-        return query.trim().toLowerCase()
-            .replace(/[^\w\s]/g, "")   // Remove punctuation
-            .replace(/\s+/g, "-")      // Replace spaces with hyphens
-            .substring(0, 100);        // Limit to 100 chars
-    }
-
-    function buildCacheKey(input) {
-        return `truth:${normalizeQuery(input)}`;
-    }
-
-    // Better State Management - Single Object
-    const appState = {
-        localHistory: JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY)) || [],
-        remoteHistory: JSON.parse(localStorage.getItem(REMOTE_HISTORY_KEY)) || [],
-        MODEL: localStorage.getItem('truth-model') || 'llama-3-8b',
-        isChallenging: false,
-        ttsUtterance: null,
-        isTtsPlaying: false,
-        editingEntry: null,
-        currentHistoryId: null,
-        sessionId: localStorage.getItem(SESSION_KEY) || null
-    };
-
-    function setSessionId(id) {
-        if (!id) return;
-        appState.sessionId = id;
-        localStorage.setItem(SESSION_KEY, id);
-    }
-
-    // Memory Leak Prevention
-    window.addEventListener('beforeunload', function() {
-        if (window.speechSynthesis) {
-            window.speechSynthesis.cancel();
-        }
-    });
-
-    // ==================== SMART LOADING STATES ====================
-    function showLoadingState(container, message = "Loading...") {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-                <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
-                <div style="color: var(--secondary-text);">${message}</div>
-                <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--secondary-text);">
-                    This usually takes 3-10 seconds...
-                </div>
-            </div>`;
-    }
-
-    // ==================== ENHANCED HISTORY MANAGEMENT ====================
-
-    function saveToLocalHistory(query, answer, model) {
-        const normalizedQuery = normalizeQuery(query);
-
-        const exists = appState.localHistory.some(entry =>
-            normalizeQuery(entry.query) === normalizedQuery &&
-            entry.answer.trim() === answer.trim()
-        );
-        if (exists) {
-            return appState.localHistory.find(entry =>
-                normalizeQuery(entry.query) === normalizedQuery
-            );
-        }
-
-        const entry = {
-            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-            query: query.trim(),
-            normalizedQuery,
-            answer: answer.trim(),
-            model,
-            timestamp: Math.floor(Date.now() / 1000),
-            source: 'local',
-            wordCount: answer.split(' ').length,
-            characterCount: answer.length
-        };
-
-        appState.localHistory.unshift(entry);
-        if (appState.localHistory.length > 50) {
-            appState.localHistory = appState.localHistory.slice(0, 50);
-        }
-
-        localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
-
-        const sizeKB = Math.round(JSON.stringify(appState.localHistory).length / 1024);
-        if (sizeKB > 400) {
-            showMessage(`⚠️ Local storage at ${sizeKB}KB - consider exporting`, 3000);
-        }
-
-        return entry;
-    }
-
-    function getLocalHistory() {
-        return appState.localHistory;
-    }
-
-    function clearLocalHistory() {
-        appState.localHistory = [];
-        localStorage.setItem(LOCAL_HISTORY_KEY, '[]');
-        return true;
-    }
-
-    function exportLocalHistory() {
-        const exportData = {
-            version: "3.0",
-            exportedAt: new Date().toISOString(),
-            source: "truth-engine-free-tier",
-            conversations: appState.localHistory,
-            currentModel: appState.MODEL,
-            theme: localStorage.getItem('theme') || 'silvery',
-            settings: {
-                localHistoryCount: appState.localHistory.length,
-                hasRemoteHistory: appState.remoteHistory.length > 0
-            }
-        };
-
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(dataBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `truth-engine-full-session-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-
-        return exportData;
-    }
-
-    function importLocalHistory(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    if (!importedData.conversations || !Array.isArray(importedData.conversations)) {
-                        throw new Error('Invalid file format: missing conversations array');
-                    }
-
-                    const newEntries = importedData.conversations.filter(conv => {
-                        if (!conv.query || !conv.answer) return false;
-                        const convNormalized = normalizeQuery(conv.query);
-                        return !appState.localHistory.some(existing =>
-                            normalizeQuery(existing.query) === convNormalized &&
-                            existing.answer.trim() === conv.answer.trim()
-                        );
-                    });
-
-                    newEntries.forEach(entry => {
-                        entry.normalizedQuery = normalizeQuery(entry.query);
-                    });
-
-                    appState.localHistory = [...newEntries, ...appState.localHistory];
-                    localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
-
-                    if (importedData.currentModel) {
-                        appState.MODEL = importedData.currentModel;
-                        localStorage.setItem('truth-model', appState.MODEL);
-                        const selector = document.getElementById('modelSelector');
-                        if ([...selector.options].some(o => o.value === appState.MODEL)) {
-                            selector.value = appState.MODEL;
-                        }
-                    }
-
-                    if (importedData.theme) {
-                        document.body.dataset.mode = importedData.theme;
-                        localStorage.setItem('theme', importedData.theme);
-                    }
-
-                    resolve({
-                        success: true,
-                        imported: newEntries.length,
-                        total: appState.localHistory.length,
-                        restoredModel: importedData.currentModel || 'none',
-                        restoredTheme: importedData.theme || 'none'
-                    });
-                } catch (error) {
-                    reject(error);
-                }
-            };
-            reader.onerror = () => reject(new Error('Failed to read file'));
-            reader.readAsText(file);
-        });
-    }
-
-    function deleteFromLocalHistory(id) {
-        appState.localHistory = appState.localHistory.filter(entry => entry.id !== id);
-        localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
-        renderCombinedHistory();
-        showMessage('Conversation deleted');
-    }
-
-    // ==================== SESSION MANAGEMENT ====================
-
-    function getSessionContext() {
-        return appState.localHistory.slice(0, 5).reverse().map(entry =>
-            `User: ${entry.query}\nAI: ${entry.answer}`
-        ).join('\n\n');
-    }
-
-    // ==================== UI FUNCTIONS ====================
-
-    function showMessage(msg, duration = 3000) {
-        const el = document.getElementById('customMessage');
-        el.textContent = msg;
-        el.classList.add('visible');
-        setTimeout(() => el.classList.remove('visible'), duration);
-    }
-
-    function showExportPrompt() {
-        const prompt = document.getElementById('exportPrompt');
-        prompt.classList.add('visible');
-        setTimeout(() => prompt.classList.remove('visible'), 5000);
-    }
-
-    async function loadMarked() {
-        if (window.marked) return window.marked.parse;
-
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-        document.head.appendChild(script);
-        return new Promise((resolve) => {
-            script.onload = () => resolve(window.marked.parse);
-            script.onerror = () => {
-                console.warn('Marked failed to load, using plain text');
-                resolve(text => text);
-            };
-        });
-    }
-
-    function copyToClipboard(text, msg = 'Copied!') {
-        navigator.clipboard.writeText(text).then(() => showMessage(msg));
-    }
-
-    async function promptForPassphrase(challengeQuestion) {
-        return prompt(challengeQuestion || 'What is the passphrase?') || '';
-    }
-
-    function openModal() {
-        document.getElementById('modal-overlay').classList.add('active');
-    }
-
-    function closeModal() {
-        document.getElementById('modal-overlay').classList.remove('active');
-        stopTts();
-        closeTtsMiniModal();
-        if (appState.localHistory.length > 0) showExportPrompt();
-    }
-
-    function toggleHistory() {
-        const panel = document.getElementById('historyPanel');
-        panel.classList.toggle('open');
-        if (panel.classList.contains('open')) renderCombinedHistory();
-    }
-
-    function renderCombinedHistory() {
-        const list = document.getElementById('historyList');
-        const allHistory = appState.localHistory.slice(0, 30);
-
-        if (allHistory.length === 0) {
-            list.innerHTML = '<li style="text-align: center; color: var(--secondary-text); padding: 2rem;">No conversations yet. Ask your first question!</li>';
-            return;
-        }
-
-        list.innerHTML = allHistory.map(item => {
-            const query = (item.query || '').trim();
-            const title = (item.title || '').trim();
-            const display = (title || query).slice(0, 50) + ((title || query).length > 50 ? '...' : '');
-            const dateStr = new Date(item.timestamp * 1000).toLocaleDateString();
-            const timeStr = new Date(item.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-            return `
-            <li class="history-item" data-id="${item.id}" tabindex="0" role="button" aria-label="Conversation from ${dateStr}">
-                <div class="history-item-content">
-                    <p>${display || 'Empty conversation'}</p>
-                    <small>🤖 ${item.model} • 📅 ${dateStr} ${timeStr} • 📝 ${item.wordCount || 0} words • 🔑 ${item.normalizedQuery || 'N/A'}</small>
-                </div>
-                <button class="menu-btn" title="Options" aria-label="More options">⋯</button>
-                <div class="item-menu" role="menu">
-                    <button class="copy-option" role="menuitem">📋 Copy</button>
-                    <button class="edit-option" role="menuitem">✏️ Edit</button>
-                    <button class="delete-option" role="menuitem">🗑️ Delete</button>
-                </div>
-            </li>`;
-        }).join('');
-
-        document.querySelectorAll('.history-item').forEach(item => {
-            const id = item.dataset.id;
-            const entry = appState.localHistory.find(ent => ent.id === id);
-            if (!entry) return;
-
-            const menuBtn = item.querySelector('.menu-btn');
-            const menu = item.querySelector('.item-menu');
-
-            menuBtn.addEventListener('click', e => {
-                e.stopPropagation();
-                menu.classList.toggle('active');
-            });
-
-            item.querySelector('.copy-option').addEventListener('click', () => {
-                copyToClipboard(`Q: ${entry.query}\nA: ${entry.answer || ''}`, '📋 Conversation copied!');
-                menu.classList.remove('active');
-            });
-
-            item.querySelector('.edit-option').addEventListener('click', () => {
-                openEditModal(entry);
-                menu.classList.remove('active');
-            });
-
-            item.querySelector('.delete-option').addEventListener('click', () => {
-                if (confirm('🗑️ Delete this conversation? This cannot be undone.')) {
-                    deleteFromLocalHistory(id);
-                }
-                menu.classList.remove('active');
-            });
-
-            item.addEventListener('click', async e => {
-                if (e.target.closest('.menu-btn, .item-menu')) return;
-                appState.currentHistoryId = id;
-                await showConversation(entry);
-            });
-
-            item.addEventListener('keydown', async e => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    appState.currentHistoryId = id;
-                    await showConversation(entry);
-                }
-            });
-        });
-    }
-
-    function openEditModal(entry) {
-        appState.editingEntry = entry;
-        document.getElementById('editTitle').value = entry.title || '';
-        document.getElementById('editQuery').value = entry.query || '';
-        document.getElementById('editAnswer').value = entry.answer || '';
-        updateEditPreview(entry.answer || '');
-        document.getElementById('edit-modal-overlay').classList.add('active');
-    }
-
-    function closeEditModal() {
-        document.getElementById('edit-modal-overlay').classList.remove('active');
-        appState.editingEntry = null;
-    }
-
-    async function updateEditPreview(text) {
-        const parse = await loadMarked();
-        document.getElementById('editPreview').innerHTML = parse(text);
-    }
-
-    async function showConversation(entry) {
-        const parse = await loadMarked();
-        const container = document.getElementById('resultContainer');
-        const displayTitle = entry.title ? `<h3>${entry.title}</h3>` : '';
-        const cacheIndicator = entry.source === 'local' ? '📱 Local' : '☁️ Remote';
-        const cacheKeyInfo = entry.normalizedQuery ? `<br><small>🔑 Cache Key: ${buildCacheKey(entry.query)}</small>` : '';
-
-        container.innerHTML = `
-            <div class="conversation-block">
-                ${displayTitle}
-                <h4>❓ Query: ${entry.query}</h4>
-                <div class="content">${parse(entry.answer || 'No answer stored')}</div>
-                <small>🤖 ${entry.model} • 📅 ${new Date(entry.timestamp * 1000).toLocaleString()} • ${cacheIndicator}${cacheKeyInfo}</small>
-            </div>`;
-
-        openModal();
-        toggleHistory();
-    }
-
-    // ==================== TTS FUNCTIONS ====================
-    function openTtsMiniModal() {
-        document.getElementById('ttsMiniModal').classList.add('active');
-    }
-    function closeTtsMiniModal() {
-        document.getElementById('ttsMiniModal').classList.remove('active');
-    }
-    function startTts(text) {
-        if (!('speechSynthesis' in window)) {
-            showMessage('Text-to-speech not supported in your browser');
-            return;
-        }
-        if (appState.ttsUtterance) speechSynthesis.cancel();
-        try {
-            appState.ttsUtterance = new SpeechSynthesisUtterance(text);
-        } catch (error) {
-            console.error('Error creating SpeechSynthesisUtterance:', error);
-            showMessage('Failed to create speech: ' + error.message);
-            return;
-        }
-        appState.ttsUtterance.rate = 1.0;
-        appState.ttsUtterance.pitch = 1.0;
-        appState.ttsUtterance.volume = 1.0;
-        appState.ttsUtterance.onstart = () => {
-            appState.isTtsPlaying = true;
-            document.getElementById('ttsPlayPause').textContent = '⏸️';
-            updateTtsProgress(0);
-        };
-        appState.ttsUtterance.onend = () => {
-            appState.isTtsPlaying = false;
-            document.getElementById('ttsPlayPause').textContent = '▶️';
-            updateTtsProgress(100);
-            setTimeout(() => updateTtsProgress(0), 1000);
-        };
-        appState.ttsUtterance.onpause = () => {
-            appState.isTtsPlaying = false;
-            document.getElementById('ttsPlayPause').textContent = '▶️';
-        };
-        appState.ttsUtterance.onresume = () => {
-            appState.isTtsPlaying = true;
-            document.getElementById('ttsPlayPause').textContent = '⏸️';
-        };
-        appState.ttsUtterance.onerror = (event) => {
-            console.error('TTS Error:', event.error);
-            appState.isTtsPlaying = false;
-            document.getElementById('ttsPlayPause').textContent = '▶️';
-            updateTtsProgress(0);
-        };
-        let startTime = Date.now();
-        const interval = setInterval(() => {
-            if (appState.isTtsPlaying) {
-                const elapsed = Date.now() - startTime;
-                const estimated = text.length * 80;
-                const progress = Math.min(100, (elapsed / estimated) * 100);
-                updateTtsProgress(progress);
-            } else {
-                clearInterval(interval);
-            }
-        }, 100);
-        appState.ttsUtterance.progressInterval = interval;
-        speechSynthesis.speak(appState.ttsUtterance);
-    }
-    function pauseTts() {
-        if (appState.isTtsPlaying && appState.ttsUtterance) {
-            speechSynthesis.pause();
-            appState.isTtsPlaying = false;
-        }
-    }
-    function resumeTts() {
-        if (!appState.isTtsPlaying && appState.ttsUtterance) {
-            speechSynthesis.resume();
-            appState.isTtsPlaying = true;
-        }
-    }
-    function stopTts() {
-        if (appState.ttsUtterance) {
-            if (appState.ttsUtterance.progressInterval) {
-                clearInterval(appState.ttsUtterance.progressInterval);
-                appState.ttsUtterance.progressInterval = null;
-            }
-            speechSynthesis.cancel();
-            appState.isTtsPlaying = false;
-            document.getElementById('ttsPlayPause').textContent = '▶️';
-            updateTtsProgress(0);
-            appState.ttsUtterance = null;
-        }
-    }
-    function updateTtsProgress(percent) {
-        const bar = document.getElementById('ttsProgressBar');
-        if (bar) bar.style.width = `${percent}%`;
-    }
-
-    // ==================== CORE LOGIC ====================
-
-    async function performTruthQuery(query, challengeResponse = '') {
-        if (!query?.trim()) {
-            showMessage('Please enter a question first.');
-            return;
-        }
-        if (appState.isChallenging) {
-            showMessage('Please answer the challenge first...');
-            return;
-        }
-
-        const container = document.getElementById('resultContainer');
-        openModal();
-        showLoadingState(container, '⏳ Thinking... Please wait.');
-
-        try {
-            const parse = await loadMarked();
-            const payload = { input: query, model: appState.MODEL };
-            if (challengeResponse) payload.challengeResponse = challengeResponse;
-
-            showMessage('🔄 Sending to AI...', 1500);
-
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-            const url = new URL(API_URL);
-            if (appState.sessionId) {
-                url.searchParams.set('sessionId', appState.sessionId);
-            }
-
-            const res = await fetch(url.toString(), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-            const data = await res.json();
-
-            if (!res.ok) {
-                if (data.error === 'CHALLENGE_FAILED' && !appState.isChallenging) {
-                    appState.isChallenging = true;
-                    const pass = prompt('🔐 ' + (data.challengeQuestion || 'Access requires passphrase:'));
-                    appState.isChallenging = false;
-                    if (pass) {
-                        return performTruthQuery(query, pass);
-                    } else {
-                        throw new Error('Access denied - no passphrase provided');
-                    }
-                }
-                let errorMsg = 'Unknown error occurred';
-                if (res.status === 404) errorMsg = 'AI service not found';
-                else if (res.status === 429) errorMsg = 'Too many requests - please wait';
-                else if (res.status === 500) errorMsg = 'AI service is having issues';
-                else if (data.error) errorMsg = data.error;
-                throw new Error(errorMsg);
-            }
-
-            if (data.sessionId && data.sessionId !== appState.sessionId) {
-                setSessionId(data.sessionId);
-            }
-
-            const normalizedQuery = normalizeQuery(query);
-            const entry = saveToLocalHistory(query, data.answer, data.model || appState.MODEL);
-            entry.normalizedQuery = normalizedQuery;
-
-            showMessage('✅ Answer ready!', 2000);
-
-            const cacheKey = buildCacheKey(query);
-
-            const flags = [];
-            if (data.verified) flags.push('✅ Expert verified');
-            if (data.cached && data.source === 'master_truth') flags.push('📚 Master truth');
-            else if (data.cached) flags.push('📦 Cached');
-
-            container.innerHTML = `
-                <div class="conversation-block">
-                    <h4>❓ Query: ${query}</h4>
-                    <div class="content">${parse(data.answer)}</div>
-                    <small>
-                        🤖 ${data.model || appState.MODEL}
-                        ${data.created ? ' • ' + new Date(data.created).toLocaleString() : ''}
-                        ${flags.length ? '<br>' + flags.join(' • ') : ''}
-                    </small>
-                    <small><br>🔑 Cache Key: ${cacheKey}</small>
-                </div>`;
-
-            renderCombinedHistory();
-
-        } catch (err) {
-            console.error('Query error:', err);
-
-            let errorMessage = 'Something went wrong';
-            if (err.name === 'AbortError') errorMessage = 'Request timed out - please try again';
-            else if (!navigator.onLine) errorMessage = 'No internet connection';
-            else if (err.message.includes('challenge')) errorMessage = 'Challenge failed - check your passphrase';
-            else errorMessage = err.message || 'Unknown error';
-
-            container.innerHTML = `
-                <div class="conversation-block">
-                    <h4>❓ Query: ${query}</h4>
-                    <div class="content" style="color: #d32f2f;">
-                        ⚠️ <strong>Error:</strong> ${errorMessage}
-                        <br><br>
-                        <em>💾 Your query has been saved locally so you don't lose it.</em>
-                        <br><br>
-                        <small>🔑 Would use cache key: ${buildCacheKey(query)}</small>
+    <!-- Left Panel: Menu -->
+    <div id="menuPanel" class="slide-panel fixed top-0 left-0 w-80 h-full bg-[var(--bg-primary)] shadow-2xl z-[1001] overflow-y-auto">
+        <div class="p-8 border-b border-[var(--border-subtle)]">
+            <h2 class="text-2xl font-bold text-[var(--accent-primary)] mb-6">⚙️ NeoForge Control</h2>
+             <!-- ADD INSIDE menuPanel, after h2 -->
+            <button onclick="togglePanel('menuPanel')" class="absolute top-8 right-8 text-xl text-[var(--text-secondary)] hover:text-[var(--accent-primary)]">
+              <i class="fas fa-times"></i>
+                  </button>
+              <div class="space-y-4 text-sm">
+                <div>
+                    <label class="block font-semibold mb-2 text-[var(--text-secondary)]">Theme</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="theme-btn p-3 rounded-xl border-2 border-transparent hover:border-[var(--accent-primary)] active-theme" data-theme="default">📖</button>
+                        <button class="theme-btn p-3 rounded-xl border-2 border-transparent hover:border-[var(--accent-primary)]" data-theme="dark">🌙</button>
+                        <button class="theme-btn p-3 rounded-xl border-2 border-transparent hover:border-[var(--accent-primary)]" data-theme="neo">💚</button>
                     </div>
-                </div>`;
+                </div>
+                <div>
+                    <label class="block font-semibold mb-2 text-[var(--text-secondary)]">Inference Mode</label>
+                    <select id="inferenceMode" class="w-full p-3 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-2xl font-serif">
+                        <option value="truth">Truth Engine (KV→Resolve→Synth)</option>
+                        <option value="code">Code Gen (JS/Python)</option>
+                        <option value="sandbox">Sandbox Exec</option>
+                        <option value="chat">Matrix Chat</option>
+                    </select>
+                </div>
+                <button id="exportSession" class="w-full p-4 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white font-bold rounded-2xl hover:scale-105 transition-all">
+                    <i class="fas fa-download mr-2"></i>Export Cards
+                </button>
+            </div>
+        </div>
+    </div>
 
-            const normalizedQuery = normalizeQuery(query);
-            const entry = saveToLocalHistory(query, `❌ Error: ${err.message}`, appState.MODEL);
-            entry.normalizedQuery = normalizedQuery;
+    <!-- Right Panel: History -->
+    <div id="historyPanel" class="slide-panel fixed top-0 right-0 w-96 h-full bg-[var(--bg-primary)] shadow-2xl z-[1001] overflow-y-auto">
+        <div class="p-8 border-b border-[var(--border-subtle)] sticky top-0 bg-[var(--bg-primary)]">
+            <h2 class="text-2xl font-bold text-[var(--accent-primary)] mb-6">📜 Card History</h2>
+            <div id="historyList" class="space-y-4"></div>
+        </div>
+    </div>
 
-            showMessage('❌ ' + errorMessage + ' - Saved locally', 4000);
-            renderCombinedHistory();
-        }
-    }
+    <!-- Drag Overlay -->
+    <div id="dragOverlay" class="drag-overlay hidden"></div>
 
-    async function newChat() {
-        if (!confirm('Start new chat? This clears remote context but keeps your local history.')) return;
-        appState.sessionId = null;
-        localStorage.removeItem(SESSION_KEY);
-        showMessage('New chat started');
-            }
+    <!-- Fullscreen Backdrop -->
+    <div id="fullscreenBackdrop" class="panel-overlay hidden"></div>
+<!-- ADD THIS -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+const appState = {
+    cards: JSON.parse(localStorage.getItem('neoforge-cards') || '[]'),
+    history: JSON.parse(localStorage.getItem('neoforge-history') || '[]'),
+    theme: localStorage.getItem('neoforge-theme') || 'default'
+};
 
-    // ==================== EVENT LISTENERS ====================
+function saveState() {
+    localStorage.setItem('neoforge-cards', JSON.stringify(appState.cards));
+    localStorage.setItem('neoforge-history', JSON.stringify(appState.history));
+    localStorage.setItem('neoforge-theme', appState.theme);
+}
 
-    // Enter key support (multi-line)
-    document.getElementById('queryInput').addEventListener('keydown', e => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            e.preventDefault();
-            const input = document.getElementById('queryInput');
-            if (input.value.trim()) {
-                performTruthQuery(input.value);
-                input.value = '';
-            }
-        }
-    });
+function normalizeInput(str) { return str.trim().toLowerCase().replace(/\s+/g, ' ').replace(/[^a-zA-Z0-9\-_]/g, ''); }
+function normalizeId(str) { return `prov_${str.trim().toLowerCase().replace(/[^a-zA-Z0-9]/g, '_')}`; }
 
-    // Enter button
-    document.getElementById('enterButton').addEventListener('click', () => {
-        const input = document.getElementById('queryInput');
-        if (input.value.trim()) {
-            performTruthQuery(input.value);
-            input.value = '';
-        }
-    });
+function applyTheme(theme) {
+    document.body.className = theme;
+    appState.theme = theme;
+    saveState();
+}
 
-    // Menu / modal controls
-    document.getElementById('historyToggle').addEventListener('click', toggleHistory);
-    document.getElementById('newChatBtn').addEventListener('click', newChat);
-    document.getElementById('closeHistory').addEventListener('click', toggleHistory);
-    document.getElementById('close-modal').addEventListener('click', closeModal);
+function togglePanel(panelId) {
+    document.getElementById(panelId).classList.toggle('open');
+    document.getElementById('fullscreenBackdrop').classList.toggle('open');
+}
 
-    // Copy result
-    document.getElementById('copyResult').addEventListener('click', () => {
-        const text = document.querySelector('.conversation-block .content')?.innerText || '';
-        if (text) copyToClipboard(text);
-    });
+function createCard(data, isHistory = false) {
+    const id = data.id || `card-${Date.now()}`;
+    const typeIcon = data.type === 'truth' ? '🔍' : '📄';
+    const sourceClass = data.source ? `source-badge source-${data.source}` : '';
+    const card = document.createElement('div');
+    card.className = `card fade-in relative group ${isHistory ? 'opacity-70 hover:opacity-100' : ''}`;
+    card.dataset.id = id;
+    card.innerHTML = `
+        <div class="card-header" style="justify-content: space-between;">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">${typeIcon}</span>
+                <span class="font-bold text-lg">${data.title || 'Truth'}</span>
+                ${data.source ? `<span class="${sourceClass}">${data.source.toUpperCase()}</span>` : ''}
+            </div>
+            <div class="flex gap-2">
+                ${!isHistory ? `
+                    <button onclick="expandCard('${id}')" class="w-10 h-10 rounded-2xl bg-[var(--accent-primary)]/20 hover:bg-[var(--accent-primary)] text-[var(--accent-primary)] flex items-center justify-center">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <button onclick="closeFullscreen()" class="w-10 h-10 rounded-2xl bg-red-500/30 hover:bg-red-500 text-red-200 flex items-center justify-center absolute top-2 right-2 z-50 card-fullscreen-only">
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+        <div class="card-content prose">${marked.parse(data.content || '')}</div>
+    `;
+    return card;
+}
 
-    // TTS buttons
-    document.getElementById('ttsBtn').addEventListener('click', () => {
-        let text = '';
-        const contentElement = document.querySelector('.conversation-block .content');
-        if (contentElement) {
-            text = contentElement.innerText || contentElement.textContent || '';
-        }
-        if (!text.trim() && appState.currentHistoryId) {
-            const item = appState.localHistory.find(i => i.id === appState.currentHistoryId);
-            if (item && item.answer) text = item.answer;
-        }
-        if (text.trim()) {
-            openTtsMiniModal();
-            if (!appState.isTtsPlaying) startTts(text);
-            else pauseTts();
-        } else {
-            showMessage('No text available for TTS');
-        }
-    });
+function renderCards() {
+    const grid = document.getElementById('cardsGrid');
+    grid.innerHTML = '';
+    appState.cards.forEach(card => grid.appendChild(createCard(card)));
+}
 
-    document.getElementById('ttsMiniClose').addEventListener('click', closeTtsMiniModal);
-    document.getElementById('ttsPlayPause').addEventListener('click', () => {
-        const contentElement = document.querySelector('.conversation-block .content');
-        const text = contentElement ? (contentElement.innerText || contentElement.textContent || '') : '';
-        if (!text.trim()) {
-            showMessage('No text available for TTS');
-            return;
-        }
-        if (appState.isTtsPlaying) {
-            pauseTts();
-        } else if (appState.ttsUtterance) {
-            resumeTts();
-        } else {
-            startTts(text);
-        }
-    });
-    document.getElementById('ttsStop').addEventListener('click', stopTts);
+function renderHistory() {
+    const list = document.getElementById('historyList');
+    list.innerHTML = '';
+    appState.history.slice(0, 20).forEach(card => list.appendChild(createCard(card, true)));
+}
 
-    // Save locally button
-    document.getElementById('saveLocal').addEventListener('click', () => {
-        const query = document.querySelector('.conversation-block h4')?.textContent.replace('❓ Query: ', '') || '';
-        const answer = document.querySelector('.conversation-block .content')?.innerText || '';
-        if (query && answer) {
-            const entry = saveToLocalHistory(query, answer, appState.MODEL);
-            entry.normalizedQuery = normalizeQuery(query);
-            showMessage('Saved to local history');
-        }
-    });
+window.expandCard = function(id) {
+    document.querySelector(`[data-id="${id}"]`).classList.add('fullscreen');
+    document.getElementById('fullscreenBackdrop').classList.add('open');
+};
 
-    // History export (remote first, then local)
-    document.getElementById('exportHistory').addEventListener('click', async () => {
-        if (appState.sessionId) {
-            try {
-                const url = new URL('/api/session/sync', 'https://truthengine.ai-n.workers.dev');
-                url.searchParams.set('sessionId', appState.sessionId);
-                const res = await fetch(url.toString(), { method: 'GET' });
-                if (res.ok) {
-                    const snapshot = await res.json();
-                    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `truth-engine-session-${appState.sessionId}.json`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    showMessage(`📦 Remote session exported (${snapshot.conversations?.length || 0} entries)`);
-                    return;
-                }
-            } catch (e) {
-                console.warn('Remote session export failed, falling back to local:', e);
-            }
-        }
-        const exported = exportLocalHistory();
-        showMessage(`📦 Local session exported: ${exported.conversations.length} conversations + settings`);
-    });
+window.closeFullscreen = function() {
+    document.querySelector('.card.fullscreen')?.classList.remove('fullscreen');
+    document.getElementById('fullscreenBackdrop').classList.remove('open');
+};
 
-    // Import session (remote DO + local merge)
-document.getElementById('importHistory').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+async function executeTruthEngine(query) {
+    const result = { type: 'truth', title: 'Truth Engine', content: '🔍 Checking Legacy KV...', source: 'processing' };
+    const tempId = `temp-${Date.now()}`;
+    result.id = tempId;
+    appState.cards.unshift(result);
+    saveState();
+    renderCards();
 
     try {
-        const text = await file.text();
-        const snapshot = JSON.parse(text);
+        // Step 1: Legacy KV
+        const legacyRes = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ input: query, model: 'polaris-alpha' })
+        });
+        const legacyData = await legacyRes.json().catch(() => ({}));
 
-        // Normalize shape
-        const conversations = Array.isArray(snapshot.conversations) ? snapshot.conversations : [];
-        const isServerExport = snapshot.source === 'truth-engine-server';
-        const isLegacyLocal = snapshot.source === 'truth-engine-free-tier';
-
-        // 1) Try to push snapshot to server (Durable Object context)
-        try {
-            const res = await fetch('https://truthengine.ai-n.workers.dev/api/session/sync', {
+        if (legacyRes.ok && legacyData.answer) {
+            result.content = legacyData.answer;
+            result.source = 'legacy';
+        } else {
+            // Step 2: Resolve
+            result.content = '🔍 Checking Resolve...';
+            renderCards();
+            const resolveRes = await fetch('https://truth.ai-n.workers.dev/api/truth/resolve', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // Worker accepts { snapshot } OR full shape; we send { snapshot } for compatibility
-                body: JSON.stringify({ snapshot })
+                body: JSON.stringify({ input: normalizeInput(query) })
             });
+            const resolveData = await resolveRes.json().catch(() => ({}));
 
-            if (res.ok) {
-                const data = await res.json();
-                if (data.sessionId) {
-                    setSessionId(data.sessionId);
-                    showMessage(`☁️ Remote context restored. Session: ${data.sessionId}`);
+            if (resolveRes.ok && resolveData.answer) {
+                result.content = resolveData.answer;
+                result.source = 'resolve';
+            } else {
+                // Step 3: AI Proxy
+                result.content = '🔍 AI Proxy...';
+                renderCards();
+                const proxyRes = await fetch('https://ai-proxy.ai-n.workers.dev/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Generate detailed answer about: ${query.trim()}`, model: 'auto' })
+                });
+                const proxyData = await proxyRes.json().catch(() => ({}));
+
+                if (proxyRes.ok) {
+                    result.content = proxyData.response || proxyData.answer || 'No AI response';
+                    result.source = 'ai';
+                    // Step 4: Save Provisional (silent)
+                    fetch('https://truth.ai-n.workers.dev/api/truth/provisional/update', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: normalizeId(query),
+                            answer: result.content,
+                            meta: { model: 'justice-approved', confidence: 0.85, source: 'proxy_ai', qc_passed: false }
+                        })
+                    }).catch(console.log);
                 } else {
-                    console.warn('Remote import succeeded but no sessionId returned');
+                    result.content = '❌ No truth found';
+                    result.source = 'not_found';
                 }
-            } else {
-                const errText = await res.text();
-                console.warn('Remote import failed:', errText);
             }
-        } catch (err) {
-            console.warn('Remote import error (continuing with local only):', err);
         }
-
-        // 2) Local merge behavior depends on type
-
-        if (isLegacyLocal) {
-            // Old full-session export: merge its conversations into localHistory
-            const result = await importLocalHistoryFromObject(snapshot);
-            showMessage(`Imported ${result.imported} conversations from legacy file. Total: ${result.total}`);
-        } else if (isServerExport) {
-        // Helper: import from already-parsed snapshot object (no FileReader)
-async function importLocalHistoryFromObject(importedData) {
-    if (!importedData.conversations || !Array.isArray(importedData.conversations)) {
-        return { success: false, imported: 0, total: appState.localHistory.length };
+    } catch (e) {
+        result.content = `❌ Error: ${e.message}`;
+        result.source = 'error';
     }
 
-    const newEntries = importedData.conversations.filter(conv => {
-        if (!conv.query || !conv.answer) return false;
-        const convNormalized = normalizeQuery(conv.query);
-        return !appState.localHistory.some(existing =>
-            normalizeQuery(existing.query) === convNormalized &&
-            (existing.answer || '').trim() === (conv.answer || '').trim()
-        );
-    });
-
-    newEntries.forEach(entry => {
-        entry.normalizedQuery = normalizeQuery(entry.query);
-        if (!entry.id) {
-            entry.id = Date.now().toString() + Math.random().toString(36).slice(2);
-        }
-        entry.model = entry.model || appState.MODEL;
-        entry.timestamp = entry.timestamp || Math.floor(Date.now() / 1000);
-        entry.source = entry.source || 'imported';
-        entry.wordCount = entry.wordCount || (entry.answer || '').split(/\s+/).length;
-        entry.characterCount = entry.characterCount || (entry.answer || '').length;
-    });
-
-    appState.localHistory = [...newEntries, ...appState.localHistory];
-    localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
-
-    if (importedData.currentModel) {
-        appState.MODEL = importedData.currentModel;
-        localStorage.setItem('truth-model', appState.MODEL);
-        const selector = document.getElementById('modelSelector');
-        if (selector && [...selector.options].some(o => o.value === appState.MODEL)) {
-            selector.value = appState.MODEL;
-        }
-    }
-
-    if (importedData.theme) {
-        document.body.dataset.mode = importedData.theme;
-        localStorage.setItem('theme', importedData.theme);
-    }
-
-    return {
-        success: true,
-        imported: newEntries.length,
-        total: appState.localHistory.length
-    };
+    // Update card
+    result.id = `card-${Date.now()}`;
+    appState.cards[0] = result;
+    appState.history.unshift({ ...result, preview: result.content.slice(0, 100) });
+    if (appState.cards.length > 50) appState.cards = appState.cards.slice(0, 50);
+    saveState();
+    renderCards();
+    renderHistory();
 }
-            // Server snapshot: typically DO history; may or may not have conversations
-            if (conversations.length > 0) {
-                const result = await importLocalHistoryFromObject(snapshot);
-                showMessage(`Imported ${result.imported} conversations from server snapshot. Total: ${result.total}`);
-            } else {
-                showMessage('Server snapshot imported: no local conversations to merge (remote context is restored).');
-            }
-        } else {
-            // Fallback: try to treat as legacy-style if it has conversations
-            if (conversations.length > 0) {
-                const result = await importLocalHistoryFromObject(snapshot);
-                showMessage(`Imported ${result.imported} conversations. Total: ${result.total}`);
-            } else {
-                showMessage('Import file recognized, but contains no conversations to merge.');
-            }
-        }
 
-        renderCombinedHistory();
-    } catch (error) {
-        console.error('Import failed:', error);
-        showMessage(`Import failed: ${error.message}`);
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    applyTheme(appState.theme);
+    renderCards();
+    renderHistory();
 
-    e.target.value = '';
-});
-
-    // Trigger file chooser
-    document.getElementById('importTrigger').addEventListener('click', () => {
-        document.getElementById('importHistory').click();
-    });
-
-    // Clear local history
-    document.getElementById('clearLocalHistory').addEventListener('click', () => {
-        if (confirm('Clear ALL local history? This cannot be undone.')) {
-            clearLocalHistory();
-            showMessage('Local history cleared');
-            renderCombinedHistory();
-        }
-    });
+    // Menu buttons
+    document.getElementById('menuBtn').onclick = () => togglePanel('menuPanel');
+    document.getElementById('historyBtn').onclick = () => togglePanel('historyPanel');
+    document.getElementById('fullscreenBackdrop').onclick = closeFullscreen;
 
     // Theme buttons
-    document.querySelectorAll('.theme-buttons button').forEach(b => {
-        b.addEventListener('click', () => {
-            document.body.dataset.mode = b.dataset.mode;
-            localStorage.setItem('theme', b.dataset.mode);
-            showMessage(`Theme: ${b.dataset.mode}`);
-        });
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelector('.active-theme').classList.remove('active-theme', 'bg-[var(--accent-primary)]', 'text-white');
+            btn.classList.add('active-theme', 'bg-[var(--accent-primary)]', 'text-white');
+            applyTheme(btn.dataset.theme);
+        };
     });
 
-    // Model selector
-    document.getElementById('modelSelector').addEventListener('change', e => {
-        appState.MODEL = e.target.value;
-        localStorage.setItem('truth-model', appState.MODEL);
-        showMessage(`Model: ${e.target.options[e.target.selectedIndex].text}`);
-    });
-
-    // Export prompt quick button
-    document.getElementById('exportPromptBtn').addEventListener('click', () => {
-        exportLocalHistory();
-    });
-
-    // Edit modal listeners
-    document.getElementById('close-edit-modal').addEventListener('click', closeEditModal);
-    document.getElementById('saveEdit').addEventListener('click', () => {
-        if (appState.editingEntry) {
-            appState.editingEntry.title = document.getElementById('editTitle').value.trim() || undefined;
-            appState.editingEntry.query = document.getElementById('editQuery').value.trim();
-            appState.editingEntry.answer = document.getElementById('editAnswer').value.trim();
-            appState.editingEntry.normalizedQuery = normalizeQuery(appState.editingEntry.query);
-            localStorage.setItem(LOCAL_HISTORY_KEY, JSON.stringify(appState.localHistory));
-            closeEditModal();
-            renderCombinedHistory();
-            showMessage('Conversation updated');
-        }
-    });
-    document.getElementById('editAnswer').addEventListener('input', (e) => {
-        updateEditPreview(e.target.value);
-    });
-
-    // Accessibility: ESC closes overlays
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            if (document.getElementById('modal-overlay').classList.contains('active')) {
-                closeModal();
-            }
-            if (document.getElementById('edit-modal-overlay').classList.contains('active')) {
-                closeEditModal();
-            }
-            if (document.getElementById('ttsMiniModal').classList.contains('active')) {
-                closeTtsMiniModal();
-            }
-        }
-    });
-
-    // ==================== INITIALIZATION ====================
-
-    function initializeApp() {
-        // Theme
-        document.body.dataset.mode = localStorage.getItem('theme') || 'silvery';
-
-        // Model
-        const savedModel = localStorage.getItem('truth-model');
-        if (savedModel) {
-            const selector = document.getElementById('modelSelector');
-            if ([...selector.options].some(o => o.value === savedModel)) {
-                selector.value = savedModel;
-                appState.MODEL = savedModel;
-            }
-        }
-
-        // Focus input
-        setTimeout(() => document.getElementById('queryInput').focus(), 100);
-
-        // Initial history render
-        renderCombinedHistory();
-
-        // Typing animation
-        setTimeout(() => {
-            const el = document.getElementById('typedText');
-            if (!el) return;
-            el.classList.add('is-typing');
-            setTimeout(() => {
-                el.classList.remove('is-typing');
-                el.classList.add('is-done');
-            }, 3500);
-        }, 100);
-
-        console.log(`Truth Engine Ready - Local: ${appState.localHistory.length} conversations`);
-        console.log(`Normalization function loaded: ${normalizeQuery('Hello World!') === 'hello-world' ? '✅' : '❌'}`);
-    }
-
-    function getQueryParam(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
-    }
-
-    window.onload = function() {
-        const query = getQueryParam('q');
+    // Send button
+    const sendBtn = document.getElementById('sendBtn');
+    const input = document.getElementById('inputQuery');
+    sendBtn.onclick = () => {
+        const query = input.value.trim();
         if (query) {
-            document.getElementById('queryInput').value = decodeURIComponent(query.replace(/\+/g, ' '));
-            document.getElementById('enterButton').click();
+            executeTruthEngine(query);
+            input.value = '';
+        }
+    };
+    input.onkeydown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendBtn.click();
         }
     };
 
-    // Start the app
-    initializeApp();
-    </script>
+    // New session
+    document.getElementById('newSessionBtn').onclick = () => {
+        appState.cards = [];
+        saveState();
+        renderCards();
+    };
+
+    // Export
+    document.getElementById('exportSession').onclick = () => {
+        const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'neoforge.json';
+        a.click();
+    };
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeFullscreen();
+});
+</script>
 </body>
 </html>
