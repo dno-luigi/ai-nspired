@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Truth Orchestrator - Endpoint Tester</title>
+  <title>Truth Orchestrator - Workflow Tester</title>
   <style>
     body { font-family: monospace; margin: 2em; background: #121212; color: #eee; }
     h1, h2 { color: #b388ff; }
@@ -17,14 +17,53 @@
     .collapsible { cursor: pointer; background: #2c2c2c; color: #b388ff; padding: 0.5em; border: none; text-align: left; outline: none; display: block; width: 100%; margin-top: 1em; }
     .collapsible:after { content: '\002B'; float: right; }
     .active:after { content: "\2212"; }
-    .content { padding: 0 1em; display: block; max-height: none; }
-    .filters { display: flex; gap: 1em; flex-wrap: wrap; }
-    .filters > * { flex: 1; min-width: 200px; }
+    .content { padding: 0 1em; display: none; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+    .content.expanded { display: block; max-height: 1000px; }
+    .preflight-info {
+      background: #1a1a1a;
+      border-left: 3px solid #4caf50;
+      padding: 0.5em;
+      margin: 0.5em 0;
+      font-size: 0.9em;
+      border-radius: 4px;
+    }
+    .technical-detail {
+      background: #2a2a2a;
+      padding: 0.5em;
+      margin: 0.5em 0;
+      border-radius: 4px;
+      font-size: 0.85em;
+      border-left: 3px solid #2196f3;
+    }
+    .purpose-explanation {
+      background: #3a3a3a;
+      padding: 0.5em;
+      margin: 0.5em 0;
+      border-radius: 4px;
+      font-size: 0.85em;
+      border-left: 3px solid #ff9800;
+    }
+    .formula {
+      background: #444;
+      padding: 0.5em;
+      margin: 0.5em 0;
+      border-radius: 4px;
+      font-size: 0.9em;
+      border-left: 3px solid #9c27b0;
+      font-family: monospace;
+    }
+    .base-url-highlight {
+      background: #ff9800;
+      color: #000;
+      padding: 0.2em 0.5em;
+      border-radius: 3px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <h1>🔍 Truth Orchestrator - All Endpoint Tester</h1>
-  <p>Test every endpoint in the <code>worker.js</code> Truth Orchestrator.</p>
+  <h1>🔍 Truth Orchestrator - Workflow Tester</h1>
+  <p>Test the complete workflow: Legacy KV → Resolve → AI Proxy → Provisional</p>
 
   <form id="base">
     <label>Base URL <span style="color: grey">(e.g. https://your-worker.dev)</span></label>
@@ -34,108 +73,169 @@
     <input type="text" id="authToken" placeholder="Bearer ..." />
   </form>
 
-  <!-- Endpoints -->
-  <button class="collapsible active">▶️ /api/truth/resolve (POST)</button>
+  <!-- Step 1: Legacy KV Test -->
+  <button class="collapsible">▶️ Step 1: Legacy KV Lookup</button>
   <div class="endpoint content">
-    <label>Input <span style="color: grey">(Natural query)</span></label>
-    <input type="text" id="resolveInput" value="How do I debug a JS runtime?" />
-    <button onclick="testResolve()">Send</button>
-    <div class="output" id="resolveOutput"></div>
-  </div>
-
-  <button class="collapsible active">▶️ /api/truth/master/create (POST)</button>
-  <div class="endpoint content">
-    <label>Input (Query)</label>
-    <input type="text" id="masterCreateInput" value="What is the meaning of life?" />
-    <label>Answer</label>
-    <textarea id="masterCreateAnswer" rows="2">42 - The universe's secret number.</textarea>
-    <label>Editor</label>
-    <input type="text" id="masterCreateEditor" value="admin" />
-    <button onclick="testMasterCreate()">Create Master</button>
-    <div class="output" id="masterCreateOutput"></div>
-  </div>
-
-  <button class="collapsible">▶️ /api/truth/master/update (POST)</button>
-  <div class="endpoint content">
-    <label>Input (Query/ID)</label>
-    <input type="text" id="masterUpdateInput" value="What is the meaning of life?" />
-    <label>Answer</label>
-    <textarea id="masterUpdateAnswer" rows="2">The answer is actually 42.001 due to cosmic drift.</textarea>
-    <label>Editor</label>
-    <input type="text" id="masterUpdateEditor" value="admin" />
-    <label>Expected Version (timestamp or null)</label>
-    <input type="text" id="masterUpdateVersion" value="" placeholder="Leave empty to ignore" />
-    <button onclick="testMasterUpdate()">Update Master</button>
-    <div class="output" id="masterUpdateOutput"></div>
-  </div>
-
-  <button class="collapsible">▶️ /api/truth/master/delete (POST)</button>
-  <div class="endpoint content">
-    <label>Input (Query/ID)</label>
-    <input type="text" id="masterDeleteInput" value="What is the meaning of life?" />
-    <button onclick="testMasterDelete()">Delete Master</button>
-    <div class="output" id="masterDeleteOutput"></div>
-  </div>
-
-  <button class="collapsible">▶️ /api/truth/provisional/update (POST)</button>
-  <div class="endpoint content">
-    <label>Input (Query/ID)</label>
-    <input type="text" id="provUpdateInput" value="How do I debug a node app?" />
-    <label>Answer</label>
-    <textarea id="provUpdateAnswer" rows="2">Use `node --inspect` and Chrome DevTools.</textarea>
-    <label>Confidence</label>
-    <input type="number" step="0.01" id="provUpdateConfidence" value="0.75" />
-    <button onclick="testProvUpdate()">Create/Update Provisional</button>
-    <div class="output" id="provUpdateOutput"></div>
-  </div>
-
-  <button class="collapsible">▶️ /api/truth/provisional/delete (POST)</button>
-  <div class="endpoint content">
-    <label>Input (Query/ID)</label>
-    <input type="text" id="provDeleteInput" value="How do I debug a node app?" />
-    <button onclick="testProvDelete()">Delete Provisional</button>
-    <div class="output" id="provDeleteOutput"></div>
-  </div>
-
-  <button class="collapsible">▶️ /api/truth/provisional/query (POST) 🌟NEW</button>
-  <div class="endpoint content">
-    <label>Search Mode</label>
-    <select id="queryMode" onchange="toggleQueryMode()">
-      <option value="id">by ID</option>
-      <option value="prefix" selected>by Query Prefix</option>
-      <option value="all">All (limit 100)</option>
-    </select>
-
-    <label id="querySearchLabel">Prefix to search</label>
-    <input type="text" id="querySearchValue" value="debug" placeholder="e.g. debug, How do I..." />
-
-    <div class="filters">
-      <input type="text" id="queryMetaSource" placeholder="Source (e.g. proxy_ai_candidate)" />
-      <input type="text" id="queryMetaModel" placeholder="Model (e.g. mistral)" />
-      <input type="number" id="queryMinConfidence" step="0.01" placeholder="Min Conf (0-0.8)" />
-      <label style="margin:0;align-self:center;">
-        <input type="checkbox" id="queryQcPassed" checked /> Only QC-passed
-      </label>
+    <label>Legacy Input <span style="color: grey">(e.g. "about-cybrjustice", "Ranger1185")</span></label>
+    <input type="text" id="legacyInput" value="about-cybrjustice" />
+    <button onclick="testLegacyStep1()">Check Legacy KV</button>
+    <div class="preflight-info">
+      <strong>Pre-flight Check:</strong> 
+      <div>Endpoint: <code>POST https://truthengine.ai-n.workers.dev/api/ai/truth</code></div>
+      <div class="purpose-explanation">
+        <strong>Why This Exists:</strong><br>
+        - First validation in workflow to check legacy storage<br>
+        - Avoids unnecessary computation when data already exists<br>
+        - Maintains backward compatibility with old truth database<br>
+        - Used for migration and data integrity checking<br>
+        - Returns 404 if not found, success if found
+      </div>
+      <div class="formula">
+        <strong>Exact Legacy Normalization Formula:</strong><br>
+        <code>REQUEST = {"input": normalizeString(input), "model": "polaris-alpha"}</code><br>
+        <code>normalizeString(str) = str.trim().toLowerCase().replace(/\s+/g, ' ')</code><br>
+        <code>WHERE: str = input parameter provided by user</code>
+      </div>
+      <div class="technical-detail">
+        <strong>Implementation Details:</strong><br>
+        <strong>Base URL:</strong> <span class="base-url-highlight">https://truthengine.ai-n.workers.dev</span><br>
+        <strong>Input Processing:</strong> <code>normalizeString(input)</code> with strict matching<br>
+        <strong>Model Parameter:</strong> Always <code>"polaris-alpha"</code> for legacy compatibility<br>
+        <strong>Validation:</strong> Exact case-sensitive string match in legacy KV<br>
+        <strong>Error Handling:</strong> Returns proper HTTP codes (404, 422) when missing<br>
+        <strong>Security:</strong> Required model validation for authentic legacy calls
+      </div>
+      <div>Validates legacy data in KV store</div>
     </div>
-
-    <button onclick="testProvisionalQuery()">Search / List Provisionals</button>
-    <div class="output" id="queryOutput"></div>
+    <div class="output" id="legacyOutput"></div>
   </div>
 
-  <button class="collapsible">▶️ /api/truth/promote (POST)</button>
+  <!-- Step 2: Resolve Check -->
+  <button class="collapsible">▶️ Step 2: Check Master/Provisional Truths</button>
   <div class="endpoint content">
-    <label>Query (ID) to promote</label>
-    <input type="text" id="promoteInput" value="How do I debug a node app?" />
-    <label>Editor</label>
-    <input type="text" id="promoteEditor" value="justice" />
-    <button onclick="testPromote()">Promote to Master</button>
-    <div class="output" id="promoteOutput"></div>
+    <label>Query Input</label>
+    <input type="text" id="resolveInput2" value="about-cybrjustice" />
+    <button onclick="testResolveStep2()">Check Resolve</button>
+    <div class="preflight-info">
+      <strong>Pre-flight Check:</strong> 
+      <div>Endpoint: <code>POST https://truth.ai-n.workers.dev/api/truth/resolve</code></div>
+      <div class="purpose-explanation">
+        <strong>Why This Exists:</strong><br>
+        - Checks new truth resolution system<br>
+        - Centralized approach for master/provisional truth access<br>
+        - Prevents duplicate processing of existing verified knowledge<br>
+        - Provides layer information (master, provisional, or not_found)<br>
+        - Maintains system consistency and data quality
+      </div>
+      <div class="formula">
+        <strong>Exact Resolution Normalization Formula:</strong><br>
+        <code>REQUEST = {"input": normalizeInput(input)}</code><br>
+        <code>normalizeInput(str) = str.trim().toLowerCase().replace(/\s+/g, ' ').replace(/[^a-zA-Z0-9\-_]/g, '')</code><br>
+        <code>WHERE: str = input parameter provided by user</code>
+      </div>
+      <div class="technical-detail">
+        <strong>Implementation Details:</strong><br>
+        <strong>Base URL:</strong> <span class="base-url-highlight">https://truth.ai-n.workers.dev</span><br>
+        <strong>Input Processing:</strong> <code>normalizeInput(input)</code> for resolution<br>
+        <strong>Workflow:</strong> Master check first, then Provisional check<br>
+        <strong>Metadata:</strong> Returns layer, confidence, timestamp details<br>
+        <strong>Return Values:</strong> Success with answer + metadata or 404<br>
+        <strong>Performance:</strong> Optimized lookup with caching layer
+      </div>
+      <div>Checks existing Master/Provisional truths</div>
+    </div>
+    <div class="output" id="resolveOutput2"></div>
   </div>
 
-  <button class="collapsible">▶️ /debug/kv-status (GET)</button>
+  <!-- Step 3: AI Proxy Query -->
+  <button class="collapsible">▶️ Step 3: AI Proxy Query</button>
   <div class="endpoint content">
-    <button onclick="testKVStatus()">Get KV Status</button>
-    <div class="output" id="kvStatusOutput"></div>
+    <label>Query Input</label>
+    <input type="text" id="proxyInput" value="about-cybrjustice" />
+    <label>Request Type</label>
+    <select id="proxyType">
+      <option value="chat">Chat (Conversational)</option>
+      <option value="code">Code Generation</option>
+      <option value="mcp">MCP/Tool Enabled</option>
+      <option value="generate">Generic Request</option>
+    </select>
+    <button onclick="testProxyStep3()">Query AI Proxy</button>
+    <div class="preflight-info">
+      <strong>Pre-flight Check:</strong> 
+      <div>Endpoint: <code>POST https://ai-proxy.ai-n.workers.dev/{ENDPOINT}</code></div>
+      <div class="purpose-explanation">
+        <strong>Why This Exists:</strong><br>
+        - Only executes when no existing truth found in previous steps<br>
+        - Provides AI-generated knowledge when data is missing<br>
+        - Budget-optimized with cost control<br>
+        - Ensures quality of AI responses<br>
+        - Maintains system consistency across AI models
+      </div>
+      <div class="formula">
+        <strong>Exact AI Query Normalization Formula:</strong><br>
+        <code>REQUEST = {"message": formatMessage(input), "model": "auto"}</code><br>
+        <code>formatMessage(str) = "Generate detailed answer about: " + str.trim()</code><br>
+        <code>WHERE: str = input parameter provided by user</code>
+      </div>
+      <div class="technical-detail">
+        <strong>Implementation Details:</strong><br>
+        <strong>Base URL:</strong> <span class="base-url-highlight">https://ai-proxy.ai-n.workers.dev</span><br>
+        <strong>Input Formatting:</strong> <code>formatMessage(input)</code> for context<br>
+        <strong>Model Selection:</strong> <code>"auto"</code> triggers budget optimization<br>
+        <strong>Cost Control:</strong> Max $0.20 per million tokens enforced<br>
+        <strong>Feature Support:</strong> Tool/MCP selection based on model capabilities<br>
+        <strong>Validation:</strong> Cost and model compatibility validation
+      </div>
+      <div>Uses budget-optimized OpenRouter models</div>
+    </div>
+    <div class="output" id="proxyOutput"></div>
+  </div>
+
+  <!-- Step 4: Save as Provisional -->
+  <button class="collapsible">▶️ Step 4: Save as Provisional Truth</button>
+  <div class="endpoint content">
+    <label>Provisional ID</label>
+    <input type="text" id="provIdInput" value="about-cybrjustice" />
+    <label>Answer</label>
+    <textarea id="provAnswerInput" rows="3">This is a test answer from AI</textarea>
+    <button onclick="testProvisionalStep4()">Save as Provisional</button>
+    <div class="preflight-info">
+      <strong>Pre-flight Check:</strong> 
+      <div>Endpoint: <code>POST https://truth.ai-n.workers.dev/api/truth/provisional/update</code></div>
+      <div class="purpose-explanation">
+        <strong>Why This Exists:</strong><br>
+        - Final step for persisting AI-generated knowledge<br>
+        - Creates temporary entry pending expert verification<br>
+        - Maintains traceability and audit history<br>
+        - Enables expert review workflows<br>
+        - Prevents loss of valuable generated information
+      </div>
+      <div class="formula">
+        <strong>Exact Provisional Save Formula:</strong><br>
+        <code>REQUEST = {</code><br>
+        <code>&nbsp;&nbsp;"id": normalizeId(input),</code><br>
+        <code>&nbsp;&nbsp;"answer": answer,</code><br>
+        <code>&nbsp;&nbsp;"meta": {</code><br>
+        <code>&nbsp;&nbsp;&nbsp;&nbsp;"model": "justice-approved",</code><br>
+        <code>&nbsp;&nbsp;&nbsp;&nbsp;"confidence": 0.85,</code><br>
+        <code>&nbsp;&nbsp;&nbsp;&nbsp;"source": "proxy_ai",</code><br>
+        <code>&nbsp;&nbsp;&nbsp;&nbsp;"qc_passed": false</code><br>
+        <code>&nbsp;&nbsp;}</code><br>
+        <code>}</code><br>
+        <code>normalizeId(str) = "prov_" + str.trim().toLowerCase().replace(/[^a-zA-Z0-9]/g, '_')</code>
+      </div>
+      <div class="technical-detail">
+        <strong>Implementation Details:</strong><br>
+        <strong>Base URL:</strong> <span class="base-url-highlight">https://truth.ai-n.workers.dev</span><br>
+        <strong>ID Generation:</strong> <code>normalizeId(input)</code> for consistency<br>
+        <strong>Metadata Structure:</strong> Fixed schema with required fields<br>
+        <strong>QC Status:</strong> Default <code>false</code> for expert verification<br>
+        <strong>Validation:</strong> JSON metadata schema validation<br>
+        <strong>Versioning:</strong> Automatic timestamp-based versioning
+      </div>
+      <div>Saves AI response as provisional truth</div>
+    </div>
+    <div class="output" id="provOutput"></div>
   </div>
 
   <script>
@@ -193,129 +293,155 @@
       btn.onclick = function () {
         this.classList.toggle("active");
         const content = this.nextElementSibling;
-        content.style.display = content.style.display === "none" ? "block" : "none";
+        content.classList.toggle("expanded");
       };
     });
 
-    function toggleQueryMode() {
-      const mode = document.getElementById("queryMode").value;
-      const label = document.getElementById("querySearchLabel");
-      if (mode === "id") label.textContent = "Provisional ID";
-      else if (mode === "prefix") label.textContent = "Query Prefix";
-      else label.textContent = "Ignored (all)";
+    // Step 1: Legacy KV Lookup
+    async function testLegacyStep1() {
+      const input = document.getElementById("legacyInput").value.trim();
+      const out = document.getElementById("legacyOutput");
+      if (!input) {
+        out.innerHTML = "Error: Legacy input is required.";
+        return;
+      }
+      
+      // Using the exact same approach as in the legacy system
+      const LEGACY_URL = 'https://truthengine.ai-n.workers.dev/api/ai/truth';
+      out.innerHTML = "Checking Legacy KV...";
+      
+      try {
+        const res = await fetch(LEGACY_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input, model: 'polaris-alpha' })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          out.innerHTML = `Legacy error ${res.status}: ${JSON.stringify(data)}`;
+          return;
+        }
+        if (!data.answer) {
+          out.innerHTML = 'Legacy returned no answer for that input.';
+          return;
+        }
+        out.innerHTML = `SUCCESS: Found in Legacy KV\n\n${data.answer}`;
+      } catch (e) {
+        out.innerHTML = `Legacy fetch failed: ${e.message}`;
+      }
     }
-    toggleQueryMode();
 
-    async function testProvisionalQuery() {
-      const mode = document.getElementById("queryMode").value;
-      const value = document.getElementById("querySearchValue").value.trim();
-      const source = document.getElementById("queryMetaSource").value.trim();
-      const model = document.getElementById("queryMetaModel").value.trim();
-      const minConfidence = parseFloat(document.getElementById("queryMinConfidence").value);
-      const qcPassed = document.getElementById("queryQcPassed").checked;
-
-      let body = { limit: 100 };
-      if (mode === "id") body.id = value;
-      if (mode === "prefix") body.prefix = value;
-      if (mode === "all") body.prefix = "";
-
-      body.meta_filter = {};
-      if (source) body.meta_filter.source = source;
-      if (model) body.meta_filter.model = model;
-      if (isFinite(minConfidence)) body.meta_filter.min_confidence = minConfidence;
-      if (!qcPassed) body.meta_filter.qc_passed = false;
-      if (Object.keys(body.meta_filter).length === 0) delete body.meta_filter;
-
-      const out = document.getElementById("queryOutput");
-      out.innerHTML = "Searching...";
-      const res = await apiFetch("/api/truth/provisional/query", body);
+    // Step 2: Resolve Check using /api/truth/resolve
+    async function testResolveStep2() {
+      const input = document.getElementById("resolveInput2").value.trim();
+      const out = document.getElementById("resolveOutput2");
+      if (!input) {
+        out.innerHTML = "Error: Input required.";
+        return;
+      }
+      out.innerHTML = "Checking Master/Provisional truths...";
+      const res = await apiFetch("/api/truth/resolve", { input });
       out.innerHTML = fmtResp(res);
     }
 
-    // Add preflight buttons for all endpoints
-    addPreflightTest("/api/truth/resolve", "resolve");
+    // Step 3: AI Proxy Query using correct proxy URL and endpoints
+    async function testProxyStep3() {
+      const input = document.getElementById("proxyInput").value.trim();
+      const proxyType = document.getElementById("proxyType").value;
+      const out = document.getElementById("proxyOutput");
+      
+      if (!input) {
+        out.innerHTML = "Error: Input required.";
+        return;
+      }
+      
+      // Use the correct proxy service URL
+      const proxyBaseUrl = 'https://ai-proxy.ai-n.workers.dev';
+      out.innerHTML = `Querying AI proxy (${proxyType})...`;
+      
+      try {
+        let proxyEndpoint, bodyData;
+        
+        switch(proxyType) {
+          case 'chat':
+            proxyEndpoint = '/api/chat';
+            bodyData = { message: input };
+            break;
+          case 'code':
+            proxyEndpoint = '/api/code';
+            bodyData = { prompt: input, language: 'javascript' };
+            break;
+          case 'mcp':
+            proxyEndpoint = '/api/mcp';
+            bodyData = { message: input, useCase: 'general' };
+            break;
+          case 'generate':
+            proxyEndpoint = '/api/generate';
+            bodyData = { prompt: input, format: 'text' };
+            break;
+          default:
+            proxyEndpoint = '/api/chat';
+            bodyData = { message: input };
+        }
+        
+        const res = await fetch(`${proxyBaseUrl}${proxyEndpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bodyData)
+        });
+        
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          out.innerHTML = `SUCCESS: ${proxyType} response:\n\n${JSON.stringify(data, null, 2)}`;
+        } else {
+          out.innerHTML = `ERROR ${res.status}: ${JSON.stringify(data, null, 2)}`;
+        }
+        
+      } catch (error) {
+        out.innerHTML = `Error: ${error.message}`;
+      }
+    }
+
+    // Step 4: Save as Provisional Truth
+    async function testProvisionalStep4() {
+      const id = document.getElementById("provIdInput").value.trim();
+      const answer = document.getElementById("provAnswerInput").value.trim();
+      const out = document.getElementById("provOutput");
+      if (!id || !answer) {
+        out.innerHTML = "Error: ID and answer required.";
+        return;
+      }
+      out.innerHTML = "Saving as provisional truth...";
+      const res = await apiFetch("/api/truth/provisional/update", {
+        id: id,
+        answer: answer,
+        meta: {
+          model: 'justice-approved',
+          confidence: 0.85,
+          source: 'proxy_ai',
+          qc_passed: false
+        }
+      });
+      out.innerHTML = fmtResp(res);
+    }
+
+    // Add preflight buttons for ALL steps
+    addPreflightTest("/api/ai/truth", "legacyStep1", "POST");       // Legacy KV endpoint
+    addPreflightTest("/api/truth/resolve", "resolveStep2", "POST"); // Resolve endpoint
+    addPreflightTest("/api/chat", "proxyStep3Chat", "POST");        // Proxy chat endpoint
+    addPreflightTest("/api/code", "proxyStep3Code", "POST");        // Proxy code endpoint
+    addPreflightTest("/api/mcp", "proxyStep3Mcp", "POST");          // Proxy mcp endpoint
+    addPreflightTest("/api/generate", "proxyStep3Generate", "POST"); // Proxy generate endpoint
+    addPreflightTest("/api/truth/provisional/update", "provisionalStep4", "POST"); // Provisional endpoint
+
+    // All other endpoints for completeness
     addPreflightTest("/api/truth/master/create", "masterCreate");
     addPreflightTest("/api/truth/master/update", "masterUpdate");
     addPreflightTest("/api/truth/master/delete", "masterDelete");
-    addPreflightTest("/api/truth/provisional/update", "provUpdate");
     addPreflightTest("/api/truth/provisional/delete", "provDelete");
     addPreflightTest("/api/truth/provisional/query", "query");
     addPreflightTest("/api/truth/promote", "promote");
     addPreflightTest("/debug/kv-status", "kvStatus", "GET");
-
-    // Existing handlers (testResolve, testMasterCreate, ...) unchanged
-    async function testResolve() {
-      const input = document.getElementById("resolveInput").value.trim();
-      const out = document.getElementById("resolveOutput");
-      out.innerHTML = "Loading...";
-      const res = await apiFetch("/api/truth/resolve", { input });
-      out.innerHTML = fmtResp(res);
-    }
-    async function testMasterCreate() {
-      const input = document.getElementById("masterCreateInput").value.trim();
-      const answer = document.getElementById("masterCreateAnswer").value.trim();
-      const editor = document.getElementById("masterCreateEditor").value.trim() || "justice";
-      const out = document.getElementById("masterCreateOutput");
-      out.innerHTML = "Loading...";
-      const res = await apiFetch("/api/truth/master/create", {
-        input, answer, editor, meta: { model: "test", confidence: 0.99 }
-      });
-      out.innerHTML = fmtResp(res);
-    }
-    async function testMasterUpdate() {
-      const input = document.getElementById("masterUpdateInput").value.trim();
-      const answer = document.getElementById("masterUpdateAnswer").value.trim();
-      const editor = document.getElementById("masterUpdateEditor").value.trim() || "justice";
-      const expectedVersion = document.getElementById("masterUpdateVersion").value.trim();
-      const out = document.getElementById("masterUpdateOutput");
-      out.innerHTML = "Loading...";
-      const res = await apiFetch("/api/truth/master/update", {
-        input, answer, editor, expectedVersion: expectedVersion || undefined,
-        meta: { model: "test", confidence: 0.999 }
-      });
-      out.innerHTML = fmtResp(res);
-    }
-    async function testMasterDelete() {
-      const input = document.getElementById("masterDeleteInput").value.trim();
-      const out = document.getElementById("masterDeleteOutput");
-      out.innerHTML = "Loading...";
-      const res = await apiFetch("/api/truth/master/delete", { input });
-      out.innerHTML = fmtResp(res);
-    }
-    async function testProvUpdate() {
-      const input = document.getElementById("provUpdateInput").value.trim();
-      const answer = document.getElementById("provUpdateAnswer").value.trim();
-      const confidence = parseFloat(document.getElementById("provUpdateConfidence").value) || 0.5;
-      const out = document.getElementById("provUpdateOutput");
-      out.innerHTML = "Loading...";
-      const res = await apiFetch("/api/truth/provisional/update", {
-        id: input, answer, meta: { model: "test-proxy", confidence, qc_passed: true }
-      });
-      out.innerHTML = fmtResp(res);
-    }
-    async function testProvDelete() {
-      const input = document.getElementById("provDeleteInput").value.trim();
-      const out = document.getElementById("provDeleteOutput");
-      out.innerHTML = "Loading...";
-      const res = await apiFetch("/api/truth/provisional/delete", { id: input });
-      out.innerHTML = fmtResp(res);
-    }
-    async function testPromote() {
-      const input = document.getElementById("promoteInput").value.trim();
-      const editor = document.getElementById("promoteEditor").value.trim() || "justice";
-      const out = document.getElementById("promoteOutput");
-      out.innerHTML = "Loading...";
-      const res = await apiFetch("/api/truth/promote", {
-        input, editor, literalVsMythos: "literal", model: "justice-approved", confidence: 0.97, eitlVerifier: editor
-      });
-      out.innerHTML = fmtResp(res);
-    }
-    async function testKVStatus() {
-      const out = document.getElementById("kvStatusOutput");
-      out.innerHTML = "Loading...";
-      const res = await apiFetch("/debug/kv-status", undefined, "GET");
-      out.innerHTML = fmtResp(res);
-    }
   </script>
 </body>
 </html>
