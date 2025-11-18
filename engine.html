@@ -40,7 +40,6 @@
         .input { flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(250,204,21,0.4); border-radius:16px; padding:12px; color:white; font-size:15px; outline:none; resize:none; height:44px; }
         .send { width:48px; height:48px; background:var(--gold); color:#000; border:none; border-radius:50%; font-size:20px; font-weight:900; }
 
-        /* Floating 2025 action tray – no more header clutter */
         .actions { position:absolute; bottom:16px; right:16px; display:flex; flex-direction:column; gap:12px; z-index:20; }
         .actbtn { width:56px; height:56px; background:rgba(255,255,255,0.1); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.3);
                   border-radius:50%; color:white; font-size:22px; display:grid; place-items:center; box-shadow:0 8px 32px rgba(0,0,0,0.4); }
@@ -49,19 +48,17 @@
         .forgebar { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:rgba(15,15,25,0.95); backdrop-filter:blur(40px);
                     padding:12px 28px; border-radius:50px; border:2px solid rgba(250,204,21,0.3); box-shadow:0 20px 60px rgba(0,0,0,0.6); z-index:5000; display:flex; gap:20px; align-items:center; }
         .fbtn { width:64px; height:64px; background:rgba(250,204,21,0.2); border:2px solid var(--gold); border-radius:50%; color:var(--gold); font-size:28px; display:grid; place-items:center; box-shadow:0 0 40px rgba(250,204,21,0.3); }
-
-        body:has(.card.fullscreen) .forgebar { opacity:0; pointer-events:none; transition:opacity .4s; }
     </style>
 </head>
 <body>
     <div id="canvas"><div class="yard"></div></div>
 
     <div class="forgebar">
-        <button class="fbtn" onclick="forge.create('truth')"></button>
-        <button class="fbtn" onclick="forge.create('code')"></button>
-        <button class="fbtn" onclick="forge.create('sandbox')"></button>
-        <button class="fbtn" onclick="forge.create('session')"></button>
-        <button class="fbtn" onclick="forge.clear()"></button>
+        <button class="fbtn" onclick="forge.create('truth')"><i class="fas fa-bolt"></i></button>
+        <button class="fbtn" onclick="forge.create('code')"><i class="fas fa-code"></i></button>
+        <button class="fbtn" onclick="forge.create('sandbox')"><i class="fas fa-vial"></i></button>
+        <button class="fbtn" onclick="forge.create('session')"><i class="fas fa-comments"></i></button>
+        <button class="fbtn" onclick="forge.clear()"><i class="fas fa-trash"></i></button>
         <span style="color:#facc15; font-weight:900; font-size:18px;" id="count">0/4</span>
     </div>
 
@@ -92,15 +89,15 @@ class Forge {
         el.style.left = node.x + 'vmin';
         el.style.top = node.y + 'vmin';
         el.innerHTML = `
-            <div class="handle"></div>
+            <div class="handle"><i class="fas fa-grip-lines"></i></div>
             <div class="header"><div class="title">${node.type.toUpperCase()}</div></div>
             <div class="content" id="c${node.id}">${node.type==='truth'?marked.parse(node.content||'Ready for truth...'):''}</div>
-            ${node.type==='truth'?`<div class="inputbar"><textarea class="input" id="i${node.id}" placeholder="Ask the Truth Engine..."></textarea><button class="send" onclick="forge.send(${node.id})"></button></div>`:''}
+            ${node.type==='truth'?`<div class="inputbar"><textarea class="input" id="i${node.id}" placeholder="Ask the Truth Engine..."></textarea><button class="send" onclick="forge.send(${node.id})"><i class="fas fa-paper-plane"></i></button></div>`:''}
             
             <div class="actions">
-                <button class="actbtn" onclick="forge.fullscreen(this)"></button>
-                <button class="actbtn" onclick="forge.saveCard(${node.id})"></button>
-                <button class="actbtn close" onclick="forge.remove(${node.id})"></button>
+                <button class="actbtn" onclick="forge.fullscreen(this)"><i class="fas fa-expand"></i></button>
+                <button class="actbtn" onclick="forge.saveCard(${node.id})"><i class="fas fa-save"></i></button>
+                <button class="actbtn close" onclick="forge.remove(${node.id})"><i class="fas fa-times"></i></button>
             </div>
         `;
         this.makeDraggable(el.querySelector('.header'), node);
@@ -149,7 +146,6 @@ class Forge {
         });
     }
 
-    // YOUR FULL TRUTH ENGINE – UNTOUCHED, WORKING
     async send(id) {
         const node = this.nodes.find(n=>n.id==id);
         if (!node || node.type !== 'truth') return;
