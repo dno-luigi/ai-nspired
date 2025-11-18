@@ -1,190 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>the truth engine</title>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<style>
-  :root {--accent:#facc15;--text:#fff;--bg1:#1e1b4b;--bg2:#0a0a15;--user:#facc1533;--border:#facc1566;}
-  .matrix {--accent:#00ff41;--text:#00ff41;--bg1:#000;--bg2:#000;--user:#00ff4133;--border:#00ff41;background:#000 !important;}
-  *{margin:0;padding:0;padding:0;box-sizing:border-box;}
-  body{overflow:hidden;height:100dvh;background:radial-gradient(ellipse at top,var(--bg1) 0%,var(--bg2) 70%);color:var(--text);font-family:'Courier New',monospace;transition:all .5s;}
-  #canvas{width:100vw;height:100dvh;position:relative;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>the truth engine</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body,html {margin:0;height:100dvh;background:#000;color:#00ff41;font-family:'Courier New',monospace;overflow:hidden;}
+    body {display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    
+    h1 {font-size:2.8em;letter-spacing:12px;text-transform:uppercase;margin-bottom:60px;
+        text-shadow:0 0 40px #00ff41;opacity:0.9;}
 
-  .yard{position:absolute;inset:0;margin:auto;width:90vmin;height:90vmin;border:4px solid var(--border);border-radius:32px;box-shadow:0 0 100px var(--accent);opacity:0.3;pointer-events:none;}
+    #landing {text-align:center;width:90%;max-width:900px;position:relative;}
+    #biginput {width:100%;min-height:220px;background:transparent;border:3px solid #00ff41;border-radius:16px;
+               color:#00ff41;font-size:1.8em;padding:30px;padding-right:160px;outline:none;
+               box-shadow:0 0 60px #00ff4100;transition:all .4s;resize:none;}
+    #biginput:focus {box-shadow:0 0 80px #00ff4188;border-color:#00ff41;}
+    
+    #bigsend, #legacybtn {position:absolute;bottom:12px;height:80px;background:#00ff41;color:#000;
+                          border:none;border-radius:50%;font-size:3em;font-weight:bold;cursor:pointer;
+                          box-shadow:0 0 50px #00ff41;transition:transform .2s;}
+    #bigsend {right:12px;width:80px;}
+    #legacybtn {right:100px;width:60px;font-size:2.5em;opacity:0.7;}
+    #bigsend:hover, #legacybtn:hover {transform:scale(1.15);}
 
-  .card{position:absolute;width:42vmin;height:42vmin;min-width:300px;min-height:300px;background:rgba(0,0,0,0.8);border:2px solid var(--accent);border-radius:32px;overflow:hidden;box-shadow:0 0 80px var(--accent);transition:all .4s;}
-  .card.dragging{transform:scale(1.08);z-index:9999;}
-  .card.fullscreen{position:fixed !important;top:0 !important;left:0 !important;width:100vw !important;height:100dvh !important;border-radius:0 !important;z-index:10000;border:none;}
+    #newcard {position:fixed;bottom:30px;right:30px;width:70px;height:70px;background:transparent;
+              border:3px solid #00ff41;border-radius:50%;color:#00ff41;font-size:2.5em;
+              box-shadow:0 0 40px #00ff41;cursor:pointer;z-index:100;}
 
-  .header{height:80px;padding:20px 140px 20px 20px;display:flex;align-items:center;position:relative;cursor:grab;}
-  .header:active{cursor:grabbing;}
-  .title{font-weight:900;font-size:24px;color:var(--accent);text-shadow:0 0 20px var(--accent);letter-spacing:4px;}
+    .card {position:fixed;inset:0;background:rgba(0,0,0,0.95);backdrop-filter:blur(10px);padding:20px;display:none;flex-direction:column;}
+    .card.active {display:flex;}
+    .content {flex:1;overflow-y:auto;padding:20px;font-size:1.6em;line-height:1.8;}
+    .content p {margin:20px 0;}
+    .content code {background:#001100;padding:2px 6px;border-radius:4px;}
+    .content pre {background:#001100;padding:15px;border-radius:8px;overflow-x:auto;margin:20px 0;}
+    .content pre code {background:none;padding:0;}
+    .content strong {color:#00ff81;}
+    .content em {color:#00ff81;}
+    .content h1,.content h2,.content h3 {color:#00ff81;margin:30px 0 15px;}
+    .content ul,.content ol {margin:20px 0 20px 40px;}
+    .content li {margin:8px 0;}
+    .content a {color:#00ff81;text-decoration:underline;}
 
-  .topbtns{position:absolute;top:12px;right:12px;display:flex;gap:12px;}
-  .topbtn{width:48px;height:48px;background:rgba(255,255,255,0.1);border:1px solid var(--accent);border-radius:50%;display:grid;place-items:center;font-size:20px;cursor:pointer;}
+    .inputbar {padding:20px;display:flex;gap:15px;align-items:end;}
+    .input {flex:1;background:transparent;border:2px solid #00ff41;border-radius:12px;padding:16px;min-height:60px;color:#00ff41;font-size:1.5em;outline:none;resize:none;}
+    .send {width:70px;height:70px;background:#00ff41;color:#000;border:none;border-radius:50%;font-size:2.5em;}
 
-  .content{flex:1;padding:20px;overflow-y:auto;}
-  .message{margin:16px 0;padding:16px;border-radius:16px;max-width:85%;background:rgba(255,255,255,0.08);border:1px solid var(--accent);}
-  .user{align-self:flex-end;background:var(--user);}
-
-  .inputbar{padding:20px;display:flex;gap:16px;align-items:end;background:rgba(0,0,0,0.6);}
-  .input{flex:1;background:transparent;border:2px solid var(--accent);border-radius:16px;padding:16px;color:var(--text);font-size:18px;outline:none;resize:none;}
-  .send{width:70px;height:70px;background:var(--accent);color:#000;border:none;border-radius:50%;font-size:32px;cursor:pointer;}
-
-  .forgebar{position:fixed;top:20px;left:50%;transform:translateX(-50%);display:flex;gap:20px;z-index:10000;}
-  .fbtn{width:70px;height:70px;background:rgba(255,255,255,0.1);border:2px solid var(--accent);border-radius:50%;color:var(--accent);font-size:36px;display:grid;place-items:center;cursor:pointer;box-shadow:0 0 50px var(--accent);}
-</style>
+    .close {position:absolute;top:20px;right:20px;font-size:2em;color:#00ff41;opacity:0.6;cursor:pointer;}
+  </style>
 </head>
 <body>
 
-<div id="canvas"><div class="yard"></div></div>
+  <h1>the truth engine</h1>
 
-<div class="forgebar">
-  <button class="fbtn" onclick="forge.create()">⚡</button>
-  <button class="fbtn" onclick="document.body.classList.toggle('matrix')">👁</button>
-  <button class="fbtn" onclick="forge.clear()">🗑</button>
-  <span style="color:var(--accent);font-size:24px;font-weight:900;" id="count">0/16</span>
-</div>
+  <div id="landing">
+    <textarea id="biginput" placeholder="who is the architect..."></textarea>
+    <button id="bigsend">➜</button>
+    <button id="legacybtn" title="Legacy KV only (Shift+Enter)">⚡</button>
+  </div>
+
+  <button id="newcard" onclick="createCard()">+</button>
+
+  <div id="cards"></div>
 
 <script>
-class Forge {
-  constructor() {
-    this.nodes = JSON.parse(localStorage.getItem('truthyard16')||'[]');
-    this.canvas = document.getElementById('canvas');
-    if (this.nodes.length === 0) this.create();
-    this.restore();
-    this.handleQueryParam();
-    window.addEventListener('popstate', () => this.handleQueryParam());
-  }
-
-  handleQueryParam() {
-    const q = new URLSearchParams(location.search).get('q');
-    if (!q) return;
-    const query = decodeURIComponent(q.replace(/\+/g, ' '));
-    let card = this.nodes[0];
-    if (!card) card = this.create();
-    card.el.classList.add('fullscreen');
-    document.getElementById('c' + card.id).innerHTML = '<i style="opacity:0.5">who is the architect...</i>';
-    this.ask(card.id, query);
-  }
-
-  create() {
-    if (this.nodes.length >= 16) return;
-    const node = {id:Date.now(), x:20, y:20, messages:[]};
-    this.nodes.push(node);
-    this.render(node);
-    this.save();
-    return node;
-  }
-
-  render(node) {
-    const el = document.createElement('div');
-    el.className = 'card';
-    el.style.left = node.x + 'vmin';
-    el.style.top = node.y + 'vmin';
-    el.innerHTML = `
-      <div class="header"><div class="title">the truth engine</div>
-        <div class="topbtns">
-          <div class="topbtn" onclick="this.closest('.card').classList.toggle('fullscreen')">⛶</div>
-          <div class="topbtn" onclick="let c=this.closest('.card');c.remove();forge.nodes=forge.nodes.filter(n=>n.id!==${node.id});forge.save();document.getElementById('count').textContent=forge.nodes.length+'/16';">×</div>
-        </div>
-      </div>
-      <div class="content" id="c${node.id}"><i style="opacity:0.5">who is the architect...</i></div>
-      <div class="inputbar">
-        <textarea class="input" id="i${node.id}" placeholder="what is the truth..."></textarea>
-        <button class="send" onclick="forge.ask(${node.id})">➤</button>
-      </div>`;
-    this.makeDraggable(el.querySelector('.header'), node);
-    this.canvas.appendChild(el);
-    node.el = el;
-
-    const ta = el.querySelector('.input');
-    ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; });
-    ta.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); forge.ask(node.id); } });
-  }
-
-  makeDraggable(header, node) {
-    let sx, sy, sl, st;
-    const move = e => { e.preventDefault();
-      const x = e.touches ? e.touches[0].clientX : e.clientX;
-      const y = e.touches ? e.touches[0].clientY : e.clientY;
-      node.el.style.left = (sl + x - sx) + 'px';
-      node.el.style.top = (st + y - sy) + 'px';
-    };
-    const up = () => {
-      const r = node.el.getBoundingClientRect();
-      node.x = r.left / innerWidth * 100;
-      node.y = r.top / innerHeight * 100;
-      node.el.style.left = node.x + 'vmin';
-      node.el.style.top = node.y + 'vmin';
-      node.el.classList.remove('dragging');
-      this.save();
-      document.removeEventListener('pointermove', move);
-      document.removeEventListener('pointerup', up);
-    };
-    header.addEventListener('pointerdown', e => {
-      if (e.target.classList.contains('topbtn')) return;
-      node.el.classList.add('dragging');
-      sx = e.clientX || e.touches[0].clientX;
-      sy = e.clientY || e.touches[0].clientY;
-      sl = node.el.offsetLeft;
-      st = node.el.offsetTop;
-      document.addEventListener('pointermove', move);
-      document.addEventListener('pointerup', up);
-      document.addEventListener('touchmove', move, {passive:false});
-      document.addEventListener('touchend', up);
-    });
-  }
-
-  async ask(id, forced = null) {
-    const node = this.nodes.find(n => n.id == id);
-    const input = document.getElementById('i' + id);
-    const content = document.getElementById('c' + id);
-    const query = forced || input.value.trim();
-    if (!query) return;
-    if (!forced) input.value = '';
-
-    node.messages.push({role:'user', content:query});
-    content.innerHTML += `<div class="message user">${marked.parse(query)}</div>`;
-    content.scrollTop = content.scrollHeight;
-
-    const ai = document.createElement('div');
-    ai.className = 'message ai';
-    ai.innerHTML = '▋ thinking';
-    content.appendChild(ai);
-    content.scrollTop = content.scrollHeight;
-
-    const result = await this.truthEngine(query);
-    ai.innerHTML = marked.parse(result);
-    node.messages.push({role:'ai', content:result});
-    content.scrollTop = content.scrollHeight;
-    this.save();
-  }
-
-  async truthEngine(query) {
-    let answer = "No truth found.";
-    try {
-      const r1 = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:query,model:'polaris-alpha'})});
-      if(r1.ok){const j=await r1.json();if(j.answer)answer=j.answer;}
-      if(answer.includes("No truth")){
-        const r2 = await fetch('https://truth.ai-n.workers.dev/api/truth/resolve', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:query.toLowerCase()})});
-        if(r2.ok){const j=await r2.json();if(j.answer)answer=j.answer;}
-      }
-      if(answer.includes("No truth")){
-        const r3 = await fetch('https://ai-proxy.ai-n.workers.dev/api/chat', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:`Detailed answer: ${query}`, model:'@preset/truth'})});
-        if(r3.ok){const j=await r3.json();answer = j.response || j.answer || answer;}
-      }
-    } catch(e) {answer = `Error: ${e.message}`;}
-    return answer;
-  }
-
-  clear() { if(confirm('Wipe everything?')) { this.nodes=[]; this.canvas.innerHTML='<div class="yard"></div>'; localStorage.removeItem('truthyard16'); location.reload(); } }
-  save() { localStorage.setItem('truthyard16', JSON.stringify(this.nodes.map(n=>({id:n.id,x:n.x,y:n.y,messages:n.messages||[]})))); document.getElementById('count').textContent = this.nodes.length+'/16'; }
-  restore() { this.nodes.forEach(n=>this.render(n)); document.getElementById('count').textContent=this.nodes.length+'/16'; }
+// Normalization exactly like your admin tool
+function normalizeString(str) {
+  return str.trim().toLowerCase().replace(/\s+/g, ' ');
 }
-const forge = new Forge();
+
+const params = new URLSearchParams(location.search);
+const autoQuery = params.get('q')?.trim();
+
+const cardsContainer = document.getElementById('cards');
+let cardCount = 0;
+
+function createCard(initialQuery = null, legacyOnly = false) {
+  if (cardCount >= 4) return alert("Max 4 truths");
+  cardCount++;
+  
+  const card = document.createElement('div');
+  card.className = 'card active';
+  card.innerHTML = `
+    <div class="close" onclick="this.parentNode.remove(); cardCount--;">×</div>
+    <div class="content" id="content${cardCount}">Thinking...</div>
+    <div class="inputbar">
+      <textarea class="input" placeholder="Ask more..."></textarea>
+      <button class="send">➜</button>
+    </div>
+  `;
+  cardsContainer.appendChild(card);
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('newcard').style.display = 'block';
+
+  const textarea = card.querySelector('.input');
+  const sendbtn = card.querySelector('.send');
+  const content = card.querySelector(`#content${cardCount}`);
+
+  const ask = async (forceLegacy = false) => {
+    let query = initialQuery || textarea.value.trim();
+    if (!query) return;
+    if (!initialQuery) textarea.value = '';
+
+    content.innerHTML += `<p style="color:#00ff41;margin:20px 0;">> ${query}</p><p>▋</p>`;
+    const result = await (forceLegacy || legacyOnly ? legacyOnlyLookup(query) : truthEngine(query));
+    content.innerHTML = content.innerHTML.replace('▋', marked.parse(result));
+    content.scrollTop = content.scrollHeight;
+  };
+
+  sendbtn.onclick = ask;
+  textarea.addEventListener('keydown', e => {
+    if(e.key==='Enter' && !e.shiftKey) {
+      e.preventDefault();
+      ask(e.shiftKey);
+    }
+  });
+
+  if (initialQuery) ask(legacyOnly);
+}
+
+// Legacy KV only — now rendered with beautiful markdown
+async function legacyOnlyLookup(query) {
+  let answer = "No legacy truth found.";
+  try {
+    const normalized = normalizeString(query);
+    const r1 = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({input:normalized,model:'polaris-alpha'})
+    });
+    if(r1.ok){
+      const j = await r1.json();
+      if(j.answer) answer = j.answer;
+    }
+  } catch(e) {answer = `Legacy error: ${e.message}`;}
+  return answer;
+}
+
+// Full workflow — now rendered with beautiful markdown
+async function truthEngine(query) {
+  let answer = "No truth found.";
+
+  // 1. Legacy KV
+  try {
+    const normalized = normalizeString(query);
+    const r1 = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({input:normalized,model:'polaris-alpha'})
+    });
+    if(r1.ok){const j=await r1.json();if(j.answer) return j.answer;}
+  } catch(e){}
+
+  // 2. Resolve
+  try {
+    const r2 = await fetch('https://truth.ai-n.workers.dev/api/truth/resolve', {
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({input:query.toLowerCase().trim()})
+    });
+    if(r2.ok){const j=await r2.json();if(j.answer) return j.answer;}
+  } catch(e){}
+
+  // 3. AI Proxy
+  try {
+    const r3 = await fetch('https://ai-proxy.ai-n.workers.dev/api/chat', {
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:`Detailed answer: ${query}`, model:'@preset/truth'})
+    });
+    if(r3.ok){const j=await r3.json();answer = j.response || j.answer || answer;}
+  } catch(e){}
+
+  return answer;
+}
+
+// Auto-start from ?q=
+if (autoQuery) {
+  document.getElementById('landing').style.display = 'none';
+  createCard(decodeURIComponent(autoQuery));
+}
+
+// Big center send
+document.getElementById('bigsend').onclick = () => {
+  const query = document.getElementById('biginput').value.trim();
+  if (!query) return;
+  createCard(query);
+};
+
+// Legacy button (Shift+Enter or click ⚡)
+document.getElementById('legacybtn').onclick = () => {
+  const query = document.getElementById('biginput').value.trim();
+  if (!query) return;
+  createCard(query, true);
+};
 </script>
 </body>
 </html>
