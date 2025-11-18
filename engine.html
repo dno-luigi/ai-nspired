@@ -2,164 +2,642 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ai-n Forge | 2x2 Yard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ai-n Forge | Multi-Function Yard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #facc15; --bg: #0a0a15; }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui,-apple-system,sans-serif; }
-        body { overflow:hidden; height:100dvh; background:radial-gradient(ellipse at top,#1e1b4b 0%,var(--bg) 70%); touch-action:pan-x pan-y; }
-        #canvas { width:100vw; height:100dvh; position:relative; }
+        :root {
+            --forge-bg: #0a0a15;
+            --glass-bg: rgba(255,255,255,0.08);
+            --glass-border: rgba(255,255,255,0.15);
+            --truth-gold: #facc15;
+            --ai-blue: #3b82f6;
+            --code-green: #10b981;
+            --sandbox-purple: #8b5cf6;
+            --session-orange: #f97316;
+            --glow-pulse: 0 0 30px rgba(250,204,21,0.6);
+            --truth-glow: 0 0 40px rgba(250,204,21,0.8);
+            --yard-boundary: rgba(250,204,21,0.4);
+            --drag-handle-glow: 0 0 20px rgba(250,204,21,0.9);
+        }
 
-        .yard { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:90vmin; height:90vmin;
-                border:4px solid rgba(250,204,21,0.4); border-radius:24px; box-shadow:0 0 80px rgba(250,204,21,0.4); pointer-events:none; }
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
 
-        .card { position:absolute; width:42vmin; height:42vmin; min-width:300px; min-height:300px; background:rgba(255,255,255,0.08);
-                backdrop-filter:blur(50px); border:2px solid rgba(255,255,255,0.15); border-radius:24px; overflow:hidden;
-                box-shadow:0 20px 40px rgba(0,0,0,0.6); touch-action:none; transition:transform .3s; }
-        .card.dragging { transform:scale(1.08); z-index:9999; }
-        .card.fullscreen { position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100dvh !important;
-                           z-index:10000; border-radius:0 !important; }
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            background: radial-gradient(ellipse at top, #1e1b4b 0%, var(--forge-bg) 70%);
+            touch-action: none;
+            color: white;
+        }
 
-        .header { height:80px; padding:0 20px 0 80px; background:linear-gradient(135deg,rgba(250,204,21,0.2),rgba(250,204,21,0.05));
-                  border-bottom:1px solid rgba(250,204,21,0.4); display:flex; align-items:center; justify-content:space-between; cursor:grab; }
-        .header:active { cursor:grabbing; }
-        .handle { position:absolute; left:16px; top:16px; width:48px; height:48px; background:var(--gold); color:#000;
-                  border-radius:12px; display:grid; place-items:center; font-size:28px; font-weight:bold; }
+        #infiniteCanvas {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            cursor: grab;
+        }
 
-        .title { font-weight:800; font-size:18px; color:white; }
-        .btns button { width:44px; height:44px; margin:0 4px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.3);
-                       border-radius:50%; color:white; font-size:18px; }
-        .close { background:rgba(239,68,68,0.6) !important; }
+        .yard-boundary {
+            position: absolute;
+            left: calc(50% - 45vmin);
+            top: calc(50% - 45vmin);
+            width: 90vmin;
+            height: 90vmin;
+            border: 4px solid var(--yard-boundary);
+            border-radius: 24px;
+            box-shadow: 0 0 80px rgba(250,204,21,0.6);
+            pointer-events: none;
+            z-index: 1;
+        }
 
-        .content { height:calc(100% - 140px); padding:16px; overflow-y:auto; color:white; font-size:14px; }
-        .inputbar { height:60px; padding:10px; background:rgba(0,0,0,0.5); border-top:1px solid rgba(255,255,255,0.1); display:flex; gap:8px; }
-        .input { flex:1; background:rgba(255,255,255,0.1); border:1px solid var(--gold); border-radius:12px; padding:10px; color:white; font-size:14px; }
-        .send { width:44px; height:44px; background:var(--gold); color:#000; border:none; border-radius:50%; font-weight:bold; }
+        .drag-handle {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            box-shadow: var(--drag-handle-glow);
+            z-index: 20;
+            border: 2px solid rgba(0,0,0,0.3);
+            font-size: 1.3rem;
+            font-weight: 800;
+            touch-action: manipulation;
+        }
 
-        .forgebar { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:rgba(15,15,25,0.95); backdrop-filter:blur(40px);
-                    padding:12px 20px; border-radius:50px; border:2px solid rgba(255,255,255,0.15); z-index:5000; display:flex; gap:16px; }
-        .fbtn { width:60px; height:60px; background:rgba(250,204,21,0.2); border:2px solid var(--gold); border-radius:50%; color:var(--gold); font-size:24px; display:grid; place-items:center; }
-        body:has(.fullscreen) .forgebar { opacity:0; pointer-events:none; }
+        .drag-handle:hover, .drag-handle:active {
+            transform: scale(1.25);
+            box-shadow: 0 0 35px rgba(250,204,21,1);
+        }
+
+        .card {
+            position: absolute;
+            border-radius: 24px;
+            backdrop-filter: blur(50px);
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            box-shadow: var(--glow-pulse), 0 50px 100px rgba(0,0,0,0.7);
+            cursor: grab;
+            user-select: none;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            width: 21vmin;
+            height: 21vmin;
+            min-width: 300px;
+            min-height: 300px;
+            max-width: 300px;
+            max-height: 300px;
+            overflow: hidden;
+            z-index: 10;
+            contain: layout style;
+            touch-action: none;
+        }
+
+        .card:hover:not(.dragging):not(.closed) {
+            transform: translateY(-6px) scale(1.01);
+            border-color: rgba(250,204,21,0.6);
+        }
+
+        .card.dragging {
+            cursor: grabbing !important;
+            transform: scale(1.05) !important;
+            z-index: 9999 !important;
+            transition: none !important;
+        }
+
+        .card.fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 10000 !important;
+            border-radius: 0 !important;
+            min-width: unset !important;
+            min-height: unset !important;
+            max-width: unset !important;
+            max-height: unset !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        body:has(.card.fullscreen) .forge-bar {
+            display: none !important;
+        }
+
+        .card.closed {
+            opacity: 0;
+            transform: scale(0.2) rotate(90deg);
+            pointer-events: none;
+        }
+
+        /* COLORS */
+        .truth-card .truth-header { background: linear-gradient(135deg, rgba(250,204,21,0.2), rgba(250,204,21,0.05)); border-bottom-color: rgba(250,204,21,0.4); }
+        .truth-card .drag-handle { background: linear-gradient(135deg, var(--truth-gold), #eab308); color: #000; }
+
+        .code-card .truth-header { background: linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.1)); border-bottom-color: rgba(16,185,129,0.4); }
+        .code-card .drag-handle { background: linear-gradient(135deg, var(--code-green), #059669); color: #fff; }
+
+        .sandbox-card .truth-header { background: linear-gradient(135deg, rgba(139,92,246,0.25), rgba(139,92,246,0.1)); border-bottom-color: rgba(139,92,246,0.4); }
+        .sandbox-card .drag-handle { background: linear-gradient(135deg, var(--sandbox-purple), #7c3aed); color: #fff; }
+
+        .session-card .truth-header { background: linear-gradient(135deg, rgba(249,115,22,0.25), rgba(249,115,22,0.1)); border-bottom-color: rgba(249,115,22,0.4); }
+        .session-card .drag-handle { background: linear-gradient(135deg, var(--session-orange), #ea580c); color: #fff; }
+
+        .truth-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(250,204,21,0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 52px;
+            padding-left: 60px;
+            border-radius: 24px 24px 0 0;
+        }
+
+        .truth-title {
+            font-weight: 800;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .truth-content {
+            height: calc(100% - 112px);
+            padding: 12px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.5;
+            color: rgba(255,255,255,0.95);
+        }
+
+        .truth-content::-webkit-scrollbar { width: 3px; }
+        .truth-content::-webkit-scrollbar-thumb { background: rgba(250,204,21,0.5); border-radius: 2px; }
+
+        .truth-input-bar {
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.5);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 6px;
+            align-items: flex-end;
+            height: 60px;
+        }
+
+        .truth-input {
+            flex: 1;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(250,204,21,0.3);
+            border-radius: 10px;
+            padding: 6px 10px;
+            color: white;
+            font-size: 11px;
+            outline: none;
+            resize: none;
+            height: 32px;
+        }
+
+        .truth-send {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--truth-gold), #eab308);
+            border: none;
+            color: #000;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .forge-bar {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            backdrop-filter: blur(40px);
+            background: rgba(15,15,25,0.95);
+            border-radius: 50px;
+            border: 2px solid var(--glass-border);
+            padding: 12px 24px;
+            z-index: 5000;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.7);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .forge-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 2px solid rgba(250,204,21,0.4);
+            background: rgba(250,204,21,0.15);
+            backdrop-filter: blur(20px);
+            font-size: 1.3rem;
+            color: var(--truth-gold);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .forge-btn:hover:not(:disabled) {
+            transform: scale(1.15);
+            background: rgba(250,204,21,0.3);
+            box-shadow: 0 0 25px rgba(250,204,21,0.6);
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .close-btn {
+            background: rgba(239,68,68,0.5) !important;
+            border-color: rgba(239,68,68,0.7) !important;
+        }
+
+        .close-btn:hover { background: rgba(239,68,68,0.9) !important; transform: scale(1.3); }
     </style>
 </head>
 <body>
-    <div id="canvas"><div class="yard"></div></div>
+    <div id="infiniteCanvas">
+        <div class="yard-boundary"></div>
+    </div>
 
-    <div class="forgebar">
-        <button class="fbtn" onclick="forge.create('truth')">🔍</button>
-        <button class="fbtn" onclick="forge.create('code')">💻</button>
-        <button class="fbtn" onclick="forge.create('sandbox')">🧪</button>
-        <button class="fbtn" onclick="forge.create('session')">🗄️</button>
-        <button class="fbtn" onclick="forge.clear()">🗑️</button>
-        <span style="color:#facc15; font-weight:bold;" id="count">0/4</span>
+    <div class="forge-bar">
+        <button class="forge-btn" id="truthBtn" title="Truth Engine"><i class="fas fa-search"></i><span style="font-size:8px">TRUTH</span></button>
+        <button class="forge-btn" id="codeBtn" title="Code Editor"><i class="fas fa-code"></i><span style="font-size:8px">CODE</span></button>
+        <button class="forge-btn" id="sandboxBtn" title="Sandbox"><i class="fas fa-flask"></i><span style="font-size:8px">LAB</span></button>
+        <button class="forge-btn" id="sessionBtn" title="Session Memory"><i class="fas fa-database"></i><span style="font-size:8px">MEM</span></button>
+        <button class="forge-btn" id="clearYard" title="Clear Yard"><i class="fas fa-trash"></i><span style="font-size:8px">CLR</span></button>
+        <div class="text-sm opacity-80 font-bold ml-3">
+            <span id="nodeCount">0</span>/16
+        </div>
     </div>
 
 <script>
-class Forge {
-    constructor() {
-        this.nodes = JSON.parse(localStorage.getItem('forge2x2')||'[]');
-        this.canvas = document.getElementById('canvas');
-        this.positions = [
-            {x:8,  y:8},   // top-left
-            {x:50, y:8},   // top-right
-            {x:8,  y:50},  // bottom-left
-            {x:50, y:50}   // bottom-right
-        ];
-        this.restore();
-    }
-    create(type) {
-        if (this.nodes.length >= 4) return alert("Yard full – only 4 cards allowed");
-        const free = this.positions.find(p => !this.nodes.some(n => n.x===p.x && n.y===p.y));
-        if (!free) return;
-        const node = {id:Date.now(), type, x:free.x, y:free.y, content:''};
-        this.nodes.push(node);
-        this.render(node);
-        this.save();
-    }
-    render(node) {
-        const el = document.createElement('div');
-        el.className = 'card';
-        el.style.left = node.x + 'vmin';
-        el.style.top = node.y + 'vmin';
-        el.innerHTML = `
-            <div class="handle">☰</div>
-            <div class="header">
-                <div class="title">${node.type.toUpperCase()}</div>
-                <div class="btns">
-                    <button onclick="forge.send('${node.id}')">▶</button>
-                    <button onclick="forge.fullscreen(this)">⛶</button>
-                    <button onclick="forge.saveCard('${node.id}')">💾</button>
-                    <button class="close" onclick="forge.remove('${node.id}')">✕</button>
+    class Forge {
+        constructor() {
+            this.nodes = JSON.parse(localStorage.getItem('forge-nodes') || '[]');
+            this.sessionMemory = JSON.parse(localStorage.getItem('forge-session') || '[]');
+            this.draggingNode = null;
+            this.fullscreenNode = null;
+            this.canvas = document.getElementById('infiniteCanvas');
+            this.maxNodes = 16;
+            this.gridPositions = [15, 35, 55, 75]; // mobile-first friendly
+            this.init();
+        }
+
+        init() {
+            this.restoreNodes();
+            this.bindEvents();
+            this.updateCount();
+        }
+
+        createCard(type) {
+            if (this.nodes.length >= this.maxNodes) return alert('Yard is full — close some cards');
+
+            const id = `${type}-${Date.now()}`;
+            const pos = this.getFreePosition();
+
+            const node = {
+                id, type, x: pos.x, y: pos.y,
+                status: 'ready', content: '', timestamp: Date.now()
+            };
+
+            this.nodes.unshift(node);
+            this.renderCard(node);
+            this.saveNodes();
+            this.updateCount();
+        }
+
+        getFreePosition() {
+            const used = this.nodes.map(n => `${n.x}-${n.y}`);
+            for (let y of this.gridPositions) {
+                for (let x of this.gridPositions) {
+                    if (!used.includes(`${x}-${y}`)) return { x, y };
+                }
+            }
+            return { x: 35, y: 35 };
+        }
+
+        getContentHTML(node) {
+            if (node.type === 'truth') {
+                return `
+                    <div class="truth-content" id="content-${node.id}"></div>
+                    <div class="truth-input-bar">
+                        <textarea class="truth-input" id="input-${node.id}" placeholder="Ask the Truth Engine..."></textarea>
+                        <button class="truth-send">➤</button>
+                    </div>`;
+            }
+            return `<div class="truth-content" id="content-${node.id}">Empty ${node.type} card</div>`;
+        }
+
+        renderCard(node) {
+            const div = document.createElement('div');
+            div.className = `card ${node.type}-card`;
+            div.style.left = `${node.x}vmin`;
+            div.style.top = `${node.y}vmin`;
+            div.dataset.id = node.id;
+
+            const icons = { truth: '🔍', code: '💻', sandbox: '🧪', session: '🗄️' };
+
+            div.innerHTML = `
+                <div class="drag-handle">☰</div>
+                <div class="truth-header">
+                    <div class="truth-title">${icons[node.type]} ${node.type.toUpperCase()}</div>
+                    <div class="flex gap-2">
+                        <button class="action-btn send-btn"><i class="fas fa-paper-plane"></i></button>
+                        <button class="action-btn expand-btn"><i class="fas fa-expand"></i></button>
+                        <button class="action-btn save-btn"><i class="fas fa-save"></i></button>
+                        <button class="action-btn close-btn"><i class="fas fa-times"></i></button>
+                    </div>
                 </div>
-            </div>
-            <div class="content" id="c${node.id}">${node.type==='truth'?marked.parse(node.content||'Ready...'):''}</div>
-            ${node.type==='truth'?`<div class="inputbar"><textarea class="input" id="i${node.id}" placeholder="Ask truth..."></textarea><button class="send" onclick="forge.send('${node.id}')">➤</button></div>`:''}
-        `;
-        this.makeDraggable(el.querySelector('.header'), node);
-        this.makeDraggable(el.querySelector('.handle'), node);
-        this.canvas.appendChild(el);
-        node.el = el;
+                ${this.getContentHTML(node)}
+            `;
+
+            this.makeDraggable(div.querySelector('.drag-handle'), node);
+            this.makeDraggable(div.querySelector('.truth-header'), node);
+
+            // buttons
+            div.querySelector('.send-btn')?.addEventListener('click', () => this.executeTruthQuery(node.id));
+            div.querySelector('.expand-btn').addEventListener('click', () => this.fullscreenNode(node));
+            div.querySelector('.save-btn').addEventListener('click', () => this.saveToMemory(node));
+            div.querySelector('.close-btn').addEventListener('click', () => this.closeNode(node.id));
+
+            if (node.type === 'truth') {
+                const input = div.querySelector('.truth-input');
+                const sendBtn = div.querySelector('.truth-send') || div.querySelector('.send-btn');
+                input.addEventListener('keydown', e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.executeTruthQuery(node.id);
+                    }
+                });
+                sendBtn?.addEventListener('click', () => this.executeTruthQuery(node.id));
+            }
+
+            this.canvas.appendChild(div);
+            node.element = div;
+        }
+
+        makeDraggable(el, node) {
+            let startX, startY, initX = node.x, initY = node.y;
+
+            const move = (e) => {
+                if (!this.draggingNode) return;
+                e.preventDefault();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const dx = (clientX - startX) / window.innerWidth * 100;
+                const dy = (clientY - startY) / window.innerHeight * 100;
+
+                node.element.style.left = `${initX + dx}vmin`;
+                node.element.style.top = `${initY + dy}vmin`;
+            };
+
+            const up = () => {
+                if (!this.draggingNode) return;
+
+                const rect = node.element.getBoundingClientRect();
+                const x = rect.left / window.innerWidth * 100;
+                const y = rect.top / window.innerHeight * 100;
+
+                const snapped = this.snapToGrid(x, y);
+                node.x = snapped.x;
+                node.y = snapped.y;
+                node.element.style.left = `${snapped.x}vmin`;
+                node.element.style.top = `${snapped.y}vmin`;
+
+                node.element.classList.remove('dragging');
+                this.draggingNode = null;
+                this.saveNodes();
+
+                document.removeEventListener('pointermove', move);
+                document.removeEventListener('pointerup', up);
+                document.removeEventListener('touchmove', move);
+                document.removeEventListener('touchend', up);
+            };
+
+            el.addEventListener('pointerdown', e => {
+                if (e.target.tagName === 'BUTTON') return;
+                this.draggingNode = node;
+                node.element.classList.add('dragging');
+
+                startX = e.clientX || e.touches[0].clientX;
+                startY = e.clientY || e.touches[0].clientY;
+
+                document.addEventListener('pointermove', move);
+                document.addEventListener('pointerup', up);
+                document.addEventListener('touchmove', move, { passive: false });
+                document.addEventListener('touchend', up);
+            });
+        }
+
+        snapToGrid(x, y) {
+            let best = { x: this.gridPositions[0], y: this.gridPositions[0], dist: Infinity };
+            for (let gx of this.gridPositions) {
+                for (let gy of this.gridPositions) {
+                    const d = Math.hypot(gx - x, gy - y);
+                    if (d < best.dist) best = { x: gx, y: gy, dist: d };
+                }
+            }
+            return { x: best.x, y: best.y };
+        }
+
+        fullscreenNode(node) {
+            if (this.fullscreenNode) this.exitFullscreen();
+            this.fullscreenNode = node;
+            node.element.classList.add('fullscreen');
+        }
+
+        exitFullscreen() {
+            if (!this.fullscreenNode) return;
+            this.fullscreenNode.element.classList.remove('fullscreen');
+            this.fullscreenNode = null;
+        }
+
+        closeNode(id) {
+            const node = this.nodes.find(n => n.id === id);
+            if (!node) return;
+            node.element.classList.add('closed');
+            setTimeout(() => {
+                node.element.remove();
+                this.nodes = this.nodes.filter(n => n.id !== id);
+                this.saveNodes();
+                this.updateCount();
+            }, 400);
+        }
+
+        saveToMemory(node) {
+            const content = node.element.querySelector(`#content-${node.id}`)?.innerHTML || '';
+            this.sessionMemory.unshift({ ...node, content });
+            localStorage.setItem('forge-session', JSON.stringify(this.sessionMemory.slice(0, 100)));
+        }
+
+        saveNodes() {
+            localStorage.setItem('forge-nodes', JSON.stringify(this.nodes.map(n => ({
+                id: n.id, type: n.type, x: n.x, y: n.y, content: n.content, status: n.status, timestamp: n.timestamp
+            }))));
+        }
+
+        restoreNodes() {
+            this.nodes.forEach(node => this.renderCard(node));
+        }
+
+        updateCount() {
+            document.getElementById('nodeCount').textContent = this.nodes.length;
+        }
+
+        bindEvents() {
+            document.getElementById('truthBtn').onclick = () => this.createCard('truth');
+            document.getElementById('codeBtn').onclick = () => this.createCard('code');
+            document.getElementById('sandboxBtn').onclick = () => this.createCard('sandbox');
+            document.getElementById('sessionBtn').onclick = () => this.createCard('session');
+            document.getElementById('clearYard').onclick = () => {
+                if (confirm('Clear entire yard?')) {
+                    this.nodes = [];
+                    this.canvas.innerHTML = '<div class="yard-boundary"></div>';
+                    localStorage.removeItem('forge-nodes');
+                    this.updateCount();
+                }
+            };
+
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && this.fullscreenNode) this.exitFullscreen();
+            });
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // YOUR ORIGINAL TRUTH ENGINE FUNCTIONS — 100% RESTORED, UNTOUCHED
+        // ═════════════════════════════════════════════════════════════════
+
+        async executeTruthQuery(nodeId) {
+            const node = this.nodes.find(n => n.id === nodeId);
+            if (!node) return;
+
+            const input = document.getElementById(`input-${nodeId}`);
+            const query = input.value.trim();
+            if (!query) return;
+
+            node.status = 'searching';
+            this.updateStatus(node);
+            input.value = '';
+
+            const result = await this.truthEngine(query);
+            node.content = result.content;
+            node.status = result.source || 'truth';
+            
+            this.updateContent(node);
+            this.updateStatus(node);
+            
+            this.sessionMemory.unshift(result);
+            localStorage.setItem('forge-session', JSON.stringify(this.sessionMemory.slice(0, 100)));
+            this.saveNodes();
+        }
+
+        async truthEngine(query) {
+            const result = { content: 'Checking...', source: 'searching' };
+            
+            try {
+                // 1. Legacy truth endpoint
+                const legacyRes = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input: query, model: 'polaris-alpha' })
+                });
+                const legacyData = await legacyRes.json().catch(() => ({}));
+
+                if (legacyRes.ok && legacyData.answer) {
+                    result.content = legacyData.answer;
+                    result.source = 'legacy';
+                    return result;
+                }
+
+                // 2. Resolve endpoint
+                const resolveRes = await fetch('https://truth.ai-n.workers.dev/api/truth/resolve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input: query.toLowerCase().trim().replace(/\s+/g, ' ').replace(/[^a-zA-Z0-9\-_]/g, '') })
+                });
+                const resolveData = await resolveRes.json().catch(() => ({}));
+
+                if (resolveRes.ok && resolveData.answer) {
+                    result.content = resolveData.answer;
+                    result.source = 'resolve';
+                    return result;
+                }
+
+                // 3. Fallback AI proxy
+                const proxyRes = await fetch('https://ai-proxy.ai-n.workers.dev/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Detailed answer: ${query}`, model: 'auto' })
+                });
+                const proxyData = await proxyRes.json().catch(() => ({}));
+
+                if (proxyRes.ok && (proxyData.response || proxyData.answer)) {
+                    result.content = proxyData.response || proxyData.answer;
+                    result.source = 'ai';
+                    return result;
+                }
+
+                result.content = 'No truth found';
+                result.source = 'not_found';
+            } catch (e) {
+                result.content = `Error: ${e.message}`;
+                result.source = 'error';
+            }
+            return result;
+        }
+
+        updateStatus(node) {
+            const el = node.element?.querySelector('.status-indicator');
+            if (el) el.style.background = {
+                searching: '#60a5fa',
+                legacy: '#facc15',
+                resolve: '#facc15',
+                ai: '#3b82f6',
+                error: '#ef4444',
+                not_found: '#6b7280'
+            }[node.status] || '#facc15';
+        }
+
+        updateContent(node) {
+            const el = document.getElementById(`content-${node.id}`);
+            if (el && node.content) {
+                el.innerHTML = marked.parse(node.content);
+                el.scrollTop = el.scrollHeight;
+            }
+        }
     }
-    makeDraggable(header, node) {
-        let startX, startY;
-        const move = e => {
-            e.preventDefault();
-            const x = e.touches ? e.touches[0].clientX : e.clientX;
-            const y = e.touches ? e.touches[0].clientY : e.clientY;
-            node.el.style.left = (node.x + (x-startX)/window.innerWidth*100) + 'vmin';
-            node.el.style.top  = (node.y + (y-startY)/window.innerHeight*100) + 'vmin';
-        };
-        const up = () => {
-            const free = this.positions.find(p => !this.nodes.some(n => n!==node && n.x===p.x && n.y===p.y));
-            node.x = free.x; node.y = free.y;
-            node.el.style.left = node.x+'vmin';
-            node.el.style.top  = node.y+'vmin';
-            node.el.classList.remove('dragging');
-            this.save();
-            document.removeEventListener('pointermove',move);
-            document.removeEventListener('pointerup',up);
-            document.removeEventListener('touchmove',move);
-            document.removeEventListener('touchend',up);
-        };
-        header.addEventListener('pointerdown', e => {
-            if (e.target.tagName==='BUTTON') return;
-            e.preventDefault();
-            node.el.classList.add('dragging');
-            startX = e.clientX || e.touches[0].clientX;
-            startY = e.clientY || e.touches[0].clientY;
-            document.addEventListener('pointermove',move);
-            document.addEventListener('pointerup',up);
-            document.addEventListener('touchmove',move,{passive:false});
-            document.addEventListener('touchend',up);
-        });
-    }
-    send(id) {
-        const node = this.nodes.find(n=>n.id==id);
-        if (!node) return;
-        const input = document.getElementById('i'+id);
-        if (!input || !input.value.trim()) return;
-        // Put your truth engine call here later
-        document.getElementById('c'+id).innerHTML = marked.parse(input.value);
-        input.value = '';
-    }
-    fullscreen(btn) { btn.closest('.card').classList.toggle('fullscreen'); }
-    remove(id) {
-        const node = this.nodes.find(n=>n.id==id);
-        node.el.style.transform = 'scale(0)';
-        setTimeout(()=>{ node.el.remove(); this.nodes=this.nodes.filter(n=>n.id!=id); this.save(); },400);
-    }
-    saveCard(id) { /* add later */ }
-    clear() { if(confirm('Clear all?')) { this.nodes=[]; this.canvas.innerHTML='<div class="yard"></div>'; localStorage.removeItem('forge2x2'); document.getElementById('count').textContent='0/4'; } }
-    save() { localStorage.setItem('forge2x2',JSON.stringify(this.nodes.map(n=>({id:n.id,type:n.type,x:n.x,y:n.y,content:n.content||''})))); document.getElementById('count').textContent=this.nodes.length+'/4'; }
-    restore() {
-        this.nodes.forEach(n=>this.render(n));
-        document.getElementById('count').textContent = this.nodes.length+'/4';
-    }
-}
-const forge = new Forge();
+
+    window.forge = new Forge();
 </script>
 </body>
 </html>
