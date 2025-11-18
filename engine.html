@@ -6,10 +6,10 @@
     <title>the truth engine</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        :root { --accent: #facc15; --bg-start: #1e1b4b; --bg-end: #0a0a15; --text: #ffffff; --input-bg: rgba(255,255,255,0.08); --user-bg: rgba(250,204,21,0.2); }
-        .matrix { --accent: #00ff41; --bg-start: #000; --bg-end: #000; --text: #00ff41; --input-bg: transparent; --user-bg: rgba(0,255,65,0.2); background:#000 !important; }
+        :root { --accent: #facc15; --text: #ffffff; --user-bg: rgba(250,204,21,0.2); --border: rgba(250,204,21,0.4); }
+        .matrix { --accent: #00ff41; --text: #00ff41; --user-bg: rgba(0,255,65,0.2); --border: rgba(0,255,65,0.6); background:#000 !important; }
         * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui,-apple-system,sans-serif; }
-        body { overflow:hidden; height:100dvh; background:radial-gradient(ellipse at top,var(--bg-start) 0%,var(--bg-end) 70%); color:var(--text); transition:all .5s; }
+        body { overflow:hidden; height:100dvh; background:radial-gradient(ellipse at top,#1e1b4b 0%,#0a0a15 70%); color:var(--text); transition:all .5s; }
         #canvas { width:100vw; height:100dvh; position:relative; }
 
         .yard { position:absolute; inset:0; margin:auto; width:90vmin; height:90vmin;
@@ -18,7 +18,7 @@
 
         .card { position:absolute; width:42vmin; height:42vmin; min-width:300px; min-height:300px; 
                 background:rgba(10,10,20,0.8); backdrop-filter:blur(60px); border-radius:32px; overflow:hidden;
-                box-shadow:0 20px 60px rgba(0,0,0,0.6), 0 0 80px rgba(250,204,21,0.15); border:1px solid rgba(250,204,21,0.2);
+                box-shadow:0 20px 60px rgba(0,0,0,0.6), 0 0 80px rgba(250,204,21,0.15); border:1px solid var(--border);
                 transition:all .4s cubic-bezier(0.16,1,0.3,1); }
         .card.dragging { transform:scale(1.08); z-index:9999; box-shadow:0 0 120px var(--accent); }
         .card.fullscreen { position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100dvh !important;
@@ -37,8 +37,8 @@
         .user { align-self:flex-end; background:var(--user-bg); border:1px solid var(--accent); }
         .ai { align-self:flex-start; background:rgba(255,255,255,0.08); border:1px solid var(--accent); }
 
-        .inputbar { height:60px; padding:10px 20px; background:rgba(0,0,0,0.4); border-top:1px solid rgba(250,204,21,0.2); display:flex; gap:12px; align-items:end; }
-        .input { flex:1; background:var(--input-bg); border:1px solid var(--accent); border-radius:16px; padding:12px; color:var(--text); font-size:15px; outline:none; resize:none; min-height:44px; max-height:120px; }
+        .inputbar { height:60px; padding:10px 20px; background:rgba(0,0,0,0.4); border-top:1px solid var(--border); display:flex; gap:12px; align-items:end; }
+        .input { flex:1; background:transparent; border:1px solid var(--accent); border-radius:16px; padding:12px; color:var(--text); font-size:15px; outline:none; resize:none; min-height:44px; max-height:120px; }
         .send { width:48px; height:48px; background:var(--accent); color:#000; border:none; border-radius:50%; font-size:20px; font-weight:900; cursor:pointer; }
 
         .forgebar { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:rgba(15,15,25,0.95); backdrop-filter:blur(40px);
@@ -62,23 +62,38 @@ class Forge {
         this.nodes = JSON.parse(localStorage.getItem('truthyard16')||'[]');
         this.canvas = document.getElementById('canvas');
 
-        const q = new URLSearchParams(location.search).get('q');
-        if (q) {
-            this.create(decodeURIComponent(q.replace(/\+/g, ' ')));
-        } else if (this.nodes.length === 0) {
-            this.create();
-        }
+        // Handle ?q= even when page is already open
+        const handleQuery = () => {
+            const q = new URLSearchParams(location.search).get('q');
+            if (q) {
+                const query = decodeURIComponent(q.replace(/\+/g, ' '));
+                let card;
+                if (this.nodes.length === 1) {
+                    card = this.nodes[0];
+                } else {
+                    forge.create();
+                    card = this.nodes[this.nodes.length - 1];
+                }
+                setTimeout(() => {
+                    card.el.classList.add('fullscreen');
+                    this.ask(card.id, query);
+                }, 200);
+            } else if (this.nodes.length === 0) {
+                this.create();
+            }
+        };
+
+        handleQuery();
+        window.addEventListener('popstate', handleQuery);
         this.restore();
     }
 
-    create(autoQuery = null) {
+    create() {
         if (this.nodes.length >= 16) return;
         const node = {id:Date.now(), x:25, y:25, messages:[]};
         this.nodes.push(node);
         this.render(node);
         this.save();
-        if (autoQuery || this.nodes.length === 1) setTimeout(() => node.el.classList.add('fullscreen'), 100);
-        if (autoQuery) setTimeout(() => this.ask(node.id, autoQuery), 600);
     }
 
     render(node) {
