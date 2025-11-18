@@ -36,8 +36,8 @@
     .content code {background:#001100;padding:2px 6px;border-radius:4px;}
     .content pre {background:#001100;padding:15px;border-radius:8px;overflow-x:auto;margin:20px 0;}
     .content pre code {background:none;padding:0;}
-    .content strong {color:#00ff81;}
-    .content em {color:#00ff81;}
+    .content strong,.content b {color:#00ff81;}
+    .content em,.content i {color:#00ff81;}
     .content h1,.content h2,.content h3 {color:#00ff81;margin:30px 0 15px;}
     .content ul,.content ol {margin:20px 0 20px 40px;}
     .content li {margin:8px 0;}
@@ -120,7 +120,7 @@ function createCard(initialQuery = null, legacyOnly = false) {
   if (initialQuery) ask(legacyOnly);
 }
 
-// Legacy KV only — now rendered with beautiful markdown
+// Legacy KV only — now with pristine markdown rendering
 async function legacyOnlyLookup(query) {
   let answer = "No legacy truth found.";
   try {
@@ -134,10 +134,10 @@ async function legacyOnlyLookup(query) {
       if(j.answer) answer = j.answer;
     }
   } catch(e) {answer = `Legacy error: ${e.message}`;}
-  return answer;
+  return answer; // marked.parse() is applied in ask()
 }
 
-// Full workflow — now rendered with beautiful markdown
+// Full workflow — pristine markdown rendering
 async function truthEngine(query) {
   let answer = "No truth found.";
 
