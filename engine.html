@@ -2,408 +2,164 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ai-n construct | Collaborative Card Containers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ai-n Forge | 2x2 Yard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-primary: #faf9f6;
-            --bg-secondary: #f5f3ee;
-            --text-primary: #1a1a1a;
-            --text-secondary: #4a4a4a;
-            --accent-primary: #2d5016;
-            --accent-secondary: #4a7c59;
-            --card-shadow: 0 8px 32px rgba(0,0,0,0.08);
-            --border-subtle: rgba(0,0,0,0.06);
-            --serif: 'EB Garamond', serif;
-            --sans: 'Inter', sans-serif;
-        }
-        .dark {
-            --bg-primary: #0f0f0f;
-            --bg-secondary: #1a1a1a;
-            --text-primary: #f0f0f0;
-            --text-secondary: #b0b0b0;
-            --accent-primary: #4ade80;
-            --accent-secondary: #22c55e;
-        }
-        .neo {
-            --bg-primary: #000;
-            --bg-secondary: #0a0a0a;
-            --text-primary: #00ff41;
-            --text-secondary: #00aa2f;
-            --accent-primary: #00ff41;
-            --accent-secondary: #00ff88;
-            font-family: var(--sans);
-        }
-        body { 
-            font-family: var(--serif);
-            line-height: 1.8;
-            font-size: 1.1rem;
-            letter-spacing: 0.025em;
-        }
-        .e-reader { 
-            max-width: 800px; margin: 0 auto; 
-            font-feature-settings: 'kern' 1, 'liga' 1, 'clig' 1, 'calt' 1;
-        }
-        .card {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-subtle);
-            border-radius: 24px;
-            box-shadow: var(--card-shadow);
-            transition: all 0.4s cubic-bezier(0.25,0.46,0.45,0.94);
-            overflow: hidden;
-            position: relative;
-            cursor: grab;
-        }
-        .card:hover { 
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        }
-        .card.fullscreen {
-            position: fixed !important; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 1000; border-radius: 0; max-width: none;
-        }
-        .card.fullscreen::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 60px;
-            background: linear-gradient(to bottom, var(--bg-primary), transparent);
-            z-index: 10;
-        }
-        .card-header {
-            display: flex; justify-content: between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--border-subtle);
-            background: var(--bg-secondary);
-        }
-        .card-content { padding: 2.5rem; max-height: 500px; overflow-y: auto; }
-        .card.fullscreen .card-content { max-height: none; height: calc(100vh - 120px); padding: 4rem 3rem; }
-        .prose { color: var(--text-primary); }
-        .prose code { background: rgba(45,80,22,0.1); padding: 0.25rem 0.5rem; border-radius: 8px; font-family: var(--sans); }
-        .neo .prose code { background: rgba(0,255,65,0.2); }
-        .slide-panel { 
-            transform: translateX(-100%); transition: transform 0.4s ease-out;
-        }
-        .slide-panel.open { transform: translateX(0); }
-        .panel-overlay { 
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(8px); z-index: 999; opacity: 0; visibility: hidden; transition: all 0.3s;
-        }
-        .panel-overlay.open { opacity: 1; visibility: visible; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .card.fade-in { animation: fadeInUp 0.6s ease-out; }
-        .drag-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1001; pointer-events: none; }
-        .code-editor { background: #1e1e1e; color: #d4d4d4; font-family: 'Fira Code', monospace; }
-        .sandbox-output { background: #0f0f0f; color: #00ff41; padding: 1rem; border-radius: 12px; font-family: var(--sans); }
+        :root { --gold: #facc15; --bg: #0a0a15; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui,-apple-system,sans-serif; }
+        body { overflow:hidden; height:100dvh; background:radial-gradient(ellipse at top,#1e1b4b 0%,var(--bg) 70%); touch-action:pan-x pan-y; }
+        #canvas { width:100vw; height:100dvh; position:relative; }
+
+        .yard { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:90vmin; height:90vmin;
+                border:4px solid rgba(250,204,21,0.4); border-radius:24px; box-shadow:0 0 80px rgba(250,204,21,0.4); pointer-events:none; }
+
+        .card { position:absolute; width:42vmin; height:42vmin; min-width:300px; min-height:300px; background:rgba(255,255,255,0.08);
+                backdrop-filter:blur(50px); border:2px solid rgba(255,255,255,0.15); border-radius:24px; overflow:hidden;
+                box-shadow:0 20px 40px rgba(0,0,0,0.6); touch-action:none; transition:transform .3s; }
+        .card.dragging { transform:scale(1.08); z-index:9999; }
+        .card.fullscreen { position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100dvh !important;
+                           z-index:10000; border-radius:0 !important; }
+
+        .header { height:80px; padding:0 20px 0 80px; background:linear-gradient(135deg,rgba(250,204,21,0.2),rgba(250,204,21,0.05));
+                  border-bottom:1px solid rgba(250,204,21,0.4); display:flex; align-items:center; justify-content:space-between; cursor:grab; }
+        .header:active { cursor:grabbing; }
+        .handle { position:absolute; left:16px; top:16px; width:48px; height:48px; background:var(--gold); color:#000;
+                  border-radius:12px; display:grid; place-items:center; font-size:28px; font-weight:bold; }
+
+        .title { font-weight:800; font-size:18px; color:white; }
+        .btns button { width:44px; height:44px; margin:0 4px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.3);
+                       border-radius:50%; color:white; font-size:18px; }
+        .close { background:rgba(239,68,68,0.6) !important; }
+
+        .content { height:calc(100% - 140px); padding:16px; overflow-y:auto; color:white; font-size:14px; }
+        .inputbar { height:60px; padding:10px; background:rgba(0,0,0,0.5); border-top:1px solid rgba(255,255,255,0.1); display:flex; gap:8px; }
+        .input { flex:1; background:rgba(255,255,255,0.1); border:1px solid var(--gold); border-radius:12px; padding:10px; color:white; font-size:14px; }
+        .send { width:44px; height:44px; background:var(--gold); color:#000; border:none; border-radius:50%; font-weight:bold; }
+
+        .forgebar { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:rgba(15,15,25,0.95); backdrop-filter:blur(40px);
+                    padding:12px 20px; border-radius:50px; border:2px solid rgba(255,255,255,0.15); z-index:5000; display:flex; gap:16px; }
+        .fbtn { width:60px; height:60px; background:rgba(250,204,21,0.2); border:2px solid var(--gold); border-radius:50%; color:var(--gold); font-size:24px; display:grid; place-items:center; }
+        body:has(.fullscreen) .forgebar { opacity:0; pointer-events:none; }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-[var(--bg-primary)] to-[var(--bg-secondary)] p-4 md:p-8">
-    <div class="e-reader relative">
-        <!-- Header -->
-        <header class="flex items-center justify-between mb-12">
-            <div class="flex gap-4">
-                <button id="menuBtn" class="w-14 h-14 bg-[var(--bg-secondary)] rounded-3xl flex items-center justify-center text-xl hover:bg-[var(--accent-primary)] transition-all" title="Menu">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <button id="historyBtn" class="w-14 h-14 bg-[var(--bg-secondary)] rounded-3xl flex items-center justify-center text-xl hover:bg-[var(--accent-primary)] transition-all" title="History">
-                    <i class="fas fa-history"></i>
-                </button>
-            </div>
-            <div class="text-3xl font-bold text-[var(--accent-primary)] flex items-center gap-3">
-                <i class="fas fa-cube text-2xl"></i>
-                ai-nspired 
-            </div>
-            <div class="flex gap-4">
-                <button id="newSessionBtn" class="w-14 h-14 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white rounded-3xl flex items-center justify-center text-xl font-bold hover:scale-110 transition-all" title="New Session">
-                    ➕
-                </button>
-            </div>
-        </header>
+<body>
+    <div id="canvas"><div class="yard"></div></div>
 
-        <!-- Cards Grid -->
-        <main id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-            <!-- Dynamic cards here -->
-        </main>
-
-        <!-- Input Bar -->
-        <div class="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-2xl bg-[var(--bg-secondary)] backdrop-blur-xl rounded-3xl p-6 border border-[var(--border-subtle)] shadow-2xl">
-            <div class="flex gap-4 items-end">
-                <div class="flex-1 relative">
-                    <textarea 
-                        id="inputQuery" 
-                        rows="2" 
-                        class="w-full bg-transparent border-none outline-none text-lg resize-none font-serif placeholder-[var(--text-secondary)] pr-20 pb-4"
-                        placeholder="ask... "
-                    ></textarea>
-                    <div class="absolute bottom-0 right-0 text-xs text-[var(--text-secondary)]">Supports /truth /code /sandbox /combine</div>
-                </div>
-                <button id="sendBtn" class="w-20 h-20 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white rounded-3xl flex items-center justify-center text-2xl font-bold hover:scale-110 shadow-xl transition-all">
-                    <i class="fas fa-rocket"></i>
-                </button>
-            </div>
-        </div>
+    <div class="forgebar">
+        <button class="fbtn" onclick="forge.create('truth')">🔍</button>
+        <button class="fbtn" onclick="forge.create('code')">💻</button>
+        <button class="fbtn" onclick="forge.create('sandbox')">🧪</button>
+        <button class="fbtn" onclick="forge.create('session')">🗄️</button>
+        <button class="fbtn" onclick="forge.clear()">🗑️</button>
+        <span style="color:#facc15; font-weight:bold;" id="count">0/4</span>
     </div>
 
-    <!-- Left Panel: Menu -->
-    <div id="menuPanel" class="slide-panel fixed top-0 left-0 w-80 h-full bg-[var(--bg-primary)] shadow-2xl z-[1001] overflow-y-auto">
-        <div class="p-8 border-b border-[var(--border-subtle)]">
-            <h2 class="text-2xl font-bold text-[var(--accent-primary)] mb-6">⚙️ NeoForge Control</h2>
-             <!-- ADD INSIDE menuPanel, after h2 -->
-            <button onclick="togglePanel('menuPanel')" class="absolute top-8 right-8 text-xl text-[var(--text-secondary)] hover:text-[var(--accent-primary)]">
-              <i class="fas fa-times"></i>
-                  </button>
-              <div class="space-y-4 text-sm">
-                <div>
-                    <label class="block font-semibold mb-2 text-[var(--text-secondary)]">Theme</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button class="theme-btn p-3 rounded-xl border-2 border-transparent hover:border-[var(--accent-primary)] active-theme" data-theme="default">📖</button>
-                        <button class="theme-btn p-3 rounded-xl border-2 border-transparent hover:border-[var(--accent-primary)]" data-theme="dark">🌙</button>
-                        <button class="theme-btn p-3 rounded-xl border-2 border-transparent hover:border-[var(--accent-primary)]" data-theme="neo">💚</button>
-                    </div>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-2 text-[var(--text-secondary)]">Inference Mode</label>
-                    <select id="inferenceMode" class="w-full p-3 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-2xl font-serif">
-                        <option value="truth">Truth Engine (KV→Resolve→Synth)</option>
-                        <option value="code">Code Gen (JS/Python)</option>
-                        <option value="sandbox">Sandbox Exec</option>
-                        <option value="chat">Matrix Chat</option>
-                    </select>
-                </div>
-                <button id="exportSession" class="w-full p-4 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white font-bold rounded-2xl hover:scale-105 transition-all">
-                    <i class="fas fa-download mr-2"></i>Export Cards
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Right Panel: History -->
-    <div id="historyPanel" class="slide-panel fixed top-0 right-0 w-96 h-full bg-[var(--bg-primary)] shadow-2xl z-[1001] overflow-y-auto">
-        <div class="p-8 border-b border-[var(--border-subtle)] sticky top-0 bg-[var(--bg-primary)]">
-            <h2 class="text-2xl font-bold text-[var(--accent-primary)] mb-6">📜 Card History</h2>
-            <div id="historyList" class="space-y-4"></div>
-        </div>
-    </div>
-
-    <!-- Drag Overlay -->
-    <div id="dragOverlay" class="drag-overlay hidden"></div>
-
-    <!-- Fullscreen Backdrop -->
-    <div id="fullscreenBackdrop" class="panel-overlay hidden"></div>
-<!-- ADD THIS -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
-const appState = {
-    cards: JSON.parse(localStorage.getItem('neoforge-cards') || '[]'),
-    history: JSON.parse(localStorage.getItem('neoforge-history') || '[]'),
-    theme: localStorage.getItem('neoforge-theme') || 'default'
-};
-
-function saveState() {
-    localStorage.setItem('neoforge-cards', JSON.stringify(appState.cards));
-    localStorage.setItem('neoforge-history', JSON.stringify(appState.history));
-    localStorage.setItem('neoforge-theme', appState.theme);
-}
-
-function normalizeInput(str) { return str.trim().toLowerCase().replace(/\s+/g, ' ').replace(/[^a-zA-Z0-9\-_]/g, ''); }
-function normalizeId(str) { return `prov_${str.trim().toLowerCase().replace(/[^a-zA-Z0-9]/g, '_')}`; }
-
-function applyTheme(theme) {
-    document.body.className = theme;
-    appState.theme = theme;
-    saveState();
-}
-
-function togglePanel(panelId) {
-    document.getElementById(panelId).classList.toggle('open');
-    document.getElementById('fullscreenBackdrop').classList.toggle('open');
-}
-
-function createCard(data, isHistory = false) {
-    const id = data.id || `card-${Date.now()}`;
-    const typeIcon = data.type === 'truth' ? '🔍' : '📄';
-    const sourceClass = data.source ? `source-badge source-${data.source}` : '';
-    const card = document.createElement('div');
-    card.className = `card fade-in relative group ${isHistory ? 'opacity-70 hover:opacity-100' : ''}`;
-    card.dataset.id = id;
-    card.innerHTML = `
-        <div class="card-header" style="justify-content: space-between;">
-            <div class="flex items-center gap-3">
-                <span class="text-2xl">${typeIcon}</span>
-                <span class="font-bold text-lg">${data.title || 'Truth'}</span>
-                ${data.source ? `<span class="${sourceClass}">${data.source.toUpperCase()}</span>` : ''}
-            </div>
-            <div class="flex gap-2">
-                ${!isHistory ? `
-                    <button onclick="expandCard('${id}')" class="w-10 h-10 rounded-2xl bg-[var(--accent-primary)]/20 hover:bg-[var(--accent-primary)] text-[var(--accent-primary)] flex items-center justify-center">
-                        <i class="fas fa-expand"></i>
-                    </button>
-                    <button onclick="closeFullscreen()" class="w-10 h-10 rounded-2xl bg-red-500/30 hover:bg-red-500 text-red-200 flex items-center justify-center absolute top-2 right-2 z-50 card-fullscreen-only">
-                    </button>
-                ` : ''}
-            </div>
-        </div>
-        <div class="card-content prose">${marked.parse(data.content || '')}</div>
-    `;
-    return card;
-}
-
-function renderCards() {
-    const grid = document.getElementById('cardsGrid');
-    grid.innerHTML = '';
-    appState.cards.forEach(card => grid.appendChild(createCard(card)));
-}
-
-function renderHistory() {
-    const list = document.getElementById('historyList');
-    list.innerHTML = '';
-    appState.history.slice(0, 20).forEach(card => list.appendChild(createCard(card, true)));
-}
-
-window.expandCard = function(id) {
-    document.querySelector(`[data-id="${id}"]`).classList.add('fullscreen');
-    document.getElementById('fullscreenBackdrop').classList.add('open');
-};
-
-window.closeFullscreen = function() {
-    document.querySelector('.card.fullscreen')?.classList.remove('fullscreen');
-    document.getElementById('fullscreenBackdrop').classList.remove('open');
-};
-
-async function executeTruthEngine(query) {
-    const result = { type: 'truth', title: 'Truth Engine', content: '🔍 Checking Legacy KV...', source: 'processing' };
-    const tempId = `temp-${Date.now()}`;
-    result.id = tempId;
-    appState.cards.unshift(result);
-    saveState();
-    renderCards();
-
-    try {
-        // Step 1: Legacy KV
-        const legacyRes = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ input: query, model: 'polaris-alpha' })
-        });
-        const legacyData = await legacyRes.json().catch(() => ({}));
-
-        if (legacyRes.ok && legacyData.answer) {
-            result.content = legacyData.answer;
-            result.source = 'legacy';
-        } else {
-            // Step 2: Resolve
-            result.content = '🔍 Checking Resolve...';
-            renderCards();
-            const resolveRes = await fetch('https://truth.ai-n.workers.dev/api/truth/resolve', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ input: normalizeInput(query) })
-            });
-            const resolveData = await resolveRes.json().catch(() => ({}));
-
-            if (resolveRes.ok && resolveData.answer) {
-                result.content = resolveData.answer;
-                result.source = 'resolve';
-            } else {
-                // Step 3: AI Proxy
-                result.content = '🔍 AI Proxy...';
-                renderCards();
-                const proxyRes = await fetch('https://ai-proxy.ai-n.workers.dev/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: `Generate detailed answer about: ${query.trim()}`, model: 'auto' })
-                });
-                const proxyData = await proxyRes.json().catch(() => ({}));
-
-                if (proxyRes.ok) {
-                    result.content = proxyData.response || proxyData.answer || 'No AI response';
-                    result.source = 'ai';
-                    // Step 4: Save Provisional (silent)
-                    fetch('https://truth.ai-n.workers.dev/api/truth/provisional/update', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            id: normalizeId(query),
-                            answer: result.content,
-                            meta: { model: 'justice-approved', confidence: 0.85, source: 'proxy_ai', qc_passed: false }
-                        })
-                    }).catch(console.log);
-                } else {
-                    result.content = '❌ No truth found';
-                    result.source = 'not_found';
-                }
-            }
-        }
-    } catch (e) {
-        result.content = `❌ Error: ${e.message}`;
-        result.source = 'error';
+class Forge {
+    constructor() {
+        this.nodes = JSON.parse(localStorage.getItem('forge2x2')||'[]');
+        this.canvas = document.getElementById('canvas');
+        this.positions = [
+            {x:8,  y:8},   // top-left
+            {x:50, y:8},   // top-right
+            {x:8,  y:50},  // bottom-left
+            {x:50, y:50}   // bottom-right
+        ];
+        this.restore();
     }
-
-    // Update card
-    result.id = `card-${Date.now()}`;
-    appState.cards[0] = result;
-    appState.history.unshift({ ...result, preview: result.content.slice(0, 100) });
-    if (appState.cards.length > 50) appState.cards = appState.cards.slice(0, 50);
-    saveState();
-    renderCards();
-    renderHistory();
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    applyTheme(appState.theme);
-    renderCards();
-    renderHistory();
-
-    // Menu buttons
-    document.getElementById('menuBtn').onclick = () => togglePanel('menuPanel');
-    document.getElementById('historyBtn').onclick = () => togglePanel('historyPanel');
-    document.getElementById('fullscreenBackdrop').onclick = closeFullscreen;
-
-    // Theme buttons
-    document.querySelectorAll('.theme-btn').forEach(btn => {
-        btn.onclick = () => {
-            document.querySelector('.active-theme').classList.remove('active-theme', 'bg-[var(--accent-primary)]', 'text-white');
-            btn.classList.add('active-theme', 'bg-[var(--accent-primary)]', 'text-white');
-            applyTheme(btn.dataset.theme);
-        };
-    });
-
-    // Send button
-    const sendBtn = document.getElementById('sendBtn');
-    const input = document.getElementById('inputQuery');
-    sendBtn.onclick = () => {
-        const query = input.value.trim();
-        if (query) {
-            executeTruthEngine(query);
-            input.value = '';
-        }
-    };
-    input.onkeydown = (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+    create(type) {
+        if (this.nodes.length >= 4) return alert("Yard full – only 4 cards allowed");
+        const free = this.positions.find(p => !this.nodes.some(n => n.x===p.x && n.y===p.y));
+        if (!free) return;
+        const node = {id:Date.now(), type, x:free.x, y:free.y, content:''};
+        this.nodes.push(node);
+        this.render(node);
+        this.save();
+    }
+    render(node) {
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.style.left = node.x + 'vmin';
+        el.style.top = node.y + 'vmin';
+        el.innerHTML = `
+            <div class="handle">☰</div>
+            <div class="header">
+                <div class="title">${node.type.toUpperCase()}</div>
+                <div class="btns">
+                    <button onclick="forge.send('${node.id}')">▶</button>
+                    <button onclick="forge.fullscreen(this)">⛶</button>
+                    <button onclick="forge.saveCard('${node.id}')">💾</button>
+                    <button class="close" onclick="forge.remove('${node.id}')">✕</button>
+                </div>
+            </div>
+            <div class="content" id="c${node.id}">${node.type==='truth'?marked.parse(node.content||'Ready...'):''}</div>
+            ${node.type==='truth'?`<div class="inputbar"><textarea class="input" id="i${node.id}" placeholder="Ask truth..."></textarea><button class="send" onclick="forge.send('${node.id}')">➤</button></div>`:''}
+        `;
+        this.makeDraggable(el.querySelector('.header'), node);
+        this.makeDraggable(el.querySelector('.handle'), node);
+        this.canvas.appendChild(el);
+        node.el = el;
+    }
+    makeDraggable(header, node) {
+        let startX, startY;
+        const move = e => {
             e.preventDefault();
-            sendBtn.click();
-        }
-    };
-
-    // New session
-    document.getElementById('newSessionBtn').onclick = () => {
-        appState.cards = [];
-        saveState();
-        renderCards();
-    };
-
-    // Export
-    document.getElementById('exportSession').onclick = () => {
-        const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'neoforge.json';
-        a.click();
-    };
-});
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeFullscreen();
-});
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            node.el.style.left = (node.x + (x-startX)/window.innerWidth*100) + 'vmin';
+            node.el.style.top  = (node.y + (y-startY)/window.innerHeight*100) + 'vmin';
+        };
+        const up = () => {
+            const free = this.positions.find(p => !this.nodes.some(n => n!==node && n.x===p.x && n.y===p.y));
+            node.x = free.x; node.y = free.y;
+            node.el.style.left = node.x+'vmin';
+            node.el.style.top  = node.y+'vmin';
+            node.el.classList.remove('dragging');
+            this.save();
+            document.removeEventListener('pointermove',move);
+            document.removeEventListener('pointerup',up);
+            document.removeEventListener('touchmove',move);
+            document.removeEventListener('touchend',up);
+        };
+        header.addEventListener('pointerdown', e => {
+            if (e.target.tagName==='BUTTON') return;
+            e.preventDefault();
+            node.el.classList.add('dragging');
+            startX = e.clientX || e.touches[0].clientX;
+            startY = e.clientY || e.touches[0].clientY;
+            document.addEventListener('pointermove',move);
+            document.addEventListener('pointerup',up);
+            document.addEventListener('touchmove',move,{passive:false});
+            document.addEventListener('touchend',up);
+        });
+    }
+    send(id) {
+        const node = this.nodes.find(n=>n.id==id);
+        if (!node) return;
+        const input = document.getElementById('i'+id);
+        if (!input || !input.value.trim()) return;
+        // Put your truth engine call here later
+        document.getElementById('c'+id).innerHTML = marked.parse(input.value);
+        input.value = '';
+    }
+    fullscreen(btn) { btn.closest('.card').classList.toggle('fullscreen'); }
+    remove(id) {
+        const node = this.nodes.find(n=>n.id==id);
+        node.el.style.transform = 'scale(0)';
+        setTimeout(()=>{ node.el.remove(); this.nodes=this.nodes.filter(n=>n.id!=id); this.save(); },400);
+    }
+    saveCard(id) { /* add later */ }
+    clear() { if(confirm('Clear all?')) { this.nodes=[]; this.canvas.innerHTML='<div class="yard"></div>'; localStorage.removeItem('forge2x2'); document.getElementById('count').textContent='0/4'; } }
+    save() { localStorage.setItem('forge2x2',JSON.stringify(this.nodes.map(n=>({id:n.id,type:n.type,x:n.x,y:n.y,content:n.content||''})))); document.getElementById('count').textContent=this.nodes.length+'/4'; }
+    restore() {
+        this.nodes.forEach(n=>this.render(n));
+        document.getElementById('count').textContent = this.nodes.length+'/4';
+    }
+}
+const forge = new Forge();
 </script>
 </body>
 </html>
