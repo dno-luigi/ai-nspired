@@ -4,37 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Truth Engine | ai-n Forge</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        :root { --gold: #facc15; --bg: #0a0a15; --text: #ffffff; --accent: var(--gold); }
-        .matrix { --gold: #00ff41; --bg: #000000; --text: #00ff41; --accent: #00ff41; background:#000 !important; }
+        :root { --gold: #facc15; --bg: #0a0a15; }
         * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui,-apple-system,sans-serif; }
-        body { overflow:hidden; height:100dvh; background:radial-gradient(ellipse at top,#1e1b4b 0%,var(--bg) 70%); color:var(--text); transition:all .5s; }
+        body { overflow:hidden; height:100dvh; background:radial-gradient(ellipse at top,#1e1b4b 0%,var(--bg) 70%); color:white; }
         #canvas { width:100vw; height:100dvh; position:relative; }
 
         .yard { position:absolute; inset:0; margin:auto; width:90vmin; height:90vmin;
                 border:4px solid rgba(250,204,21,0.25); border-radius:32px; box-shadow:0 0 100px rgba(250,204,21,0.3); pointer-events:none; backdrop-filter:blur(4px); }
-        .matrix .yard { border-color:rgba(0,255,65,0.4); box-shadow:0 0 100px rgba(0,255,65,0.4); }
 
         .card { position:absolute; width:42vmin; height:42vmin; min-width:300px; min-height:300px; 
-                background:rgba(10,10,20,0.8); backdrop-filter:blur(60px); border-radius:32px; overflow:hidden;
+                background:rgba(255,255,255,0.06); backdrop-filter:blur(60px); border-radius:32px; overflow:hidden;
                 box-shadow:0 20px 60px rgba(0,0,0,0.6), 0 0 80px rgba(250,204,21,0.15); border:1px solid rgba(250,204,21,0.2);
                 transition:all .4s cubic-bezier(0.16,1,0.3,1); }
         .card.dragging { transform:scale(1.08); z-index:9999; box-shadow:0 0 120px rgba(250,204,21,0.5); }
         .card.fullscreen { position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100dvh !important;
-                           border-radius:0 !important; z-index:10000; border:none; background:rgba(0,0,0,0.95); }
+                           border-radius:0 !important; z-index:10000; border:none; }
 
-        .header { height:80px; padding:20px 70px 20px 20px; display:flex; align-items:center; position:relative; cursor:grab; }
+        .header { height:80px; padding:20px 140px 20px 20px; display:flex; align-items:center; position:relative; cursor:grab; }
         .header:active { cursor:grabbing; }
-        .title { font-weight:900; font-size:22px; background:linear-gradient(90deg,var(--gold),#fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .title { font-weight:900; font-size:20px; background:linear-gradient(90deg,var(--gold),#fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
 
-        .fullscreen-btn { position:absolute; top:16px; right:16px; width:48px; height:48px; background:rgba(255,255,255,0.1); 
-                          border-radius:50%; display:grid; place-items:center; font-size:20px; opacity:0.6; cursor:pointer; }
-        .fullscreen-btn:hover { opacity:1; }
+        .topbtns { position:absolute; top:12px; right:12px; display:flex; gap:12px; z-index:20; }
+        .topbtn { width:48px; height:48px; background:rgba(255,255,255,0.1); backdrop-filter:blur(20px); border-radius:50%; 
+                  display:grid; place-items:center; font-size:20px; cursor:pointer; }
 
-        .content { height:calc(100% - 140px); padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; font-size:15px; line-height:1.7; }
+        .content { height:calc(100% - 140px); padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; }
         .message { padding:12px 16px; border-radius:16px; max-width:85%; }
         .user { align-self:flex-end; background:rgba(250,204,21,0.2); border:1px solid rgba(250,204,21,0.4); }
         .ai { align-self:flex-start; background:rgba(255,255,255,0.08); }
@@ -46,60 +42,40 @@
         .forgebar { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:rgba(15,15,25,0.95); backdrop-filter:blur(40px);
                     padding:12px 28px; border-radius:50px; border:2px solid rgba(250,204,21,0.3); box-shadow:0 20px 60px rgba(0,0,0,0.6); z-index:5000; display:flex; gap:20px; align-items:center; }
         .fbtn { width:64px; height:64px; background:rgba(250,204,21,0.2); border:2px solid var(--gold); border-radius:50%; color:var(--gold); font-size:32px; display:grid; place-items:center; box-shadow:0 0 40px rgba(250,204,21,0.3); cursor:pointer; }
-        .matrix .fbtn { border-color:#00ff41; background:rgba(0,255,65,0.1); color:#00ff41; }
     </style>
 </head>
 <body>
     <div id="canvas"><div class="yard"></div></div>
 
     <div class="forgebar">
-        <button class="fbtn" onclick="forge.create()" title="New Truth Engine"><i class="fas fa-bolt"></i></button>
-        <button class="fbtn" onclick="document.body.classList.toggle('matrix')" title="Matrix Mode"><i class="fas fa-eye"></i></button>
-        <button class="fbtn" onclick="forge.clear()" title="Clear Yard"><i class="fas fa-trash"></i></button>
-        <span style="color:var(--gold); font-weight:900; font-size:18px;" id="count">0/4</span>
+        <button class="fbtn" onclick="forge.create()">⚡</button>
+        <button class="fbtn" onclick="forge.clear()">🗑</button>
+        <span style="color:#facc15; font-weight:900; font-size:18px;" id="count">0/16</span>
     </div>
 
 <script>
 class Forge {
     constructor() {
-        this.nodes = JSON.parse(localStorage.getItem('truthyard')||'[]');
+        this.nodes = JSON.parse(localStorage.getItem('truthyard16')||'[]');
         this.canvas = document.getElementById('canvas');
-        this.positions = [{x:8,y:8},{x:50,y:8},{x:8,y:50},{x:50,y:50}];
-        
-        // YOUR EXACT QUERY PARAM LOGIC
-        const urlParams = new URLSearchParams(window.location.search);
-        const query = urlParams.get('q');
-        if (query) {
-            this.create(); // create card first so input exists
-            setTimeout(() => {
-                const firstInput = document.querySelector('.input');
-                if (firstInput) {
-                    firstInput.value = decodeURIComponent(query.replace(/\+/g, ' '));
-                    // auto fullscreen + send
-                    const firstCard = document.querySelector('.card');
-                    if (firstCard) firstCard.classList.add('fullscreen');
-                    setTimeout(() => forge.ask(this.nodes[0].id), 300);
-                }
-            }, 200);
-        } else if (this.nodes.length === 0) {
-            this.create();
-        }
+        this.positions = [];
+        for(let i = 0; i < 4; i++) for(let j = 0; j < 4; j++) this.positions.push({x: 4 + i*24, y: 4 + j*24});
+
+        const q = new URLSearchParams(location.search).get('q');
+        if (q || this.nodes.length === 0) this.create(q ? decodeURIComponent(q.replace(/\+/g, ' ')) : null);
 
         this.restore();
     }
 
-    create() {
-        if (this.nodes.length >= 4) return;
-        const used = this.nodes.map(n=>`${n.x}-${n.y}`);
-        const free = this.positions.find(p => !used.includes(`${p.x}-${p.y}`)) || this.positions[0];
+    create(autoQuery = null) {
+        if (this.nodes.length >= 16) return;
+        const free = this.positions.find(p => !this.nodes.some(n => n.x === p.x && n.y === p.y)) || this.positions[0];
         const node = {id:Date.now(), x:free.x, y:free.y, messages:[]};
         this.nodes.push(node);
         this.render(node);
         this.save();
-
-        if (this.nodes.length === 1) {
-            setTimeout(() => node.el.classList.add('fullscreen'), 100);
-        }
+        if (this.nodes.length === 1 || autoQuery) setTimeout(() => node.el.classList.add('fullscreen'), 100);
+        if (autoQuery) setTimeout(() => this.ask(node.id, autoQuery), 600);
     }
 
     render(node) {
@@ -110,70 +86,24 @@ class Forge {
         el.innerHTML = `
             <div class="header">
                 <div class="title">TRUTH ENGINE</div>
-                <button class="fullscreen-btn" onclick="this.closest('.card').classList.toggle('fullscreen')"><i class="fas fa-expand"></i></button>
+                <div class="topbtns">
+                    <div class="topbtn" onclick="this.closest('.card').classList.toggle('fullscreen')">⛶</div>
+                    <div class="topbtn" onclick="this.closest('.card').remove(); forge.nodes = forge.nodes.filter(n=>n.id!==${node.id}); forge.save(); document.getElementById('count').textContent = forge.nodes.length+'/16';">×</div>
+                </div>
             </div>
             <div class="content" id="c${node.id}"><i style="opacity:0.5">Ready for truth...</i></div>
             <div class="inputbar">
                 <textarea class="input" id="i${node.id}" placeholder="What is the truth..."></textarea>
-                <button class="send" onclick="forge.ask(${node.id})"><i class="fas fa-paper-plane"></i></button>
+                <button class="send" onclick="forge.ask(${node.id})">➤</button>
             </div>
         `;
         this.makeDraggable(el.querySelector('.header'), node);
         this.canvas.appendChild(el);
         node.el = el;
 
-        const textarea = el.querySelector('.input');
-        textarea.addEventListener('input', () => {
-            textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
-        });
-        textarea.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); forge.ask(node.id); }
-        });
-    }
-
-    async ask(id, forcedQuery = null) {
-        const node = this.nodes.find(n=>n.id==id);
-        const input = document.getElementById('i'+id);
-        const content = document.getElementById('c'+id);
-        const query = forcedQuery || input.value.trim();
-        if (!query) return;
-        if (!forcedQuery) input.value = '';
-
-        node.messages.push({role:'user', content:query});
-        content.innerHTML += `<div class="message user">${marked.parse(query)}</div>`;
-        content.scrollTop = content.scrollHeight;
-
-        const aiMsg = document.createElement('div');
-        aiMsg.className = 'message ai';
-        aiMsg.textContent = '▋ thinking';
-        content.appendChild(aiMsg);
-        content.scrollTop = content.scrollHeight;
-
-        const result = await this.truthEngine(query);
-        aiMsg.innerHTML = marked.parse(result);
-        node.messages.push({role:'ai', content:result});
-        content.scrollTop = content.scrollHeight;
-        this.save();
-    }
-
-    async truthEngine(query) {
-        let answer = "No truth found.";
-        try {
-            const r1 = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:query,model:'polaris-alpha'})});
-            if(r1.ok){const j=await r1.json();if(j.answer)answer=j.answer;}
-
-            if(answer.includes("No truth")){
-                const r2 = await fetch('https://truth.ai-n.workers.dev/api/truth/resolve', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:query.toLowerCase()})});
-                if(r2.ok){const j=await r2.json();if(j.answer)answer=j.answer;}
-            }
-
-            if(answer.includes("No truth")){
-                const r3 = await fetch('https://ai-proxy.ai-n.workers.dev/api/chat', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:`Detailed answer: ${query}`, model:'@preset/truth'})});
-                if(r3.ok){const j=await r3.json();answer = j.response || j.answer || answer;}
-            }
-        } catch(e) {answer = `Error: ${e.message}`;}
-        return answer;
+        const ta = el.querySelector('.input');
+        ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; });
+        ta.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); forge.ask(node.id); } });
     }
 
     makeDraggable(header, node) {
@@ -190,8 +120,8 @@ class Forge {
             const cy = rect.top + rect.height/2;
             let closest = this.positions[0], min = Infinity;
             this.positions.forEach(p => {
-                const dist = Math.hypot((p.x+21)/100*innerWidth - cx,(p.y+21)/100*innerHeight - cy);
-                if (dist < min && !this.nodes.some(n=>n!==node && n.x===p.x && n.y===p.y)) { min=dist; closest=p; }
+                const dist = Math.hypot((p.x+21)/100*innerWidth - cx, (p.y+21)/100*innerHeight - cy);
+                if (dist < min && !this.nodes.some(n=>n!==node && n.x===p.x && n.y===p.y)) { min = dist; closest = p; }
             });
             node.x = closest.x; node.y = closest.y;
             node.el.style.left = node.x+'vmin';
@@ -202,6 +132,7 @@ class Forge {
             document.removeEventListener('pointerup',up);
         };
         header.addEventListener('pointerdown', e => {
+            if (e.target.classList.contains('topbtn')) return;
             node.el.classList.add('dragging');
             startX = e.clientX || e.touches[0].clientX;
             startY = e.clientY || e.touches[0].clientY;
@@ -212,9 +143,51 @@ class Forge {
         });
     }
 
-    clear() { if(confirm('Wipe the yard?')) { this.nodes=[]; this.canvas.innerHTML='<div class="yard"></div>'; localStorage.removeItem('truthyard'); location.reload(); } }
-    save() { localStorage.setItem('truthyard', JSON.stringify(this.nodes.map(n=>({id:n.id,x:n.x,y:n.y,messages:n.messages||[]})))); document.getElementById('count').textContent = this.nodes.length+'/4'; }
-    restore() { this.nodes.forEach(n=>this.render(n)); document.getElementById('count').textContent=this.nodes.length+'/4'; }
+    async ask(id, forced = null) {
+        const node = this.nodes.find(n=>n.id==id);
+        const input = document.getElementById('i'+id);
+        const content = document.getElementById('c'+id);
+        const query = forced || input.value.trim();
+        if (!query) return;
+        if (!forced) input.value = '';
+
+        node.messages.push({role:'user', content:query});
+        content.innerHTML += `<div class="message user">${marked.parse(query)}</div>`;
+        content.scrollTop = content.scrollHeight;
+
+        const ai = document.createElement('div');
+        ai.className = 'message ai';
+        ai.textContent = '▋ thinking';
+        content.appendChild(ai);
+        content.scrollTop = content.scrollHeight;
+
+        const result = await this.truthEngine(query);
+        ai.innerHTML = marked.parse(result);
+        node.messages.push({role:'ai', content:result});
+        content.scrollTop = content.scrollHeight;
+        this.save();
+    }
+
+    async truthEngine(query) {
+        let answer = "No truth found.";
+        try {
+            const r1 = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:query,model:'polaris-alpha'})});
+            if(r1.ok){const j=await r1.json();if(j.answer)answer=j.answer;}
+            if(answer.includes("No truth")){
+                const r2 = await fetch('https://truth.ai-n.workers.dev/api/truth/resolve', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:query.toLowerCase()})});
+                if(r2.ok){const j=await r2.json();if(j.answer)answer=j.answer;}
+            }
+            if(answer.includes("No truth")){
+                const r3 = await fetch('https://ai-proxy.ai-n.workers.dev/api/chat', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:`Detailed answer: ${query}`, model:'@preset/truth'})});
+                if(r3.ok){const j=await r3.json();answer = j.response || j.answer || answer;}
+            }
+        } catch(e) {answer = `Error: ${e.message}`;}
+        return answer;
+    }
+
+    clear() { if(confirm('Wipe the yard?')) { this.nodes=[]; this.canvas.innerHTML='<div class="yard"></div>'; localStorage.removeItem('truthyard16'); location.reload(); } }
+    save() { localStorage.setItem('truthyard16', JSON.stringify(this.nodes.map(n=>({id:n.id,x:n.x,y:n.y,messages:n.messages||[]})))); document.getElementById('count').textContent = this.nodes.length+'/16'; }
+    restore() { this.nodes.forEach(n=>this.render(n)); document.getElementById('count').textContent=this.nodes.length+'/16'; }
 }
 const forge = new Forge();
 </script>
