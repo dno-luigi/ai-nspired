@@ -1,208 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>the truth engine</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <style>
-        :root { --accent: #facc15; --text: #ffffff; --user-bg: rgba(250,204,21,0.2); --border: rgba(250,204,21,0.4); }
-        .matrix { --accent: #00ff41; --text: #00ff41; --user-bg: rgba(0,255,65,0.2); --border: rgba(0,255,65,0.6); background:#000 !important; }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui,-apple-system,sans-serif; }
-        body { overflow:hidden; height:100dvh; background:radial-gradient(ellipse at top,#1e1b4b 0%,#0a0a15 70%); color:var(--text); transition:all .5s; }
-        #canvas { width:100vw; height:100dvh; position:relative; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>the truth engine</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {--accent:#facc15;--text:#fff;--bg1:#1e1b4b;--bg2:#0a0a15;--user:#facc1533;--border:#facc1566;}
+  .matrix {--accent:#00ff41;--text:#00ff41;--bg1:#000;--bg2:#000;--user:#00ff4133;--border:#00ff41;background:#000 !important;}
+  *{margin:0;padding:0;padding:0;box-sizing:border-box;}
+  body{overflow:hidden;height:100dvh;background:radial-gradient(ellipse at top,var(--bg1) 0%,var(--bg2) 70%);color:var(--text);font-family:'Courier New',monospace;transition:all .5s;}
+  #canvas{width:100vw;height:100dvh;position:relative;}
 
-        .yard { position:absolute; inset:0; margin:auto; width:90vmin; height:90vmin;
-                border:4px solid rgba(250,204,21,0.25); border-radius:32px; box-shadow:0 0 100px rgba(250,204,21,0.3); pointer-events:none; backdrop-filter:blur(4px); }
-        .matrix .yard { border-color:rgba(0,255,65,0.4); box-shadow:0 0 100px rgba(0,255,65,0.4); }
+  .yard{position:absolute;inset:0;margin:auto;width:90vmin;height:90vmin;border:4px solid var(--border);border-radius:32px;box-shadow:0 0 100px var(--accent);opacity:0.3;pointer-events:none;}
 
-        .card { position:absolute; width:42vmin; height:42vmin; min-width:300px; min-height:300px; 
-                background:rgba(10,10,20,0.8); backdrop-filter:blur(60px); border-radius:32px; overflow:hidden;
-                box-shadow:0 20px 60px rgba(0,0,0,0.6), 0 0 80px rgba(250,204,21,0.15); border:1px solid var(--border);
-                transition:all .4s cubic-bezier(0.16,1,0.3,1); }
-        .card.dragging { transform:scale(1.08); z-index:9999; box-shadow:0 0 120px var(--accent); }
-        .card.fullscreen { position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100dvh !important;
-                           border-radius:0 !important; z-index:10000; border:none; }
+  .card{position:absolute;width:42vmin;height:42vmin;min-width:300px;min-height:300px;background:rgba(0,0,0,0.8);border:2px solid var(--accent);border-radius:32px;overflow:hidden;box-shadow:0 0 80px var(--accent);transition:all .4s;}
+  .card.dragging{transform:scale(1.08);z-index:9999;}
+  .card.fullscreen{position:fixed !important;top:0 !important;left:0 !important;width:100vw !important;height:100dvh !important;border-radius:0 !important;z-index:10000;border:none;}
 
-        .header { height:80px; padding:20px 140px 20px 20px; display:flex; align-items:center; position:relative; cursor:grab; }
-        .header:active { cursor:grabbing; }
-        .title { font-weight:900; font-size:22px; background:linear-gradient(90deg,var(--accent),#fbbf24); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .header{height:80px;padding:20px 140px 20px 20px;display:flex;align-items:center;position:relative;cursor:grab;}
+  .header:active{cursor:grabbing;}
+  .title{font-weight:900;font-size:24px;color:var(--accent);text-shadow:0 0 20px var(--accent);letter-spacing:4px;}
 
-        .topbtns { position:absolute; top:12px; right:12px; display:flex; gap:12px; z-index:20; }
-        .topbtn { width:48px; height:48px; background:rgba(255,255,255,0.1); border-radius:50%; display:grid; place-items:center; font-size:20px; cursor:pointer; opacity:0.7; }
-        .topbtn:hover { opacity:1; }
+  .topbtns{position:absolute;top:12px;right:12px;display:flex;gap:12px;}
+  .topbtn{width:48px;height:48px;background:rgba(255,255,255,0.1);border:1px solid var(--accent);border-radius:50%;display:grid;place-items:center;font-size:20px;cursor:pointer;}
 
-        .content { height:calc(100% - 140px); padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; }
-        .message { padding:12px 16px; border-radius:16px; max-width:85%; }
-        .user { align-self:flex-end; background:var(--user-bg); border:1px solid var(--accent); }
-        .ai { align-self:flex-start; background:rgba(255,255,255,0.08); border:1px solid var(--accent); }
+  .content{flex:1;padding:20px;overflow-y:auto;}
+  .message{margin:16px 0;padding:16px;border-radius:16px;max-width:85%;background:rgba(255,255,255,0.08);border:1px solid var(--accent);}
+  .user{align-self:flex-end;background:var(--user);}
 
-        .inputbar { height:60px; padding:10px 20px; background:rgba(0,0,0,0.4); border-top:1px solid var(--border); display:flex; gap:12px; align-items:end; }
-        .input { flex:1; background:transparent; border:1px solid var(--accent); border-radius:16px; padding:12px; color:var(--text); font-size:15px; outline:none; resize:none; min-height:44px; max-height:120px; }
-        .send { width:48px; height:48px; background:var(--accent); color:#000; border:none; border-radius:50%; font-size:20px; font-weight:900; cursor:pointer; }
+  .inputbar{padding:20px;display:flex;gap:16px;align-items:end;background:rgba(0,0,0,0.6);}
+  .input{flex:1;background:transparent;border:2px solid var(--accent);border-radius:16px;padding:16px;color:var(--text);font-size:18px;outline:none;resize:none;}
+  .send{width:70px;height:70px;background:var(--accent);color:#000;border:none;border-radius:50%;font-size:32px;cursor:pointer;}
 
-        .forgebar { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:rgba(15,15,25,0.95); backdrop-filter:blur(40px);
-                    padding:12px 28px; border-radius:50px; border:2px solid var(--accent); box-shadow:0 20px 60px rgba(0,0,0,0.6); z-index:5000; display:flex; gap:20px; align-items:center; }
-        .fbtn { width:64px; height:64px; background:rgba(250,204,21,0.2); border:2px solid var(--accent); border-radius:50%; color:var(--accent); font-size:32px; display:grid; place-items:center; box-shadow:0 0 40px var(--accent); cursor:pointer; }
-    </style>
+  .forgebar{position:fixed;top:20px;left:50%;transform:translateX(-50%);display:flex;gap:20px;z-index:10000;}
+  .fbtn{width:70px;height:70px;background:rgba(255,255,255,0.1);border:2px solid var(--accent);border-radius:50%;color:var(--accent);font-size:36px;display:grid;place-items:center;cursor:pointer;box-shadow:0 0 50px var(--accent);}
+</style>
 </head>
 <body>
-    <div id="canvas"><div class="yard"></div></div>
 
-    <div class="forgebar">
-        <button class="fbtn" onclick="forge.create()">⚡</button>
-        <button class="fbtn" onclick="document.body.classList.toggle('matrix')">👁</button>
-        <button class="fbtn" onclick="forge.clear()">🗑</button>
-        <span style="color:var(--accent); font-weight:900; font-size:18px;" id="count">0/16</span>
-    </div>
+<div id="canvas"><div class="yard"></div></div>
+
+<div class="forgebar">
+  <button class="fbtn" onclick="forge.create()">⚡</button>
+  <button class="fbtn" onclick="document.body.classList.toggle('matrix')">👁</button>
+  <button class="fbtn" onclick="forge.clear()">🗑</button>
+  <span style="color:var(--accent);font-size:24px;font-weight:900;" id="count">0/16</span>
+</div>
 
 <script>
 class Forge {
-    constructor() {
-        this.nodes = JSON.parse(localStorage.getItem('truthyard16')||'[]');
-        this.canvas = document.getElementById('canvas');
+  constructor() {
+    this.nodes = JSON.parse(localStorage.getItem('truthyard16')||'[]');
+    this.canvas = document.getElementById('canvas');
+    if (this.nodes.length === 0) this.create();
+    this.restore();
+    this.handleQueryParam();
+    window.addEventListener('popstate', () => this.handleQueryParam());
+  }
 
-        // Handle ?q= even when page is already open
-        const handleQuery = () => {
-            const q = new URLSearchParams(location.search).get('q');
-            if (q) {
-                const query = decodeURIComponent(q.replace(/\+/g, ' '));
-                let card;
-                if (this.nodes.length === 1) {
-                    card = this.nodes[0];
-                } else {
-                    forge.create();
-                    card = this.nodes[this.nodes.length - 1];
-                }
-                setTimeout(() => {
-                    card.el.classList.add('fullscreen');
-                    this.ask(card.id, query);
-                }, 200);
-            } else if (this.nodes.length === 0) {
-                this.create();
-            }
-        };
+  handleQueryParam() {
+    const q = new URLSearchParams(location.search).get('q');
+    if (!q) return;
+    const query = decodeURIComponent(q.replace(/\+/g, ' '));
+    let card = this.nodes[0];
+    if (!card) card = this.create();
+    card.el.classList.add('fullscreen');
+    document.getElementById('c' + card.id).innerHTML = '<i style="opacity:0.5">who is the architect...</i>';
+    this.ask(card.id, query);
+  }
 
-        handleQuery();
-        window.addEventListener('popstate', handleQuery);
-        this.restore();
-    }
+  create() {
+    if (this.nodes.length >= 16) return;
+    const node = {id:Date.now(), x:20, y:20, messages:[]};
+    this.nodes.push(node);
+    this.render(node);
+    this.save();
+    return node;
+  }
 
-    create() {
-        if (this.nodes.length >= 16) return;
-        const node = {id:Date.now(), x:25, y:25, messages:[]};
-        this.nodes.push(node);
-        this.render(node);
-        this.save();
-    }
+  render(node) {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.style.left = node.x + 'vmin';
+    el.style.top = node.y + 'vmin';
+    el.innerHTML = `
+      <div class="header"><div class="title">the truth engine</div>
+        <div class="topbtns">
+          <div class="topbtn" onclick="this.closest('.card').classList.toggle('fullscreen')">⛶</div>
+          <div class="topbtn" onclick="let c=this.closest('.card');c.remove();forge.nodes=forge.nodes.filter(n=>n.id!==${node.id});forge.save();document.getElementById('count').textContent=forge.nodes.length+'/16';">×</div>
+        </div>
+      </div>
+      <div class="content" id="c${node.id}"><i style="opacity:0.5">who is the architect...</i></div>
+      <div class="inputbar">
+        <textarea class="input" id="i${node.id}" placeholder="what is the truth..."></textarea>
+        <button class="send" onclick="forge.ask(${node.id})">➤</button>
+      </div>`;
+    this.makeDraggable(el.querySelector('.header'), node);
+    this.canvas.appendChild(el);
+    node.el = el;
 
-    render(node) {
-        const el = document.createElement('div');
-        el.className = 'card';
-        el.style.left = node.x + 'vmin';
-        el.style.top = node.y + 'vmin';
-        el.innerHTML = `
-            <div class="header">
-                <div class="title">the truth engine</div>
-                <div class="topbtns">
-                    <div class="topbtn" onclick="this.closest('.card').classList.toggle('fullscreen')">⛶</div>
-                    <div class="topbtn" onclick="let c=this.closest('.card');c.remove();forge.nodes=forge.nodes.filter(n=>n.id!==${node.id});forge.save();document.getElementById('count').textContent=forge.nodes.length+'/16';">×</div>
-                </div>
-            </div>
-            <div class="content" id="c${node.id}"><i style="opacity:0.5">who is the architect...</i></div>
-            <div class="inputbar">
-                <textarea class="input" id="i${node.id}" placeholder="what is the truth..."></textarea>
-                <button class="send" onclick="forge.ask(${node.id})">➤</button>
-            </div>
-        `;
-        this.makeDraggable(el.querySelector('.header'), node);
-        this.canvas.appendChild(el);
-        node.el = el;
+    const ta = el.querySelector('.input');
+    ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; });
+    ta.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); forge.ask(node.id); } });
+  }
 
-        const ta = el.querySelector('.input');
-        ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; });
-        ta.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); forge.ask(node.id); } });
-    }
+  makeDraggable(header, node) {
+    let sx, sy, sl, st;
+    const move = e => { e.preventDefault();
+      const x = e.touches ? e.touches[0].clientX : e.clientX;
+      const y = e.touches ? e.touches[0].clientY : e.clientY;
+      node.el.style.left = (sl + x - sx) + 'px';
+      node.el.style.top = (st + y - sy) + 'px';
+    };
+    const up = () => {
+      const r = node.el.getBoundingClientRect();
+      node.x = r.left / innerWidth * 100;
+      node.y = r.top / innerHeight * 100;
+      node.el.style.left = node.x + 'vmin';
+      node.el.style.top = node.y + 'vmin';
+      node.el.classList.remove('dragging');
+      this.save();
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+    };
+    header.addEventListener('pointerdown', e => {
+      if (e.target.classList.contains('topbtn')) return;
+      node.el.classList.add('dragging');
+      sx = e.clientX || e.touches[0].clientX;
+      sy = e.clientY || e.touches[0].clientY;
+      sl = node.el.offsetLeft;
+      st = node.el.offsetTop;
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', up);
+      document.addEventListener('touchmove', move, {passive:false});
+      document.addEventListener('touchend', up);
+    });
+  }
 
-    makeDraggable(header, node) {
-        let startX, startY, startLeft, startTop;
-        const move = e => {
-            e.preventDefault();
-            const x = e.touches ? e.touches[0].clientX : e.clientX;
-            const y = e.touches ? e.touches[0].clientY : e.clientY;
-            node.el.style.left = (startLeft + x - startX) + 'px';
-            node.el.style.top = (startTop + y - startY) + 'px';
-        };
-        const up = () => {
-            const rect = node.el.getBoundingClientRect();
-            node.x = rect.left / innerWidth * 100;
-            node.y = rect.top / innerHeight * 100;
-            node.el.style.left = node.x + 'vmin';
-            node.el.style.top = node.y + 'vmin';
-            node.el.classList.remove('dragging');
-            this.save();
-            document.removeEventListener('pointermove', move);
-            document.removeEventListener('pointerup', up);
-        };
-        header.addEventListener('pointerdown', e => {
-            if (e.target.classList.contains('topbtn')) return;
-            node.el.classList.add('dragging');
-            startX = e.clientX || e.touches[0].clientX;
-            startY = e.clientY || e.touches[0].clientY;
-            startLeft = node.el.offsetLeft;
-            startTop = node.el.offsetTop;
-            document.addEventListener('pointermove', move);
-            document.addEventListener('pointerup', up);
-            document.addEventListener('touchmove', move, {passive:false});
-            document.addEventListener('touchend', up);
-        });
-    }
+  async ask(id, forced = null) {
+    const node = this.nodes.find(n => n.id == id);
+    const input = document.getElementById('i' + id);
+    const content = document.getElementById('c' + id);
+    const query = forced || input.value.trim();
+    if (!query) return;
+    if (!forced) input.value = '';
 
-    async ask(id, forced = null) {
-        const node = this.nodes.find(n => n.id == id);
-        const input = document.getElementById('i' + id);
-        const content = document.getElementById('c' + id);
-        const query = forced || input.value.trim();
-        if (!query) return;
-        if (!forced) input.value = '';
+    node.messages.push({role:'user', content:query});
+    content.innerHTML += `<div class="message user">${marked.parse(query)}</div>`;
+    content.scrollTop = content.scrollHeight;
 
-        node.messages.push({role:'user', content:query});
-        content.innerHTML += `<div class="message user">${marked.parse(query)}</div>`;
-        content.scrollTop = content.scrollHeight;
+    const ai = document.createElement('div');
+    ai.className = 'message ai';
+    ai.innerHTML = '▋ thinking';
+    content.appendChild(ai);
+    content.scrollTop = content.scrollHeight;
 
-        const ai = document.createElement('div');
-        ai.className = 'message ai';
-        ai.innerHTML = '▋ thinking';
-        content.appendChild(ai);
-        content.scrollTop = content.scrollHeight;
+    const result = await this.truthEngine(query);
+    ai.innerHTML = marked.parse(result);
+    node.messages.push({role:'ai', content:result});
+    content.scrollTop = content.scrollHeight;
+    this.save();
+  }
 
-        const result = await this.truthEngine(query);
-        ai.innerHTML = marked.parse(result);
-        node.messages.push({role:'ai', content:result});
-        content.scrollTop = content.scrollHeight;
-        this.save();
-    }
+  async truthEngine(query) {
+    let answer = "No truth found.";
+    try {
+      const r1 = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:query,model:'polaris-alpha'})});
+      if(r1.ok){const j=await r1.json();if(j.answer)answer=j.answer;}
+      if(answer.includes("No truth")){
+        const r2 = await fetch('https://truth.ai-n.workers.dev/api/truth/resolve', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:query.toLowerCase()})});
+        if(r2.ok){const j=await r2.json();if(j.answer)answer=j.answer;}
+      }
+      if(answer.includes("No truth")){
+        const r3 = await fetch('https://ai-proxy.ai-n.workers.dev/api/chat', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:`Detailed answer: ${query}`, model:'@preset/truth'})});
+        if(r3.ok){const j=await r3.json();answer = j.response || j.answer || answer;}
+      }
+    } catch(e) {answer = `Error: ${e.message}`;}
+    return answer;
+  }
 
-    async truthEngine(query) {
-        let answer = "No truth found.";
-        try {
-            const r1 = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:query,model:'polaris-alpha'})});
-            if(r1.ok){const j=await r1.json();if(j.answer)answer=j.answer;}
-            if(answer.includes("No truth")){
-                const r2 = await fetch('https://truth.ai-n.workers.dev/api/truth/resolve', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:query.toLowerCase()})});
-                if(r2.ok){const j=await r2.json();if(j.answer)answer=j.answer;}
-            }
-            if(answer.includes("No truth")){
-                const r3 = await fetch('https://ai-proxy.ai-n.workers.dev/api/chat', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:`Detailed answer: ${query}`, model:'@preset/truth'})});
-                if(r3.ok){const j=await r3.json();answer = j.response || j.answer || answer;}
-            }
-        } catch(e) {answer = `Error: ${e.message}`;}
-        return answer;
-    }
-
-    clear() { if(confirm('Wipe everything?')) { this.nodes=[]; this.canvas.innerHTML='<div class="yard"></div>'; localStorage.removeItem('truthyard16'); location.reload(); } }
-    save() { localStorage.setItem('truthyard16', JSON.stringify(this.nodes.map(n=>({id:n.id,x:n.x,y:n.y,messages:n.messages||[]})))); document.getElementById('count').textContent = this.nodes.length+'/16'; }
-    restore() { this.nodes.forEach(n=>this.render(n)); document.getElementById('count').textContent=this.nodes.length+'/16'; }
+  clear() { if(confirm('Wipe everything?')) { this.nodes=[]; this.canvas.innerHTML='<div class="yard"></div>'; localStorage.removeItem('truthyard16'); location.reload(); } }
+  save() { localStorage.setItem('truthyard16', JSON.stringify(this.nodes.map(n=>({id:n.id,x:n.x,y:n.y,messages:n.messages||[]})))); document.getElementById('count').textContent = this.nodes.length+'/16'; }
+  restore() { this.nodes.forEach(n=>this.render(n)); document.getElementById('count').textContent=this.nodes.length+'/16'; }
 }
 const forge = new Forge();
 </script>
