@@ -65,7 +65,7 @@
   <div id="cards"></div>
 
 <script>
-// Normalization exactly like your admin tool
+// Exact normalization from your admin tool
 function normalizeString(str) {
   return str.trim().toLowerCase().replace(/\s+/g, ' ');
 }
@@ -120,7 +120,7 @@ function createCard(initialQuery = null, legacyOnly = false) {
   if (initialQuery) ask(legacyOnly);
 }
 
-// Legacy KV only — now with pristine markdown rendering
+// Legacy KV only — perfect markdown, your exact normalization
 async function legacyOnlyLookup(query) {
   let answer = "No legacy truth found.";
   try {
@@ -134,14 +134,14 @@ async function legacyOnlyLookup(query) {
       if(j.answer) answer = j.answer;
     }
   } catch(e) {answer = `Legacy error: ${e.message}`;}
-  return answer; // marked.parse() is applied in ask()
+  return answer;
 }
 
-// Full workflow — pristine markdown rendering
+// Full workflow — perfect markdown
 async function truthEngine(query) {
   let answer = "No truth found.";
 
-  // 1. Legacy KV
+  // 1. Legacy KV — your exact normalization
   try {
     const normalized = normalizeString(query);
     const r1 = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {
@@ -187,7 +187,7 @@ document.getElementById('bigsend').onclick = () => {
 
 // Legacy button (Shift+Enter or click ⚡)
 document.getElementById('legacybtn').onclick = () => {
-  const query = document.getElementById('biginput').value.trim();
+  const query = document.getElementById('biginput' + 'input').value.trim();
   if (!query) return;
   createCard(query, true);
 };
