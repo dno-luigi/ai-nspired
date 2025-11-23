@@ -2,195 +2,66 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>the truth engine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>truth</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    body,html {margin:0;height:100dvh;background:#000;color:#00ff41;font-family:'Courier New',monospace;overflow:hidden;}
-    body {display:flex;flex-direction:column;align-items:center;justify-content:center;}
-    
-    h1 {font-size:2.8em;letter-spacing:12px;text-transform:uppercase;margin-bottom:60px;
-        text-shadow:0 0 40px #00ff41;opacity:0.9;}
-
-    #landing {text-align:center;width:90%;max-width:900px;position:relative;}
-    #biginput {width:100%;min-height:220px;background:transparent;border:3px solid #00ff41;border-radius:16px;
-               color:#00ff41;font-size:1.8em;padding:30px;padding-right:160px;outline:none;
-               box-shadow:0 0 60px #00ff4100;transition:all .4s;resize:none;}
-    #biginput:focus {box-shadow:0 0 80px #00ff4188;border-color:#00ff41;}
-    
-    #bigsend, #legacybtn {position:absolute;bottom:12px;height:80px;background:#00ff41;color:#000;
-                          border:none;border-radius:50%;font-size:3em;font-weight:bold;cursor:pointer;
-                          box-shadow:0 0 50px #00ff41;transition:transform .2s;}
-    #bigsend {right:12px;width:80px;}
-    #legacybtn {right:100px;width:60px;font-size:2.5em;opacity:0.7;}
-    #bigsend:hover, #legacybtn:hover {transform:scale(1.15);}
-
-    #newcard {position:fixed;bottom:30px;right:30px;width:70px;height:70px;background:transparent;
-              border:3px solid #00ff41;border-radius:50%;color:#00ff41;font-size:2.5em;
-              box-shadow:0 0 40px #00ff41;cursor:pointer;z-index:100;}
-
-    .card {position:fixed;inset:0;background:rgba(0,0,0,0.95);backdrop-filter:blur(10px);padding:20px;display:none;flex-direction:column;}
-    .card.active {display:flex;}
-    .content {flex:1;overflow-y:auto;padding:20px;font-size:1.6em;line-height:1.8;}
-    .content p {margin:20px 0;}
-    .content code {background:#001100;padding:2px 6px;border-radius:4px;}
-    .content pre {background:#001100;padding:15px;border-radius:8px;overflow-x:auto;margin:20px 0;}
-    .content pre code {background:none;padding:0;}
-    .content strong,.content b {color:#00ff81;}
-    .content em,.content i {color:#00ff81;}
-    .content h1,.content h2,.content h3 {color:#00ff81;margin:30px 0 15px;}
-    .content ul,.content ol {margin:20px 0 20px 40px;}
-    .content li {margin:8px 0;}
-    .content a {color:#00ff81;text-decoration:underline;}
-
-    .inputbar {padding:20px;display:flex;gap:15px;align-items:end;}
-    .input {flex:1;background:transparent;border:2px solid #00ff41;border-radius:12px;padding:16px;min-height:60px;color:#00ff41;font-size:1.5em;outline:none;resize:none;}
-    .send {width:70px;height:70px;background:#00ff41;color:#000;border:none;border-radius:50%;font-size:2.5em;}
-
-    .close {position:absolute;top:20px;right:20px;font-size:2em;color:#00ff41;opacity:0.6;cursor:pointer;}
+    body{background:#000;color:#fff;margin:0;height:100dvh;display:grid;place-items:center;font-family:monospace}
+    .card{width:92vmin;max-width:800px;background:#000;border:3px solid rgba(250,204,21,.3);border-radius:16px}
+    .header{background:#000;border-bottom:2px solid #facc15;padding:20px;text-align:center;font-size:28px;font-weight:300}
+    .content{padding:20px;height:50dvh;overflow-y:auto}
+    .input-group{padding:20px;position:relative}
+    textarea{width:100%;height:140px;background:rgba(0,0,0,.4);border:2px solid #facc15;border-radius:32px;color:#fff;padding:20px 80px 20px 20px;font-size:18px;resize:none;outline:none;box-sizing:border-box}
+    button{position:absolute;right:30px;bottom:30px;width:55px;height:55px;background:#facc15;color:#000;border:none;border-radius:50%;font-size:32px;font-weight:900;box-shadow:0 4px 20px rgba(250,204,21,.5);display:grid;place-items:center;cursor:pointer}
+    button:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(250,204,21,.7)}
+    .thinking{text-align:center;padding:60px;font-size:48px;animation:p 2s infinite;color:#facc15}
+    @keyframes p{0%,100%{opacity:.4}50%{opacity:1}}
   </style>
 </head>
 <body>
-
-  <h1>the truth engine</h1>
-
-  <div id="landing">
-    <textarea id="biginput" placeholder="who is the architect..."></textarea>
-    <button id="bigsend">➜</button>
-    <button id="legacybtn" title="Legacy KV only (Shift+Enter)">⚡</button>
+<div class="card">
+  <div class="header">truth</div>
+  <div class="content" id="c"></div>
+  <div class="input-group">
+    <textarea id="i" placeholder="who is the architect..."></textarea>
+    <button onclick="go()">⏎</button>
   </div>
-
-  <button id="newcard" onclick="createCard()">+</button>
-
-  <div id="cards"></div>
+</div>
 
 <script>
-// Exact normalization from your admin tool
-function normalizeString(str) {
-  return str.trim().toLowerCase().replace(/\s+/g, ' ');
+const c = document.getElementById('c');
+const i = document.getElementById('i');
+
+addEventListener('load', () => {
+  const q = new URLSearchParams(location.search).get('q');
+  if (q) { i.value = q.replace(/\+/g, ' '); go(); }
+});
+
+async function go() {
+  let q = i.value.trim();
+  if (!q) return;
+  i.value = '';
+  c.innerHTML = '<div class="thinking">consulting the speakeasy...</div>';
+
+  const key = q.toLowerCase().replace(/\s+/g, '+');
+  const cached = localStorage.getItem('truth:' + key);
+  if (cached) return done(cached);
+
+  let answer = null;
+
+  try { const r = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:q,model:'polaris-alpha'})}); if (r.ok) { const j = await r.json(); if (j.answer) answer = j.answer; } } catch(e) {}
+  if (!answer) try { const r = await fetch('https://truth.ai-n.workers.dev/api/truth/resolve', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:key})}); if (r.ok) { const j = await r.json(); if (j.answer) answer = j.answer; } } catch(e) {}
+  if (!answer) try { const r = await fetch('https://ai-proxy.ai-n.workers.dev/api/chat', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q})}); if (r.ok) { const j = await r.json(); answer = j.response || j.answer || 'No truth found'; } } catch(e) {}
+
+  answer = answer || '**No truth found**';
+  localStorage.setItem('truth:' + key, answer);
+  done(answer);
 }
 
-const params = new URLSearchParams(location.search);
-const autoQuery = params.get('q')?.trim();
-
-const cardsContainer = document.getElementById('cards');
-let cardCount = 0;
-
-function createCard(initialQuery = null, legacyOnly = false) {
-  if (cardCount >= 4) return alert("Max 4 truths");
-  cardCount++;
-  
-  const card = document.createElement('div');
-  card.className = 'card active';
-  card.innerHTML = `
-    <div class="close" onclick="this.parentNode.remove(); cardCount--;">×</div>
-    <div class="content" id="content${cardCount}">Thinking...</div>
-    <div class="inputbar">
-      <textarea class="input" placeholder="Ask more..."></textarea>
-      <button class="send">➜</button>
-    </div>
-  `;
-  cardsContainer.appendChild(card);
-  document.getElementById('landing').style.display = 'none';
-  document.getElementById('newcard').style.display = 'block';
-
-  const textarea = card.querySelector('.input');
-  const sendbtn = card.querySelector('.send');
-  const content = card.querySelector(`#content${cardCount}`);
-
-  const ask = async (forceLegacy = false) => {
-    let query = initialQuery || textarea.value.trim();
-    if (!query) return;
-    if (!initialQuery) textarea.value = '';
-
-    content.innerHTML += `<p style="color:#00ff41;margin:20px 0;">> ${query}</p><p>▋</p>`;
-    const result = await (forceLegacy || legacyOnly ? legacyOnlyLookup(query) : truthEngine(query));
-    content.innerHTML = content.innerHTML.replace('▋', marked.parse(result));
-    content.scrollTop = content.scrollHeight;
-  };
-
-  sendbtn.onclick = ask;
-  textarea.addEventListener('keydown', e => {
-    if(e.key==='Enter' && !e.shiftKey) {
-      e.preventDefault();
-      ask(e.shiftKey);
-    }
-  });
-
-  if (initialQuery) ask(legacyOnly);
+function done(md) {
+  c.innerHTML = marked.parse(md);
+  c.scrollTop = c.scrollHeight;
 }
-
-// Legacy KV only — perfect markdown, your exact normalization
-async function legacyOnlyLookup(query) {
-  let answer = "No legacy truth found.";
-  try {
-    const normalized = normalizeString(query);
-    const r1 = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({input:normalized,model:'polaris-alpha'})
-    });
-    if(r1.ok){
-      const j = await r1.json();
-      if(j.answer) answer = j.answer;
-    }
-  } catch(e) {answer = `Legacy error: ${e.message}`;}
-  return answer;
-}
-
-// Full workflow — perfect markdown
-async function truthEngine(query) {
-  let answer = "No truth found.";
-
-  // 1. Legacy KV — your exact normalization
-  try {
-    const normalized = normalizeString(query);
-    const r1 = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({input:normalized,model:'polaris-alpha'})
-    });
-    if(r1.ok){const j=await r1.json();if(j.answer) return j.answer;}
-  } catch(e){}
-
-  // 2. Resolve
-  try {
-    const r2 = await fetch('https://truth.ai-n.workers.dev/api/truth/resolve', {
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({input:query.toLowerCase().trim()})
-    });
-    if(r2.ok){const j=await r2.json();if(j.answer) return j.answer;}
-  } catch(e){}
-
-  // 3. AI Proxy
-  try {
-    const r3 = await fetch('https://ai-proxy.ai-n.workers.dev/api/chat', {
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({message:`Detailed answer: ${query}`, model:'@preset/truth'})
-    });
-    if(r3.ok){const j=await r3.json();answer = j.response || j.answer || answer;}
-  } catch(e){}
-
-  return answer;
-}
-
-// Auto-start from ?q=
-if (autoQuery) {
-  document.getElementById('landing').style.display = 'none';
-  createCard(decodeURIComponent(autoQuery));
-}
-
-// Big center send
-document.getElementById('bigsend').onclick = () => {
-  const query = document.getElementById('biginput').value.trim();
-  if (!query) return;
-  createCard(query);
-};
-
-// Legacy button (Shift+Enter or click ⚡)
-document.getElementById('legacybtn').onclick = () => {
-  const query = document.getElementById('biginput' + 'input').value.trim();
-  if (!query) return;
-  createCard(query, true);
-};
 </script>
 </body>
 </html>
