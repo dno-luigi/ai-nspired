@@ -1,197 +1,409 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>truth</title>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <style>
-    body{background:#000;color:#fff;margin:0;height:100dvh;display:grid;place-items:center;font-family:monospace}
-    .card{width:92vmin;max-width:800px;background:#000;border:3px solid rgba(250,204,21,.3);border-radius:16px}
-    .header{background:#000;border-bottom:2px solid #facc15;padding:20px;text-align:center;font-size:28px;font-weight:300}
-    .content{padding:20px;height:50dvh;overflow-y:auto}
-    .input-group{padding:20px;position:relative}
-    textarea{width:100%;height:140px;background:rgba(0,0,0,.4);border:2px solid #facc15;border-radius:32px;color:#fff;padding:20px 80px 20px 20px;font-size:18px;resize:none;outline:none;box-sizing:border-box}
-    button{position:absolute;right:30px;bottom:30px;width:55px;height:55px;background:#facc15;color:#000;border:none;border-radius:50%;font-size:32px;font-weight:900;box-shadow:0 4px 20px rgba(250,204,21,.5);display:grid;place-items:center;cursor:pointer}
-    button:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(250,204,21,.7)}
-    .thinking{text-align:center;padding:60px;font-size:48px;animation:p 2s infinite;color:#facc15}
-    @keyframes p{0%,100%{opacity:.4}50%{opacity:1}}
-    .workflow-step{margin:10px 0;padding:10px;background:rgba(250,204,21,.1);border-radius:8px;font-size:14px}
-    .workflow-step.success{background:rgba(34,197,94,.2);border-left:4px solid #22c55e}
-    .workflow-step.error{background:rgba(239,68,68,.2);border-left:4px solid #ef4444}
-    .workflow-step.pending{background:rgba(59,130,246,.2);border-left:4px solid #3b82f6}
-  </style>
-</head>
-<body>
-<div class="card">
-  <div class="header">truth</div>
-  <div class="content" id="c"></div>
-  <div class="input-group">
-    <textarea id="i" placeholder="who is the architect..."></textarea>
-    <button onclick="go()">⏎</button>
-  </div>
-</div>
+// Main worker export
+export default {
+  async fetch(request, env, ctx) {
+    // CORS headers
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
 
-<script>
-const c = document.getElementById('c');
-const i = document.getElementById('i');
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
+    }
 
-addEventListener('load', () => {
-  const q = new URLSearchParams(location.search).get('q');
-  if (q) { i.value = q.replace(/\s+/g, ' '); go(); }
-});
+    try {
+      const url = new URL(request.url);
+      
+      // Route handling
+      if (url.pathname === '/chat' && request.method === 'POST') {
+        return await handleChat(request, env, corsHeaders);
+      }
+      
+      if (url.pathname === '/state' && request.method === 'GET') {
+        return await getState(request, env, corsHeaders);
+      }
 
-async function go() {
-  let q = i.value.trim();
-  if (!q) return;
-  i.value = '';
+      return new Response('Not Found', { status: 404, headers: corsHeaders });
+    } catch (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+  }
+};
+
+async function handleChat(request, env, corsHeaders) {
+  const body = await request.json();
+  const { 
+    messages, 
+    preset = 'default', 
+    userId, 
+    sessionId, 
+    enableSearch = false, 
+    maxContext = 32000 
+  } = body;
+
+  // Load existing state
+  const stateKey = `session:${sessionId || userId || 'anonymous'}`;
+  let sessionState = await loadSessionState(env.KV_STORE, stateKey);
+
+  // Update session state with new messages
+  sessionState.messages = [...sessionState.messages, ...messages];
+  sessionState.userId = userId || sessionState.userId;
+
+  // Context management with embeddings
+  const managedContext = await manageContext(sessionState, maxContext, env);
   
-  // Display workflow steps
-  let workflowLog = '';
-  const logStep = (step, status, message) => {
-    workflowLog += `<div class="workflow-step ${status}"><strong>${step}:</strong> ${message}</div>`;
-    c.innerHTML = workflowLog + '<div class="thinking">processing...</div>';
+  // Prepare OpenRouter request with preset
+  const openRouterRequest = {
+    model: `@preset/${preset}`,
+    messages: managedContext.messages,
+    stream: true,
+    tools: getAvailableTools(enableSearch),
+    response_format: { type: "text" },
+    user: userId
   };
 
-  const key = q.toLowerCase().replace(/\s+/g, '+');
-  const cached = localStorage.getItem('truth:' + key);
-  if (cached) {
-    logStep('Cache', 'success', 'Found cached result');
-    return done(cached);
+  // Add search context if enabled
+  if (enableSearch && messages.length > 0) {
+    const searchResults = await performWebSearch(messages[messages.length - 1].content);
+    if (searchResults) {
+      openRouterRequest.messages.unshift({
+        role: "system",
+        content: `Current web search context: ${JSON.stringify(searchResults)}`
+      });
+    }
   }
 
-  let answer = null;
-  let workflow = [];
+  // Stream response from OpenRouter
+  const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://your-domain.com',
+      'X-Title': 'Universal AI Proxy'
+    },
+    body: JSON.stringify(openRouterRequest)
+  });
 
-  // Step 1: Legacy KV Check
-  logStep('Legacy KV', 'pending', 'Checking legacy storage...');
+  // Handle streaming response with tool calling
+  if (openRouterResponse.body) {
+    const { readable, writable } = new TransformStream();
+    const writer = writable.getWriter();
+    
+    // Process stream and handle tool calls
+    processStreamWithToolCalls(openRouterResponse.body, writer, env, sessionState, stateKey);
+    
+    return new Response(readable, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+      }
+    });
+  }
+
+  return new Response('Stream not available', { status: 500, headers: corsHeaders });
+}
+
+async function processStreamWithToolCalls(stream, writer, env, sessionState, stateKey) {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let currentMessage = { role: 'assistant', content: '', tool_calls: [] };
+
   try {
-    const r = await fetch('https://truthengine.ai-n.workers.dev/api/ai/truth', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({input: q, model: 'polaris-alpha'})
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') {
+            // Save final state and close
+            sessionState.messages.push(currentMessage);
+            await saveSessionState(env.KV_STORE, stateKey, sessionState);
+            await writer.write(new TextEncoder().encode('data: [DONE]\n\n'));
+            await writer.close();
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(data);
+            const delta = parsed.choices && parsed.choices[0] && parsed.choices[0].delta;
+
+            if (delta) {
+              // Handle content
+              if (delta.content) {
+                currentMessage.content += delta.content;
+                await writer.write(new TextEncoder().encode(`data: ${data}\n\n`));
+              }
+
+              // Handle tool calls with interleaved thinking
+              if (delta.tool_calls) {
+                currentMessage.tool_calls.push(...delta.tool_calls);
+                
+                // Execute tool calls and continue conversation
+                for (const toolCall of delta.tool_calls) {
+                  if (toolCall.function && toolCall.function.name) {
+                    const toolResult = await executeToolCall(toolCall, env);
+                    
+                    // Add tool result to conversation
+                    sessionState.messages.push(currentMessage);
+                    sessionState.messages.push({
+                      role: 'tool',
+                      tool_call_id: toolCall.id,
+                      content: JSON.stringify(toolResult)
+                    });
+
+                    // Continue conversation with tool result (interleaved thinking)
+                    const followUpResponse = await continueWithToolResult(sessionState, env);
+                    if (followUpResponse) {
+                      await writer.write(new TextEncoder().encode(
+                        `data: ${JSON.stringify(followUpResponse)}\n\n`
+                      ));
+                    }
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            // Skip malformed JSON
+            continue;
+          }
+        }
+      }
+    }
+  } catch (error) {
+    await writer.write(new TextEncoder().encode(
+      `data: ${JSON.stringify({ error: error.message })}\n\n`
+    ));
+  } finally {
+    await writer.close();
+  }
+}
+
+async function manageContext(sessionState, maxContext, env) {
+  // Simple token estimation (rough approximation)
+  let totalTokens = 0;
+  const managedMessages = [];
+  
+  // Always keep system messages and recent messages
+  const recentMessages = sessionState.messages.slice(-10);
+  const systemMessages = sessionState.messages.filter(m => m.role === 'system');
+  
+  // Combine and deduplicate
+  const combinedMessages = [...systemMessages, ...recentMessages];
+  const uniqueMessages = combinedMessages.filter((msg, index, arr) => 
+    arr.findIndex(m => JSON.stringify(m) === JSON.stringify(msg)) === index
+  );
+
+  // Estimate tokens and trim if necessary
+  for (const message of uniqueMessages.reverse()) {
+    const messageTokens = estimateTokens(JSON.stringify(message));
+    if (totalTokens + messageTokens < maxContext) {
+      managedMessages.unshift(message);
+      totalTokens += messageTokens;
+    } else {
+      break;
+    }
+  }
+
+  return { messages: managedMessages, embeddings: sessionState.embeddings };
+}
+
+function estimateTokens(text) {
+  // Rough estimation: ~4 characters per token
+  return Math.ceil(text.length / 4);
+}
+
+function getAvailableTools(enableSearch) {
+  const tools = [
+    {
+      type: "function",
+      function: {
+        name: "get_current_time",
+        description: "Get the current date and time",
+        parameters: {
+          type: "object",
+          properties: {},
+          required: []
+        }
+      }
+    },
+    {
+      type: "function", 
+      function: {
+        name: "calculate",
+        description: "Perform mathematical calculations",
+        parameters: {
+          type: "object",
+          properties: {
+            expression: {
+              type: "string",
+              description: "Mathematical expression to evaluate"
+            }
+          },
+          required: ["expression"]
+        }
+      }
+    }
+  ];
+
+  if (enableSearch) {
+    tools.push({
+      type: "function",
+      function: {
+        name: "web_search",
+        description: "Search the web for current information",
+        parameters: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string", 
+              description: "Search query"
+            }
+          },
+          required: ["query"]
+        }
+      }
+    });
+  }
+
+  return tools;
+}
+
+async function executeToolCall(toolCall, env) {
+  const { name, arguments: args } = toolCall.function;
+  const parsedArgs = JSON.parse(args || '{}');
+
+  switch (name) {
+    case 'get_current_time':
+      return { time: new Date().toISOString() };
+      
+    case 'calculate':
+      try {
+        // Simple math evaluation (be careful with eval in production)
+        const result = Function(`"use strict"; return (${parsedArgs.expression})`)();
+        return { result, expression: parsedArgs.expression };
+      } catch (error) {
+        return { error: 'Invalid mathematical expression' };
+      }
+      
+    case 'web_search':
+      return await performWebSearch(parsedArgs.query);
+      
+    default:
+      return { error: `Unknown tool: ${name}` };
+  }
+}
+
+async function performWebSearch(query) {
+  // Implement web search using a service like Serper, Brave Search, etc.
+  // This is a placeholder implementation
+  try {
+    // Example using a hypothetical search API
+    const response = await fetch(`https://api.search-service.com/search?q=${encodeURIComponent(query)}`, {
+      headers: { 'Authorization': 'Bearer YOUR_SEARCH_API_KEY' }
     });
     
-    if (r.ok) {
-      const j = await r.json();
-      if (j.answer) {
-        answer = j.answer;
-        workflow.push('✅ Legacy KV: Found existing truth');
-        logStep('Legacy KV', 'success', 'Found existing truth');
-      } else {
-        workflow.push('❌ Legacy KV: No answer found');
-        logStep('Legacy KV', 'error', 'No answer found');
-      }
-    } else {
-      workflow.push(`❌ Legacy KV: HTTP ${r.status}`);
-      logStep('Legacy KV', 'error', `HTTP ${r.status}`);
+    if (response.ok) {
+      const results = await response.json();
+      return {
+        query,
+        results: results.results ? results.results.slice(0, 5) : [],
+        timestamp: new Date().toISOString()
+      };
     }
-  } catch(e) {
-    workflow.push(`❌ Legacy KV: ${e.message}`);
-    logStep('Legacy KV', 'error', e.message);
+  } catch (error) {
+    console.error('Search error:', error);
   }
-
-  // Step 2: Resolve Check (if Legacy didn't find anything)
-  if (!answer) {
-    logStep('Resolve', 'pending', 'Checking master/provisional truths...');
-    try {
-      const r = await fetch('https://truth.ai-n.workers.dev/api/truth/resolve', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({input: key})
-      });
-      
-      if (r.ok) {
-        const j = await r.json();
-        if (j.answer) {
-          answer = j.answer;
-          workflow.push('✅ Resolve: Found existing truth');
-          logStep('Resolve', 'success', 'Found existing truth');
-        } else {
-          workflow.push('❌ Resolve: No answer found');
-          logStep('Resolve', 'error', 'No answer found');
-        }
-      } else {
-        workflow.push(`❌ Resolve: HTTP ${r.status}`);
-        logStep('Resolve', 'error', `HTTP ${r.status}`);
-      }
-    } catch(e) {
-      workflow.push(`❌ Resolve: ${e.message}`);
-      logStep('Resolve', 'error', e.message);
-    }
-  }
-
-  // Step 3: AI Proxy (if no existing truth found)
-  if (!answer) {
-    logStep('AI Proxy', 'pending', 'Querying AI for new answer...');
-    try {
-      const r = await fetch('https://ai-proxy.ai-n.workers.dev/api/chat', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({message: q})
-      });
-      
-      if (r.ok) {
-        const j = await r.json();
-        answer = j.response || j.answer || 'No truth found';
-        workflow.push('✅ AI Proxy: Generated new answer');
-        logStep('AI Proxy', 'success', 'Generated new answer');
-      } else {
-        workflow.push(`❌ AI Proxy: HTTP ${r.status}`);
-        logStep('AI Proxy', 'error', `HTTP ${r.status}`);
-      }
-    } catch(e) {
-      workflow.push(`❌ AI Proxy: ${e.message}`);
-      logStep('AI Proxy', 'error', e.message);
-    }
-  }
-
-  // Step 4: Save as Provisional (if AI generated answer)
-  if (answer && !cached && !workflow.some(step => step.includes('Legacy KV: Found') || step.includes('Resolve: Found'))) {
-    logStep('Provisional Save', 'pending', 'Saving as provisional truth...');
-    try {
-      const saveResponse = await fetch('https://truth.ai-n.workers.dev/api/truth/provisional/update', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          id: key,
-          answer: answer,
-          meta: {
-            model: 'justice-approved',
-            confidence: 0.85,
-            source: 'proxy_ai',
-            qc_passed: false
-          }
-        })
-      });
-      
-      if (saveResponse.ok) {
-        workflow.push('✅ Provisional Save: Successfully saved');
-        logStep('Provisional Save', 'success', 'Successfully saved');
-      } else {
-        workflow.push(`⚠️ Provisional Save: HTTP ${saveResponse.status} (non-critical)`);
-        logStep('Provisional Save', 'pending', `HTTP ${saveResponse.status} - continuing anyway`);
-      }
-    } catch(e) {
-      workflow.push(`⚠️ Provisional Save: ${e.message} (non-critical)`);
-      logStep('Provisional Save', 'pending', `${e.message} - continuing anyway`);
-    }
-  }
-
-  answer = answer || '**No truth found**';
-  localStorage.setItem('truth:' + key, answer);
   
-  // Final display with workflow summary
-  const workflowSummary = workflow.join('\n');
-  const finalContent = `${workflowLog}\n---\n${marked.parse(answer)}`;
-  c.innerHTML = finalContent;
-  c.scrollTop = c.scrollHeight;
+  return { query, results: [], error: 'Search unavailable' };
 }
 
-function done(md) {
-  c.innerHTML = marked.parse(md);
-  c.scrollTop = c.scrollHeight;
+async function continueWithToolResult(sessionState, env) {
+  // Make another OpenRouter call with the updated context including tool results
+  const continueRequest = {
+    model: '@preset/default', // Use default preset for continuation
+    messages: sessionState.messages,
+    stream: false,
+    max_tokens: 500
+  };
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(continueRequest)
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      return result.choices && result.choices[0] && result.choices[0].message;
+    }
+  } catch (error) {
+    console.error('Continue conversation error:', error);
+  }
+
+  return null;
 }
-</script>
-</body>
-</html>
+
+async function loadSessionState(kv, key) {
+  try {
+    const stored = await kv.get(key);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Error loading session state:', error);
+  }
+
+  return {
+    messages: [],
+    embeddings: [],
+    lastUpdated: Date.now(),
+    userId: 'anonymous'
+  };
+}
+
+async function saveSessionState(kv, key, state) {
+  try {
+    state.lastUpdated = Date.now();
+    await kv.put(key, JSON.stringify(state), { expirationTtl: 86400 * 7 }); // 7 days
+  } catch (error) {
+    console.error('Error saving session state:', error);
+  }
+}
+
+async function getState(request, env, corsHeaders) {
+  const url = new URL(request.url);
+  const sessionId = url.searchParams.get('sessionId');
+  const userId = url.searchParams.get('userId');
+  
+  if (!sessionId && !userId) {
+    return new Response(JSON.stringify({ error: 'sessionId or userId required' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+
+  const stateKey = `session:${sessionId || userId}`;
+  const state = await loadSessionState(env.KV_STORE, stateKey);
+
+  return new Response(JSON.stringify(state), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
