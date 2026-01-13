@@ -44,8 +44,8 @@
       <label><input type="checkbox" id="enableTools"> Tools</label>
       <label><input type="checkbox" id="enableReasoning"> Reasoning</label>
     </div>
-    <textarea id="i" placeholder="Ask anything..."></textarea>
-    <button onclick="go()">âŽ</button>
+    <textarea id="i" placeholder="Ask anything...">🫠</textarea>
+    <button onclick="go()">⏎</button>
   </div>
 </div>
 
@@ -282,10 +282,10 @@ async function go() {
     }
 
     answer = fullAnswer;
-    workflow.push('âœ… AI Processing: Response completed');
+    workflow.push('👊… AI Processing: Response completed');
     
   } catch(e) {
-    workflow.push(`âŒ AI Processing: ${e.message}`);
+    workflow.push(` AI Processing: ${e.message}`);
     logStep('AI Processing', 'error', e.message);
     return;
   }
@@ -294,10 +294,10 @@ async function go() {
   logStep('Caching', 'pending', 'Caching result...');
   try {
     localStorage.setItem('ai-cache:' + key, answer);
-    workflow.push('âœ… Caching: Result cached locally');
+    workflow.push('… Caching: Result cached locally');
     logStep('Caching', 'success', 'Result cached for future use');
   } catch(e) {
-    workflow.push(`âŒ Caching: ${e.message}`);
+    workflow.push(` Caching: ${e.message}`);
     logStep('Caching', 'error', e.message);
   }
 
