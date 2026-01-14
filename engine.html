@@ -1,381 +1,343 @@
-// OpenRouter Universal Preset Proxy with Unlimited Context
-export default {
-  async fetch(request, env) {
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        }
-      });
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>truth-engine</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body{background:#000;color:#fff;margin:0;height:100dvh;display:grid;place-items:center;font-family:monospace}
+    .card{width:92vmin;max-width:800px;background:#000;border:3px solid rgba(250,204,21,.3);border-radius:16px}
+    .header{background:#000;border-bottom:2px solid #facc15;padding:20px;text-align:center;font-size:28px;font-weight:300}
+    .content{padding:20px;height:50dvh;overflow-y:auto}
+    .input-group{padding:20px;position:relative}
+    textarea{width:100%;height:140px;background:rgba(0,0,0,.4);border:2px solid #facc15;border-radius:32px;color:#fff;padding:20px 80px 20px 20px;font-size:18px;resize:none;outline:none;box-sizing:border-box}
+    button{position:absolute;right:30px;bottom:30px;width:55px;height:55px;background:#facc15;color:#000;border:none;border-radius:50%;font-size:32px;font-weight:900;box-shadow:0 4px 20px rgba(250,204,21,.5);display:grid;place-items:center;cursor:pointer}
+    button:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(250,204,21,.7)}
+    .thinking{text-align:center;padding:60px;font-size:48px;animation:p 2s infinite;color:#facc15}
+    @keyframes p{0%,100%{opacity:.4}50%{opacity:1}}
+    .workflow-step{margin:10px 0;padding:10px;background:rgba(250,204,21,.1);border-radius:8px;font-size:14px}
+    .workflow-step.success{background:rgba(34,197,94,.2);border-left:4px solid #22c55e}
+    .workflow-step.error{background:rgba(239,68,68,.2);border-left:4px solid #ef4444}
+    .workflow-step.pending{background:rgba(59,130,246,.2);border-left:4px solid #3b82f6}
+    .preset-selector{padding:10px;margin-bottom:10px}
+    .preset-selector select{background:#000;color:#fff;border:1px solid #facc15;padding:5px;border-radius:4px}
+    .options{display:flex;gap:10px;margin-bottom:10px;font-size:12px}
+    .options label{display:flex;align-items:center;gap:5px}
+    .options input[type="checkbox"]{accent-color:#facc15}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="header">truth-engine</div>
+  <div class="content" id="c"></div>
+  <div class="input-group">
+    <div class="preset-selector">
+      <label>Preset: 
+        <select id="preset">
+          <option value="truth-engine">truth-engine</option>          
+          <option value="coding">coding</option>          
+          <option value="rent">rent</option>          
+         </select>
+      </label>
+    </div>
+    <div class="options">
+      <label><input type="checkbox" id="enableSearch"> Web Search</label>
+      <label><input type="checkbox" id="enableTools"> Tools</label>
+      <label><input type="checkbox" id="enableReasoning"> Reasoning</label>
+    </div>
+    <textarea id="i" placeholder="Ask anything...">🫠</textarea>
+    <button onclick="go()">⏎</button>
+  </div>
+</div>
 
-    if (request.method !== 'POST') {
-      return new Response('Method not allowed', { status: 405 });
-    }
+<script>
+const c = document.getElementById('c');
+const i = document.getElementById('i');
+const WORKER_URL = 'https://orproxy.ai-n.workers.dev'; // Replace with your worker URL
 
-    try {
-      const { prompt, preset, stream = false, tools = [], context_id = null } = await request.json();
-      
-      if (!prompt) {
-        return new Response(JSON.stringify({ error: 'Prompt is required' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-
-      const handler = new UniversalPresetHandler(env);
-      
-      if (stream) {
-        return handler.handleStreamingRequest(prompt, preset, tools, context_id);
-      } else {
-        return handler.handleRequest(prompt, preset, tools, context_id);
-      }
-    } catch (error) {
-      return new Response(JSON.stringify({ 
-        error: 'Internal server error', 
-        details: error.message 
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-  }
-};
-
-class UniversalPresetHandler {
-  constructor(env) {
-    this.env = env;
-    this.openRouterKey = env.OPENROUTER_API_KEY;
-    this.baseUrl = 'https://openrouter.ai/api/v1';
-  }
-
-  // Unlimited Context System with Middle-Out Transform
-  async buildUnlimitedContext(prompt, contextId) {
-    if (!contextId) return [];
-
-    try {
-      // Get embedding for current prompt
-      const promptEmbedding = await this.getEmbedding(prompt);
-      
-      // Retrieve stored context chunks
-      const storedChunks = await this.getStoredContext(contextId);
-      
-      if (storedChunks.length === 0) return [];
-
-      // Calculate relevance scores using cosine similarity
-      const rankedChunks = storedChunks.map(chunk => ({
-        ...chunk,
-        relevance: this.cosineSimilarity(promptEmbedding, chunk.embedding)
-      })).sort((a, b) => b.relevance - a.relevance);
-
-      // Middle-out transform: select most relevant chunks from different time periods
-      const contextMessages = this.middleOutTransform(rankedChunks, 8000); // ~8k token budget
-      
-      return contextMessages;
-    } catch (error) {
-      console.error('Context retrieval error:', error);
-      return [];
-    }
+// Universal AI Proxy Class
+class UniversalAIProxy {
+  constructor(workerUrl) {
+    this.workerUrl = workerUrl;
+    this.sessionId = this.getOrCreateSessionId();
   }
 
-  // Middle-Out Transform: Select chunks from beginning, end, and most relevant middle
-  middleOutTransform(rankedChunks, tokenBudget) {
-    if (rankedChunks.length === 0) return [];
-
-    const result = [];
-    let usedTokens = 0;
-    const avgTokensPerChunk = 200; // Estimate
-
-    // 1. Always include the most recent chunks (end)
-    const recentChunks = rankedChunks.slice(0, 3);
-    for (const chunk of recentChunks) {
-      if (usedTokens + avgTokensPerChunk > tokenBudget) break;
-      result.push(chunk);
-      usedTokens += avgTokensPerChunk;
+  getOrCreateSessionId() {
+    let sessionId = localStorage.getItem('ai-session-id');
+    if (!sessionId) {
+      sessionId = 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('ai-session-id', sessionId);
     }
-
-    // 2. Include oldest relevant chunks (beginning)
-    const oldestChunks = rankedChunks.slice(-2);
-    for (const chunk of oldestChunks) {
-      if (usedTokens + avgTokensPerChunk > tokenBudget) break;
-      if (!result.find(r => r.id === chunk.id)) {
-        result.push(chunk);
-        usedTokens += avgTokensPerChunk;
-      }
-    }
-
-    // 3. Fill remaining budget with most relevant middle chunks
-    const middleChunks = rankedChunks.slice(3, -2);
-    for (const chunk of middleChunks) {
-      if (usedTokens + avgTokensPerChunk > tokenBudget) break;
-      if (!result.find(r => r.id === chunk.id)) {
-        result.push(chunk);
-        usedTokens += avgTokensPerChunk;
-      }
-    }
-
-    // Sort by timestamp for coherent conversation flow
-    return result.sort((a, b) => a.timestamp - b.timestamp).map(chunk => ({
-      role: chunk.role,
-      content: chunk.content
-    }));
+    return sessionId;
   }
 
-  async getEmbedding(text) {
-    const response = await fetch(`${this.baseUrl}/embeddings`, {
+  async streamChat(messages, options = {}) {
+    const requestBody = {
+      messages,
+      sessionId: this.sessionId,
+      userId: options.userId || 'anonymous',
+      preset: options.preset || 'default',
+      enableSearch: options.enableSearch || false,
+      maxContext: options.maxContext || 32000
+    };
+
+    // Save to local storage
+    this.saveToLocalStorage('last-request', requestBody);
+
+    const response = await fetch(`${this.workerUrl}/chat`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.openRouterKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://your-domain.com',
-        'X-Title': 'Universal Preset Proxy'
-      },
-      body: JSON.stringify({
-        model: 'text-embedding-3-small', // Fast and cost-effective
-        input: text
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
     });
 
-    if (!response.ok) {
-      throw new Error(`Embedding API error: ${response.status}`);
+    if (!response.body) {
+      throw new Error('No response body');
     }
 
-    const data = await response.json();
-    return data.data[0].embedding;
+    return this.processStream(response.body);
   }
 
-  async getStoredContext(contextId) {
-    // Retrieve from KV storage
-    const stored = await this.env.CONTEXT_STORE.get(`context:${contextId}`);
-    return stored ? JSON.parse(stored) : [];
-  }
+  async processStream(stream) {
+    const reader = stream.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullResponse = '';
 
-  async storeContext(contextId, messages) {
-    // Store with embeddings for future retrieval
-    const chunksWithEmbeddings = [];
-    
-    for (const message of messages) {
-      if (message.content && message.content.length > 50) { // Only embed substantial content
+    return new ReadableStream({
+      async start(controller) {
         try {
-          const embedding = await this.getEmbedding(message.content);
-          chunksWithEmbeddings.push({
-            id: `${Date.now()}-${Math.random()}`,
-            role: message.role,
-            content: message.content,
-            embedding: embedding,
-            timestamp: Date.now()
-          });
-        } catch (error) {
-          console.error('Failed to embed message:', error);
-          // Store without embedding as fallback
-          chunksWithEmbeddings.push({
-            id: `${Date.now()}-${Math.random()}`,
-            role: message.role,
-            content: message.content,
-            embedding: null,
-            timestamp: Date.now()
-          });
-        }
-        
-        
-      }
-    }
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-    // Merge with existing context
-    const existing = await this.getStoredContext(contextId);
-    const merged = [...existing, ...chunksWithEmbeddings];
-    
-    // Keep only last 1000 chunks to prevent unlimited growth
-    const trimmed = merged.slice(-1000);
-    
-    await this.env.CONTEXT_STORE.put(`context:${contextId}`, JSON.stringify(trimmed));
-  }
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
 
-  cosineSimilarity(a, b) {
-    if (!a || !b || a.length !== b.length) return 0;
-    
-    let dotProduct = 0;
-    let normA = 0;
-    let normB = 0;
-    
-    for (let i = 0; i < a.length; i++) {
-      dotProduct += a[i] * b[i];
-      normA += a[i] * a[i];
-      normB += b[i] * b[i];
-    }
-    
-    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
-  }
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') {
+                  controller.close();
+                  return;
+                }
 
-  // Handle streaming requests with interleaved thinking
-  async handleStreamingRequest(prompt, preset, tools, contextId) {
-    const contextMessages = await this.buildUnlimitedContext(prompt, contextId);
-    
-    const messages = [
-      ...contextMessages,
-      { role: 'user', content: prompt }
-    ];
+                try {
+                  const parsed = JSON.parse(data);
+                  const delta = parsed.choices && parsed.choices[0] && parsed.choices[0].delta;
+                  
+                  if (delta && delta.content) {
+                    fullResponse += delta.content;
+                    controller.enqueue(delta.content);
+                  }
 
-    const requestBody = {
-      model: preset ? `@preset/${preset}` : 'anthropic/claude-sonnet-4.5',
-      messages: messages,
-      stream: true,
-      tools: tools.length > 0 ? tools : undefined,
-      // Enable thinking for supported models
-      extra_body: {
-        thinking: true
-      }
-    };
+                  // Handle tool calls
+                  if (delta && delta.tool_calls) {
+                    controller.enqueue(`\n\nðŸ”§ **Tool Call**: ${delta.tool_calls[0].function.name}\n`);
+                  }
 
-    const response = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.openRouterKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://your-domain.com',
-        'X-Title': 'Universal Preset Proxy'
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-    if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.status}`);
-    }
-
-    // Create a transform stream to handle interleaved thinking
-    const { readable, writable } = new TransformStream({
-      transform: async (chunk, controller) => {
-        const decoder = new TextDecoder();
-        const text = decoder.decode(chunk);
-        
-        // Parse SSE chunks and handle thinking blocks
-        const lines = text.split('\n');
-        for (const line of lines) {
-          if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-            try {
-              const data = JSON.parse(line.slice(6));
-              
-              // Handle thinking blocks specially
-              if (data.choices?.[0]?.delta?.thinking) {
-                controller.enqueue(new TextEncoder().encode(
-                  `data: ${JSON.stringify({
-                    type: 'thinking',
-                    content: data.choices[0].delta.thinking
-                  })}\n\n`
-                ));
+                  // Handle reasoning tokens
+                  if (parsed.reasoning) {
+                    controller.enqueue(`\n\nðŸ’­ **Reasoning**: ${parsed.reasoning}\n`);
+                  }
+                } catch (e) {
+                  // Skip malformed JSON
+                  continue;
+                }
               }
-              
-              // Handle regular content
-              if (data.choices?.[0]?.delta?.content) {
-                controller.enqueue(new TextEncoder().encode(
-                  `data: ${JSON.stringify({
-                    type: 'content',
-                    content: data.choices[0].delta.content
-                  })}\n\n`
-                ));
-              }
-              
-              // Handle tool calls
-              if (data.choices?.[0]?.delta?.tool_calls) {
-                controller.enqueue(new TextEncoder().encode(
-                  `data: ${JSON.stringify({
-                    type: 'tool_call',
-                    tool_calls: data.choices[0].delta.tool_calls
-                  })}\n\n`
-                ));
-              }
-            } catch (e) {
-              // Forward malformed chunks as-is
-              controller.enqueue(chunk);
             }
-          } else {
-            controller.enqueue(new TextEncoder().encode(line + '\n'));
           }
+        } catch (error) {
+          controller.error(error);
         }
-      }
-    });
-
-    // Store the conversation for future context
-    if (contextId) {
-      // We'll store this after the stream completes
-      // For now, just store the user message
-      await this.storeContext(contextId, [{ role: 'user', content: prompt }]);
-    }
-
-    // Pipe the response through our transform
-    response.body.pipeTo(writable);
-
-    return new Response(readable, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       }
     });
   }
 
-  // Handle non-streaming requests
-  async handleRequest(prompt, preset, tools, contextId) {
-    const contextMessages = await this.buildUnlimitedContext(prompt, contextId);
+  async getState() {
+    const response = await fetch(`${this.workerUrl}/state?sessionId=${this.sessionId}`);
+    const state = await response.json();
     
-    const messages = [
-      ...contextMessages,
-      { role: 'user', content: prompt }
-    ];
-
-    const requestBody = {
-      model: preset ? `@preset/${preset}` : 'anthropic/claude-sonnet-4.5',
-      messages: messages,
-      tools: tools.length > 0 ? tools : undefined,
-      extra_body: {
-        thinking: true
-      }
-    };
-
-    const response = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.openRouterKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://your-domain.com',
-        'X-Title': 'Universal Preset Proxy'
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
+    // Sync to local storage
+    this.saveToLocalStorage('session-state', state);
     
-    // Store the conversation for future context
-    if (contextId) {
-      const conversationMessages = [
-        { role: 'user', content: prompt },
-        { role: 'assistant', content: data.choices[0].message.content }
-      ];
-      await this.storeContext(contextId, conversationMessages);
-    }
+    return state;
+  }
 
-    return new Response(JSON.stringify({
-      response: data.choices[0].message.content,
-      thinking: data.choices[0].message.thinking || null,
-      model: data.model,
-      usage: data.usage,
-      tool_calls: data.choices[0].message.tool_calls || null,
-      context_used: contextMessages.length > 0
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    });
+  saveToLocalStorage(key, data) {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      console.error('Local storage error:', error);
+    }
+  }
+
+  getFromLocalStorage(key) {
+    try {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Local storage error:', error);
+      return null;
+    }
   }
 }
+
+// Initialize proxy
+const aiProxy = new UniversalAIProxy(WORKER_URL);
+
+addEventListener('load', () => {
+  const q = new URLSearchParams(location.search).get('q');
+  if (q) { i.value = q.replace(/\s+/g, ' '); go(); }
+});
+
+async function go() {
+  let q = i.value.trim();
+  if (!q) return;
+  i.value = '';
+  
+  // Get options
+  const preset = document.getElementById('preset').value;
+  const enableSearch = document.getElementById('enableSearch').checked;
+  const enableTools = document.getElementById('enableTools').checked;
+  const enableReasoning = document.getElementById('enableReasoning').checked;
+  
+  // Display workflow steps
+  let workflowLog = '';
+  const logStep = (step, status, message) => {
+    workflowLog += `<div class="workflow-step ${status}"><strong>${step}:</strong> ${message}</div>`;
+    c.innerHTML = workflowLog + '<div class="thinking">processing...</div>';
+  };
+
+  const key = q.toLowerCase().replace(/\s+/g, '+');
+  const cached = localStorage.getItem('ai-cache:' + key);
+  if (cached) {
+    logStep('Cache', 'success', 'Found cached result');
+    return done(cached);
+  }
+
+  let answer = '';
+  let workflow = [];
+
+  // Step 1: Local State Check
+  logStep('Local State', 'pending', 'Checking local session state...');
+  try {
+    const localState = aiProxy.getFromLocalStorage('session-state');
+    if (localState && localState.messages.length > 0) {
+      workflow.push('👊… Local State: Found session history');
+      logStep('Local State', 'success', `Found ${localState.messages.length} messages in history`);
+    } else {
+      workflow.push('👊 Local State: No session history');
+      logStep('Local State', 'error', 'No session history found');
+    }
+  } catch(e) {
+    workflow.push(`👊 Local State: ${e.message}`);
+    logStep('Local State', 'error', e.message);
+  }
+
+  // Step 2: Remote State Sync
+  logStep('Remote Sync', 'pending', 'Syncing with remote state...');
+  try {
+    const remoteState = await aiProxy.getState();
+    if (remoteState && remoteState.messages.length > 0) {
+      workflow.push('🤙… Remote Sync: State synchronized');
+      logStep('Remote Sync', 'success', 'State synchronized with server');
+    } else {
+      workflow.push('🫸 Remote Sync: No remote state');
+      logStep('Remote Sync', 'error', 'No remote state found');
+    }
+  } catch(e) {
+    workflow.push(`🤝 Remote Sync: ${e.message}`);
+    logStep('Remote Sync', 'error', e.message);
+  }
+
+  // Step 3: AI Processing
+  logStep('AI Processing', 'pending', `Using preset: ${preset}${enableSearch ? ' + Search' : ''}${enableTools ? ' + Tools' : ''}${enableReasoning ? ' + Reasoning' : ''}`);
+  
+  try {
+    const messages = [{ role: 'user', content: q }];
+    const options = {
+      preset,
+      enableSearch,
+      enableTools,
+      enableReasoning,
+      userId: 'user-' + Date.now()
+    };
+
+    const stream = await aiProxy.streamChat(messages, options);
+    const reader = stream.getReader();
+    
+    workflowLog += `<div class="workflow-step success"><strong>AI Processing:</strong> Streaming response...</div>`;
+    c.innerHTML = workflowLog + '<div id="response"></div>';
+    
+    const responseDiv = document.getElementById('response');
+    let fullAnswer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      fullAnswer += value;
+      responseDiv.innerHTML = marked.parse(fullAnswer);
+      c.scrollTop = c.scrollHeight;
+    }
+
+    answer = fullAnswer;
+    workflow.push('👊… AI Processing: Response completed');
+    
+  } catch(e) {
+    workflow.push(` AI Processing: ${e.message}`);
+    logStep('AI Processing', 'error', e.message);
+    return;
+  }
+
+  // Step 4: Cache Result
+  logStep('Caching', 'pending', 'Caching result...');
+  try {
+    localStorage.setItem('ai-cache:' + key, answer);
+    workflow.push('… Caching: Result cached locally');
+    logStep('Caching', 'success', 'Result cached for future use');
+  } catch(e) {
+    workflow.push(` Caching: ${e.message}`);
+    logStep('Caching', 'error', e.message);
+  }
+
+  done(answer);
+}
+
+function done(answer) {
+  c.innerHTML = `
+    <div style="margin-bottom: 20px; padding: 15px; background: rgba(34,197,94,.1); border-radius: 8px; border-left: 4px solid #22c55e;">
+      <strong>🫶… Complete</strong>
+    </div>
+    <div style="background: rgba(250,204,21,.05); padding: 20px; border-radius: 12px; border: 1px solid rgba(250,204,21,.2);">
+      ${marked.parse(answer)}
+    </div>
+  `;
+  c.scrollTop = c.scrollHeight;
+}
+
+// Keyboard shortcuts
+i.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    go();
+  }
+});
+
+// Auto-save input
+i.addEventListener('input', () => {
+  localStorage.setItem('ai-input-draft', i.value);
+});
+
+// Restore draft on load
+addEventListener('load', () => {
+  const draft = localStorage.getItem('ai-input-draft');
+  if (draft && !i.value) {
+    i.value = draft;
+  }
+});
+</script>
+</body>
+</html>
