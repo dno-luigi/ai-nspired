@@ -39,6 +39,18 @@
     .status-badge.ok{background:rgba(34,197,94,.2);color:#22c55e}
     .status-badge.error{background:rgba(239,68,68,.2);color:#ef4444}
     .debug-info{background:rgba(0,0,0,.5);padding:10px;border-radius:4px;font-size:11px;color:#666;margin-top:10px}
+    .admin-section{margin-top:20px;padding:15px;background:rgba(139,92,246,.1);border-radius:8px;border-left:4px solid #8b5cf6}
+    .admin-section h3{color:#8b5cf6;margin:0 0 10px 0;font-size:14px}
+    .admin-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+    .admin-row input{background:#1a1a1a;color:#fff;border:1px solid #8b5cf6;padding:8px;border-radius:4px}
+    .admin-row input[type="text"]{flex:1}
+    .admin-row input[type="password"]{flex:0.5}
+    .admin-row button{position:static;width:auto;height:auto;padding:8px 15px;font-size:12px;border-radius:4px;background:#8b5cf6;color:#fff}
+    .knowledge-list{margin-top:10px;max-height:200px;overflow-y:auto}
+    .knowledge-item{background:rgba(0,0,0,.5);padding:10px;margin:5px 0;border-radius:4px;font-size:11px}
+    .knowledge-item .title{color:#8b5cf6;font-weight:bold;margin-bottom:5px}
+    .knowledge-item .actions{margin-top:5px}
+    .knowledge-item .actions button{padding:2px 8px;font-size:10px;margin-right:5px}
   </style>
 </head>
 <body>
@@ -88,8 +100,9 @@
 </div>
 
 <script>
-// HARDCODED WORKER URL - DO NOT CHANGE
-const WORKER_URL = 'https://ai-proxy.ai-n.workers.dev/api/generate';
+// CORRECT WORKER URL - UPDATED
+const WORKER_URL = 'https://orproxy.ai-n.workers.dev/api/generate';
+const ADMIN_API_URL = 'https://orproxy.ai-n.workers.dev/api/admin';
 
 class AIProxy {
   constructor() {
@@ -290,7 +303,7 @@ function resetSession() {
     localStorage.removeItem('ai-session-id');
     aiProxy.sessionId = aiProxy.getOrCreateSessionId();
     document.getElementById('sessionId').value = aiProxy.sessionId;
-    showError('✅ New session created', 'success');
+    showError('New session created', 'success');
   }
 }
 
@@ -360,10 +373,10 @@ async function go() {
     // Save to history
     aiProxy.addToHistory(q, fullAnswer);
     
-    // Show completion
+    // Show completion with admin section
     document.getElementById('c').innerHTML = `
       <div style="margin-bottom: 20px; padding: 15px; background: rgba(34,197,94,.1); border-radius: 8px; border-left: 4px solid #22c55e;">
-        <strong>✅ Complete</strong> (Session: ${aiProxy.sessionId.substring(0, 12)}..., Preset: ${preset})
+        <strong>Complete</strong> (Session: ${aiProxy.sessionId.substring(0, 12)}..., Preset: ${preset})
       </div>
       <div class="response-content">
         ${marked.parse(fullAnswer)}
@@ -373,6 +386,19 @@ async function go() {
         <button onclick="continueLast()" style="background: #3b82f6; color: white;">Continue last</button>
         <button onclick="clearHistory()" style="background: #ef4444; color: white;">Clear history</button>
         <button onclick="copyResponse()" style="background: #facc15; color: black;">Copy</button>
+      </div>
+      <div class="admin-section">
+        <h3>Admin: Master Knowledge Base</h3>
+        <div class="admin-row">
+          <input type="password" id="adminSecret" placeholder="Admin Secret">
+          <button onclick="loadKnowledge()">Load Knowledge</button>
+        </div>
+        <div class="admin-row">
+          <input type="text" id="knowledgeTitle" placeholder="Title">
+          <input type="text" id="knowledgeContent" placeholder="Content">
+          <button onclick="addKnowledge()">Add</button>
+        </div>
+        <div id="knowledgeList" class="knowledge-list"></div>
       </div>
     `;
     
@@ -389,10 +415,9 @@ async function go() {
         Preset: ${preset}<br>
         <br>
         <strong>Check these:</strong><br>
-        1. Worker is deployed with "npx wrangler deploy"<br>
-        2. OPENROUTER_API_KEY is set in wrangler.toml<br>
-        3. Worker fetch handler is working correctly<br>
-        4. CORS headers are set for your frontend domain
+        1. Worker is deployed properly<br>
+        2. OPENROUTER_API_KEY is set<br>
+        3. ADMIN_SECRET is set for admin features
       </div>
     `;
   } finally {
@@ -420,8 +445,130 @@ function copyResponse() {
   const responseDiv = document.querySelector('.response-content');
   if (responseDiv) {
     navigator.clipboard.writeText(responseDiv.textContent).then(() => {
-      showError('✅ Response copied', 'success');
+      showError('Response copied', 'success');
     });
+  }
+}
+
+// Admin Functions for Master Knowledge Base
+async function loadKnowledge() {
+  const secret = document.getElementById('adminSecret').value;
+  if (!secret) {
+    showError('Please enter admin secret', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${ADMIN_API_URL}/knowledge`, {
+      headers: { 'X-Admin-Secret': secret }
+    });
+
+    if (!response.ok) {
+      throw new Error('Unauthorized');
+    }
+
+    const data = await response.json();
+    const listDiv = document.getElementById('knowledgeList');
+    
+    if (data.entries.length === 0) {
+      listDiv.innerHTML = '<div style="color:#666;">No knowledge entries yet</div>';
+      return;
+    }
+
+    listDiv.innerHTML = data.entries.map(e => `
+      <div class="knowledge-item">
+        <div class="title">${e.title}</div>
+        <div>${e.content.substring(0, 100)}...</div>
+        <div class="actions">
+          <button onclick="editKnowledge('${e.id}')" style="background:#3b82f6;color:#fff;">Edit</button>
+          <button onclick="deleteKnowledge('${e.id}')" style="background:#ef4444;color:#fff;">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (error) {
+    showError('Failed to load knowledge: ' + error.message, 'error');
+  }
+}
+
+async function addKnowledge() {
+  const secret = document.getElementById('adminSecret').value;
+  const title = document.getElementById('knowledgeTitle').value;
+  const content = document.getElementById('knowledgeContent').value;
+
+  if (!secret || !title || !content) {
+    showError('All fields required', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${ADMIN_API_URL}/knowledge`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Secret': secret
+      },
+      body: JSON.stringify({ title, content })
+    });
+
+    if (!response.ok) {
+      throw new Error('Unauthorized or failed');
+    }
+
+    showError('Knowledge added', 'success');
+    document.getElementById('knowledgeTitle').value = '';
+    document.getElementById('knowledgeContent').value = '';
+    loadKnowledge();
+  } catch (error) {
+    showError('Failed to add knowledge: ' + error.message, 'error');
+  }
+}
+
+async function editKnowledge(id) {
+  const secret = document.getElementById('adminSecret').value;
+  const content = prompt('Edit content:');
+  
+  if (content === null) return;
+
+  try {
+    const response = await fetch(`${ADMIN_API_URL}/knowledge/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Secret': secret
+      },
+      body: JSON.stringify({ content })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update');
+    }
+
+    showError('Knowledge updated', 'success');
+    loadKnowledge();
+  } catch (error) {
+    showError('Failed to edit: ' + error.message, 'error');
+  }
+}
+
+async function deleteKnowledge(id) {
+  if (!confirm('Delete this knowledge entry?')) return;
+
+  const secret = document.getElementById('adminSecret').value;
+
+  try {
+    const response = await fetch(`${ADMIN_API_URL}/knowledge/${id}`, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Secret': secret }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete');
+    }
+
+    showError('Knowledge deleted', 'success');
+    loadKnowledge();
+  } catch (error) {
+    showError('Failed to delete: ' + error.message, 'error');
   }
 }
 
