@@ -1,0 +1,36 @@
+name = "truth-engine-workspace"
+main = "worker.min.mjs"
+compatibility_date = "2026-08-25"
+compatibility_flags = ["nodejs_compat"]
+
+[[kv_namespaces]]
+binding = "KV_NAMESPACES"
+id = "c09c7cc291e04061831f8d3d3ba4625a"
+
+[[kv_namespaces]]
+binding = "ORP_KV"
+id = "145a30ed3f974dab983eb37d2a5a5a8f"
+
+[[kv_namespaces]]
+binding = "AUDITS_KV"
+id = "8c19918f71fd420d8115e022d3014b9f"
+
+[[kv_namespaces]]
+binding = "CONTEXT_KV"
+id = "b78a25e9928e44b3ab0a3e9647a2ee33"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "truth-engine-assets"
+
+[ai]
+binding = "AI"
+
+[durable_objects]
+bindings = [
+  { name = "WORKSPACE", class_name = "Workspace" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["Workspace"]
