@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cyan">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Truth Engine</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="../shared/styles.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">Truth Engine</div>
+    <div class="messages" id="messages"></div>
+    <div class="input-row">
+      <textarea id="input" placeholder="Enter query parameters..." rows="1"
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"></textarea>
+      <button class="send-btn" id="btn" onclick="send()">RUN</button>
+    </div>
+  </div>
+
+  <script src="../shared/ecosystem.js"></script>
+  <script>
+    const WORKER_URL = ECOSYSTEM.WORKER_URL;
+    const messages = [];
+    marked.setOptions({ breaks: true });
+
+    function scrollToBottom(container, force = false) {
+      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight <= 60;
+      if (force || isAtBottom) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+
+    async function send() {
+      const input = document.getElementById("input");
+      const btn = document.getElementById("btn");
+      const msgBox = document.getElementById("messages");
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = "";
+      input.style.height = "auto";
+      btn.disabled = true;
+
+      messages.push({ role: "user", content: text });
+
+      const block = document.createElement("div");
+      block.className = "interaction-block";
+
+      const promptLine = document.createElement("div");
+      promptLine.className = "prompt-line";
+      promptLine.textContent = text;
+      block.appendChild(promptLine);
+
+      const thinkingLine = document.createElement("div");
+      thinkingLine.className = "thinking-line";
+      thinkingLine.textContent = "CRUNCHING_DATA...";
+      block.appendChild(thinkingLine);
+
+      msgBox.appendChild(block);
+      scrollToBottom(msgBox, true);
+
+      try {
+        const res = await fetch(`${WORKER_URL}/api/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages, preset: "truth", stream: true })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        if (thinkingLine.parentNode) {
+          thinkingLine.remove();
+        }
+
+        const reportBody = document.createElement("div");
+        reportBody.className = "report-body";
+        block.appendChild(reportBody);
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+        let fullText = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            const cleaned = line.trim();
+            if (!cleaned || !cleaned.startsWith("data: ")) continue;
+
+            const data = cleaned.slice(6).trim();
+            if (data === "[DONE]") break;
+
+            try {
+              const json = JSON.parse(data);
+              const delta = json.choices?.[0]?.delta?.content || "";
+              if (delta) {
+                fullText += delta;
+                reportBody.innerHTML = marked.parse(fullText);
+                scrollToBottom(msgBox);
+              }
+            } catch (e) {}
+          }
+        }
+
+        if (buffer && buffer.startsWith("data: ")) {
+          try {
+            const data = buffer.slice(6).trim();
+            if (data !== "[DONE]") {
+              const json = JSON.parse(data);
+              const delta = json.choices?.[0]?.delta?.content || "";
+              if (delta) {
+                fullText += delta;
+                reportBody.innerHTML = marked.parse(fullText);
+              }
+            }
+          } catch(e) {}
+        }
+
+        messages.push({ role: "assistant", content: fullText });
+
+        const metaRow = document.createElement("div");
+        metaRow.className = "meta-row";
+
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "copy-btn";
+        copyBtn.textContent = "[COPY_RECORD]";
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(reportBody.innerText).then(() => {
+            copyBtn.textContent = "[COPIED]";
+            copyBtn.classList.add("copied");
+            setTimeout(() => { copyBtn.textContent = "[COPY_RECORD]"; copyBtn.classList.remove("copied"); }, 2000);
+          });
+        };
+
+        metaRow.appendChild(copyBtn);
+        block.appendChild(metaRow);
+        scrollToBottom(msgBox, true);
+
+      } catch (err) {
+        if (thinkingLine && thinkingLine.parentNode) {
+          thinkingLine.remove();
+        }
+        const errorLine = document.createElement("div");
+        errorLine.className = "report-body";
+        errorLine.style.color = "#ef4444";
+        errorLine.textContent = "ERR_FAILURE: " + err.message;
+        block.appendChild(errorLine);
+      }
+
+      btn.disabled = false;
+      input.focus();
+    }
+
+    // Auto-load query from URL params
+    window.addEventListener('load', () => {
+      const q = new URLSearchParams(location.search).get('q');
+      if (q) {
+        document.getElementById('input').value = q.replace(/\s+/g, ' ');
+        send();
+      }
+    });
+  </script>
+</body>
+</html>
