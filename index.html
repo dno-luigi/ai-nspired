@@ -102,7 +102,7 @@
     .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .selected { border-color: #ff6b1a !important; box-shadow: 0 0 0 2px #ff6b1a55; }
     .rel-link { font-size: 10px; color: #ff6b1a99; }
-    #canvas { position: relative; width: 100%; height: calc(100vh - 60px); min-width: 140vw; min-height: 140vh; overflow: auto; }
+    #canvas { position: relative; width: 100%; height: calc(100vh - 60px); overflow: auto; }
     .topbar { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: #1a1a2e; border-bottom: 1px solid #2a2a4a; }
     .logo { font-size: 18px; font-weight: 700; letter-spacing: 2px; }
     .logo span { color: #ff6b1a; }
@@ -503,10 +503,16 @@
         const principleContext = activePrinciples.map(p => '• [' + p.domainTag + '] ' + p.text).join('\\n');
         contentHtml = \`
           <div style="padding:4px 0;">
+            <div class="card-toolbar" style="margin-bottom:0;">
+              <button class="active" data-mode="edit" onclick="toggleCardMode('\${card.id}','edit')">Edit</button>
+              <button data-mode="preview" onclick="toggleCardMode('\${card.id}','preview')">Preview</button>
+            </div>
+            \${fmtBar}
             <div style="margin-bottom:6px;padding:6px 8px;background:#111122;border:1px solid #2a2a4a;border-radius:4px;font-size:10px;color:#888;">
               <span style="color:#ff8a4a;font-weight:600;">Principle Stack Active:</span> \${activePrinciples.length} principles bound
             </div>
-            <textarea data-content="\${card.id}" placeholder="Enter instruction...\\n\\nThe ambient LLM will route this through the active principle stack. Output is domain-bound before it exists." style="width:100%;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'SF Mono','Fira Code',monospace;resize:vertical;min-height:80px;line-height:1.6;tab-size:2;"></textarea>
+            <textarea data-content="\${card.id}" placeholder="Enter instruction...\\n\\nThe ambient LLM will route this through the active principle stack. Output is domain-bound before it exists.">\${escapeHtml(card.content || '')}</textarea>
+            <div class="md-preview" data-preview="\${card.id}" style="display:none;"></div>
             <div style="display:flex;gap:6px;margin-top:6px;">
               <button onclick="runInstruct('\${card.id}')" class="action-btn" style="flex:1;">Generate</button>
               <button onclick="checkPrincipleCompliance('\${card.id}')" class="ctrl-btn" style="flex:1;font-size:11px;padding:4px 8px;">Check Compliance</button>
@@ -555,6 +561,13 @@
         const domainLabel = card.domainStack?.primary || card.domains?.[0] || 'general';
         contentHtml = \`
           <div style="padding:4px 0;">
+            <div class="card-toolbar" style="margin-bottom:0;">
+              <button class="active" data-mode="edit" onclick="toggleCardMode('\${card.id}','edit')">Edit</button>
+              <button data-mode="preview" onclick="toggleCardMode('\${card.id}','preview')">Preview</button>
+            </div>
+            \${fmtBar}
+            <textarea data-content="\${card.id}" placeholder="Query notes…">\${escapeHtml(card.content || '')}</textarea>
+            <div class="md-preview" data-preview="\${card.id}" style="display:none;"></div>
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
               <span style="font-size:10px;color:#888;">Domain:</span>
               <span class="domain-chip primary" style="font-size:9px;">\${domainLabel}</span>
@@ -584,6 +597,13 @@
         const statusColor = card.status === 'pass' ? '#4aff8a' : card.status === 'conditional' ? '#ffaa4a' : '#ff4a4a';
         contentHtml = \`
           <div style="padding:4px 0;" class="audit-\${card.status || 'fail'}">
+            <div class="card-toolbar" style="margin-bottom:0;">
+              <button class="active" data-mode="edit" onclick="toggleCardMode('\${card.id}','edit')">Edit</button>
+              <button data-mode="preview" onclick="toggleCardMode('\${card.id}','preview')">Preview</button>
+            </div>
+            \${fmtBar}
+            <textarea data-content="\${card.id}" placeholder="Audit notes…">\${escapeHtml(card.content || '')}</textarea>
+            <div class="md-preview" data-preview="\${card.id}" style="display:none;"></div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
               <span style="font-size:12px;font-weight:700;color:\${statusColor};text-transform:uppercase;">\${card.status || 'fail'}</span>
               <span style="font-size:11px;color:#888;">Confidence:</span>
