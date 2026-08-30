@@ -258,8 +258,8 @@ var INDEX_HTML = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Truth Engine \u2014 Workspace</title>
-  <script src="https://cdn.tailwindcss.com"><\/script>
+  <title>Truth Engine — Workspace</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -275,7 +275,7 @@ var INDEX_HTML = `<!DOCTYPE html>
         },
       },
     };
-  <\/script>
+  </script>
   <style>
     body { background: #0d0d1a; color: #e0e0e0; font-family: 'Inter', system-ui, sans-serif; }
     .card-window { position: absolute; min-width: 280px; max-width: 480px; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); transition: box-shadow 0.2s; display: flex; flex-direction: column; overflow: hidden; }
@@ -442,30 +442,30 @@ var INDEX_HTML = `<!DOCTYPE html>
 </head>
 <body>
   <div class="topbar">
-    <div class="logo">TRUTH<span>\xB7</span>ENGINE</div>
+    <div class="logo">TRUTH<span>·</span>ENGINE</div>
     <div class="flex gap-2">
-      <button class="ctrl-btn" onclick="createCard('Browser')">\u{1F310} Browser</button>
-      <button class="ctrl-btn" onclick="createCard('Document')">\u{1F4C4} Document</button>
-      <button class="ctrl-btn" onclick="createCard('Instruct')">\u26A1 Instruct</button>
-      <button class="ctrl-btn" onclick="createCard('Import')">\u{1F4CE} Import</button>
-      <button class="ctrl-btn" onclick="createCard('Search')">\u{1F50D} Search</button>
+      <button class="ctrl-btn" onclick="createCard('Browser')">🌐 Browser</button>
+      <button class="ctrl-btn" onclick="createCard('Document')">📄 Document</button>
+      <button class="ctrl-btn" onclick="createCard('Instruct')">⚡ Instruct</button>
+      <button class="ctrl-btn" onclick="createCard('Import')">📎 Import</button>
+      <button class="ctrl-btn" onclick="createCard('Search')">🔍 Search</button>
       <span class="sep" style="width:1px;height:20px;background:#2a2a4a;margin:0 4px;"></span>
-      <button class="ctrl-btn" onclick="openTabList('Query')" style="border-color:#1a2a4a;color:#4a9fff;">\u{1F50E} Queries</button>
-      <button class="ctrl-btn" onclick="openTabList('Audit')" style="border-color:#4a1a2a;color:#ff4a6a;">\u{1F50D} Audits</button>
-      <button class="ctrl-btn" onclick="openTabList('eitl')" style="border-color:#2a1a4a;color:#c84aff;">\u2699 EITL</button>
-      <button class="ctrl-btn" onclick="promptDomain()" style="border-color:#2a2a1a;color:#c8c84a;">\u{1F30D} Domain</button>
+      <button class="ctrl-btn" onclick="openTabList('Query')" style="border-color:#1a2a4a;color:#4a9fff;">🔎 Queries</button>
+      <button class="ctrl-btn" onclick="openTabList('Audit')" style="border-color:#4a1a2a;color:#ff4a6a;">🔍 Audits</button>
+      <button class="ctrl-btn" onclick="openTabList('eitl')" style="border-color:#2a1a4a;color:#c84aff;">⚙ EITL</button>
+      <button class="ctrl-btn" onclick="promptDomain()" style="border-color:#2a2a1a;color:#c8c84a;">🌍 Domain</button>
     </div>
     <div class="flex gap-2 items-center">
-      <span id="wsStatus" class="ws-status ws-connecting">connecting\u2026</span>
+      <span id="wsStatus" class="ws-status ws-connecting">connecting…</span>
       <span id="presence" class="text-xs text-gray-500"></span>
       <span id="status" class="text-xs text-gray-500"></span>
-      <button class="ctrl-btn" onclick="openManipulate()">\u2699 Merge / Distill</button>
+      <button class="ctrl-btn" onclick="openManipulate()">⚙ Merge / Distill</button>
     </div>
   </div>
   <div id="canvas"></div>
   <div id="fetchModal" class="modal-overlay" style="display:none;">
     <div class="modal">
-      <h2 class="text-lg font-bold mb-4">\u{1F310} Browser Card \u2014 Fetch URL</h2>
+      <h2 class="text-lg font-bold mb-4">🌐 Browser Card — Fetch URL</h2>
       <p class="text-xs text-gray-400 mb-3">Enter a URL. The Worker fetches it, parses the content with HTMLRewriter, and creates a Browser card.</p>
       <input id="fetchUrl" type="url" placeholder="https://example.com/article" class="mb-4" />
       <div class="flex justify-end gap-2">
@@ -476,7 +476,7 @@ var INDEX_HTML = `<!DOCTYPE html>
   </div>
   <div id="searchModal" class="modal-overlay" style="display:none;">
     <div class="modal">
-      <h2 class="text-lg font-bold mb-4">\u{1F50D} Search Card</h2>
+      <h2 class="text-lg font-bold mb-4">🔍 Search Card</h2>
       <p class="text-xs text-gray-400 mb-3">Type a query. Results render inside the card. Click a result to materialize it as a Browser or Document card.</p>
       <input id="searchQuery" type="text" placeholder="Search query..." class="mb-4" />
       <div id="searchResults" class="search-results" style="display:none;"></div>
@@ -488,7 +488,7 @@ var INDEX_HTML = `<!DOCTYPE html>
   </div>
   <div id="principleModal" class="modal-overlay" style="display:none;">
     <div class="modal">
-      <h2 class="text-lg font-bold mb-4">\u{1F527} Principle Ratification</h2>
+      <h2 class="text-lg font-bold mb-4">🔧 Principle Ratification</h2>
       <p class="text-xs text-gray-400 mb-3">The ambient LLM has proposed a new principle. Review and approve, edit, or kill it.</p>
       <div id="principlePreview" class="text-sm mb-3 p-3 bg-slate-950 border border-slate-800 rounded"></div>
       <div class="flex items-center gap-2 mb-3">
@@ -511,7 +511,7 @@ var INDEX_HTML = `<!DOCTYPE html>
   </div>
   <div id="eitlReviewModal" class="modal-overlay" style="display:none;">
     <div class="modal">
-      <h2 class="text-lg font-bold mb-4">\u{1F4CB} EITL Expert Review</h2>
+      <h2 class="text-lg font-bold mb-4">📋 EITL Expert Review</h2>
       <p class="text-xs text-gray-400 mb-3">Review the output against the logged principles. Elevate, adjust, or remand.</p>
       <div id="eitlReviewContent" class="text-sm mb-3 p-3 bg-slate-950 border border-slate-800 rounded" style="max-height:200px;overflow-y:auto;white-space:pre-wrap;"></div>
       <label class="text-xs text-gray-400">Expert comment (optional)</label>
@@ -531,10 +531,10 @@ var INDEX_HTML = `<!DOCTYPE html>
       <div id="selectedCount" class="text-sm mb-3"></div>
       <label class="text-xs text-gray-400">Action</label>
       <select id="actionSelect" class="w-full mb-3">
-        <option value="merge">Merge \u2014 combine into one coherent doc</option>
-        <option value="distill">Distill \u2014 extract essential truths</option>
-        <option value="combine">Combine \u2014 unified synthesis</option>
-        <option value="rewrite">Rewrite \u2014 transform per instruction</option>
+        <option value="merge">Merge — combine into one coherent doc</option>
+        <option value="distill">Distill — extract essential truths</option>
+        <option value="combine">Combine — unified synthesis</option>
+        <option value="rewrite">Rewrite — transform per instruction</option>
       </select>
       <label class="text-xs text-gray-400">Instruction (optional)</label>
       <textarea id="manipulatePrompt" rows="3" class="mb-4" placeholder="e.g., Focus on technical accuracy and remove redundancy"></textarea>
@@ -546,7 +546,7 @@ var INDEX_HTML = `<!DOCTYPE html>
   </div>
   <input id="fileUpload" class="file-upload-input" type="file" accept=".md,.markdown,.txt,.html,.htm,.docx,.pdf,.png,.jpg,.jpeg,.gif,.webp,.bmp,.svg" multiple />
   <div id="dropOverlay" class="drop-overlay" style="display:none;">
-    <div class="drop-overlay-text">\u{1F4C4} Drop files to import</div>
+    <div class="drop-overlay-text">📄 Drop files to import</div>
   </div>
   <div id="toastContainer" class="toast-container"></div>
   <div id="pasteHint" class="paste-hint">Paste MD, HTML, DOCX, PDF, or images anywhere to create a card</div>
@@ -621,12 +621,12 @@ var INDEX_HTML = `<!DOCTYPE html>
     });
 
     async function init() {
-      document.getElementById('status').textContent = 'Loading\u2026';
+      document.getElementById('status').textContent = 'Loading…';
       connectWS();
       await loadCards();
       await loadPrinciples();
       if (cards.length === 0) {
-        await createCard('Instruct', 'Welcome', 'Truth Engine workspace initialized.\\n\\nFeatures:\\n\u2022 Browser cards \u2014 fetch & parse live web pages\\n\u2022 Document / Instruct / Import / Search cards\\n\u2022 Snap-based docking & fused card clusters\\n\u2022 Merge / Distill / Combine / Rewrite with AI\\n\u2022 Principle engine with EITL ratification\\n\u2022 Real-time multi-user sync via WebSocket\\n\\nShare this URL with ?ws=<name> to collaborate.');
+        await createCard('Instruct', 'Welcome', 'Truth Engine workspace initialized.\\n\\nFeatures:\\n• Browser cards — fetch & parse live web pages\\n• Document / Instruct / Import / Search cards\\n• Snap-based docking & fused card clusters\\n• Merge / Distill / Combine / Rewrite with AI\\n• Principle engine with EITL ratification\\n• Real-time multi-user sync via WebSocket\\n\\nShare this URL with ?ws=<name> to collaborate.');
       }
       autoNumberDocuments();
       setInterval(() => sendWS({ type: 'ping' }), 30000);
@@ -662,7 +662,7 @@ var INDEX_HTML = `<!DOCTYPE html>
 
     async function runFetch() {
       const url = document.getElementById('fetchUrl').value.trim(); if (!url) return;
-      const btn = document.getElementById('fetchBtn'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Fetching\u2026';
+      const btn = document.getElementById('fetchBtn'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Fetching…';
       try {
         const res = await fetch(API('/fetch'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
         const card = await res.json();
@@ -717,16 +717,16 @@ var INDEX_HTML = `<!DOCTYPE html>
           <button onclick="fmtHeading('\${card.id}',2)" title="H2">H2</button>
           <button onclick="fmtHeading('\${card.id}',3)" title="H3">H3</button>
           <span class="sep"></span>
-          <button onclick="fmtList('\${card.id}')" title="UL">\u2022 List</button>
+          <button onclick="fmtList('\${card.id}')" title="UL">• List</button>
           <button onclick="fmtOList('\${card.id}')" title="OL">1. List</button>
           <button onclick="fmtQuote('\${card.id}')" title="Quote">&gt;</button>
           <span class="sep"></span>
           <button onclick="fmtCode('\${card.id}')" title="Code">&lt;/&gt;</button>
           <button onclick="fmtCodeBlock('\${card.id}')" title="Block">{ }</button>
           <span class="sep"></span>
-          <button onclick="fmtLink('\${card.id}')" title="Link">\u{1F517}</button>
-          <button onclick="fmtImage('\${card.id}')" title="Image">\u{1F5BC}</button>
-          <button onclick="fmtHr('\${card.id}')" title="HR">\u2015</button>
+          <button onclick="fmtLink('\${card.id}')" title="Link">🔗</button>
+          <button onclick="fmtImage('\${card.id}')" title="Image">🖼</button>
+          <button onclick="fmtHr('\${card.id}')" title="HR">―</button>
         </div>
       \`;
 
@@ -755,7 +755,7 @@ var INDEX_HTML = `<!DOCTYPE html>
           if (p.domainTag === 'universal' || p.domainTag === 'ethical') return true;
           return card.domains && card.domains.includes(p.domainTag);
         });
-        const principleContext = activePrinciples.map(p => '\u2022 [' + p.domainTag + '] ' + p.text).join('\\n');
+        const principleContext = activePrinciples.map(p => '• [' + p.domainTag + '] ' + p.text).join('\\n');
         contentHtml = \`
           <div style="padding:4px 0;">
             <div style="margin-bottom:6px;padding:6px 8px;background:#111122;border:1px solid #2a2a4a;border-radius:4px;font-size:10px;color:#888;">
@@ -779,7 +779,7 @@ var INDEX_HTML = `<!DOCTYPE html>
                 <button data-mode="preview" onclick="toggleCardMode('\${card.id}','preview')">Preview</button>
               </div>
               \${fmtBar}
-              <textarea data-content="\${card.id}" placeholder="Drafting surface...\u2014left pane: write. Right pane: live render." style="width:100%;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'SF Mono','Fira Code',monospace;min-height:200px;line-height:1.6;tab-size:2;resize:vertical;"></textarea>
+              <textarea data-content="\${card.id}" placeholder="Drafting surface...—left pane: write. Right pane: live render." style="width:100%;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'SF Mono','Fira Code',monospace;min-height:200px;line-height:1.6;tab-size:2;resize:vertical;"></textarea>
             </div>
             <div class="split-divider"></div>
             <div class="split-right md-preview" data-preview="\${card.id}" style="padding:10px 12px;min-height:200px;"></div>
@@ -789,9 +789,9 @@ var INDEX_HTML = `<!DOCTYPE html>
         const proxyUrl = card.url ? \`/api/proxy?url=\${encodeURIComponent(card.url)}\` : '';
         contentHtml = \`
           <div class="browser-bar" style="margin-bottom:6px;">
-            <input type="text" class="url-input" data-url-input="\${card.id}" value="\${escapeHtml(card.url || '')}" placeholder="Enter URL and press Enter\u2026" style="flex:1;background:#0d0d1a;color:#4ab8ff;border:1px solid #2a2a4a;border-radius:4px;padding:3px 8px;font-size:11px;font-family:monospace;" />
+            <input type="text" class="url-input" data-url-input="\${card.id}" value="\${escapeHtml(card.url || '')}" placeholder="Enter URL and press Enter…" style="flex:1;background:#0d0d1a;color:#4ab8ff;border:1px solid #2a2a4a;border-radius:4px;padding:3px 8px;font-size:11px;font-family:monospace;" />
             <button onclick="browserNavigate('\${card.id}')" style="padding:3px 8px;background:#ff6b1a;color:#0d0d1a;border:none;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;">Go</button>
-            <button onclick="openBrowserFullscreen('\${card.id}')" title="Open full screen" style="padding:3px 8px;background:#22223a;color:#4ab8ff;border:1px solid #2a2a4a;border-radius:4px;font-size:10px;cursor:pointer;">\u26F6</button>
+            <button onclick="openBrowserFullscreen('\${card.id}')" title="Open full screen" style="padding:3px 8px;background:#22223a;color:#4ab8ff;border:1px solid #2a2a4a;border-radius:4px;font-size:10px;cursor:pointer;">⛶</button>
           </div>
           \${proxyUrl ? \`<div class="browser-viewer"><iframe data-browser-frame="\${card.id}" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="\${proxyUrl}" style="width:100%;height:100%;border:none;"></iframe></div>\` : \`<div style="padding:20px;text-align:center;color:#666;font-size:12px;">Enter a URL above and press Go</div>\`}
           <details style="margin-top:6px;">
@@ -801,7 +801,7 @@ var INDEX_HTML = `<!DOCTYPE html>
               <button data-mode="preview" onclick="toggleCardMode('\${card.id}','preview')">Preview</button>
             </div>
             \${fmtBar}
-            <textarea data-content="\${card.id}" style="display:none;" placeholder="Extracted content\u2026">\${escapeHtml(card.content)}</textarea>
+            <textarea data-content="\${card.id}" style="display:none;" placeholder="Extracted content…">\${escapeHtml(card.content)}</textarea>
             <div class="md-preview" data-preview="\${card.id}" style="display:none;"></div>
           </details>
         \`;
@@ -816,7 +816,7 @@ var INDEX_HTML = `<!DOCTYPE html>
               <span style="font-size:10px;color:#888;margin-left:auto;">Coverage:</span>
               <span style="font-size:11px;color:#4aff8a;font-weight:600;">\${Math.round((card.coverageScore || 0) * 100)}%</span>
             </div>
-            <div style="font-size:10px;color:#888;margin-bottom:4px;">\${results.length} result(s) \xB7 \${(card.principlesApplied || []).length} principles applied</div>
+            <div style="font-size:10px;color:#888;margin-bottom:4px;">\${results.length} result(s) · \${(card.principlesApplied || []).length} principles applied</div>
             <div class="query-results" data-query-results="\${card.id}">
               \${results.map((r, i) => \`
                 <div class="query-result" onclick="materializeQueryResult('\${card.id}', \${i})">
@@ -913,7 +913,7 @@ var INDEX_HTML = `<!DOCTYPE html>
             <button data-mode="preview" onclick="toggleCardMode('\${card.id}','preview')">Preview</button>
           </div>
           \${fmtBar}
-          <textarea data-content="\${card.id}" placeholder="Enter content\u2026">\${escapeHtml(card.content)}</textarea>
+          <textarea data-content="\${card.id}" placeholder="Enter content…">\${escapeHtml(card.content)}</textarea>
           <div class="md-preview" data-preview="\${card.id}" style="display:none;"></div>
         \`;
       }
@@ -940,12 +940,12 @@ var INDEX_HTML = `<!DOCTYPE html>
             \${eitlBtn}
             \${principleHtml}
           </div>
-          <button class="text-gray-500 hover:text-blue-400 text-sm ml-1" title="Fullscreen" onclick="openCardFullscreen('\${card.id}')">\u26F6</button>
-          <button class="text-gray-500 hover:text-red-400 text-sm ml-2" onclick="deleteCard('\${card.id}')">\u2715</button>
+          <button class="text-gray-500 hover:text-blue-400 text-sm ml-1" title="Fullscreen" onclick="openCardFullscreen('\${card.id}')">⛶</button>
+          <button class="text-gray-500 hover:text-red-400 text-sm ml-2" onclick="deleteCard('\${card.id}')">✕</button>
         </div>
         <div class="card-content">
           \${contentHtml}
-          \${card.relationships.length ? \`<div class="mt-2 rel-link">\u21B3 derived from: \${card.relationships.length} card(s)</div>\` : ''}
+          \${card.relationships.length ? \`<div class="mt-2 rel-link">↳ derived from: \${card.relationships.length} card(s)</div>\` : ''}
         </div>
         <div class="resize-handle" data-resize="\${card.id}"></div>
       \`;
@@ -1020,7 +1020,7 @@ var INDEX_HTML = `<!DOCTYPE html>
     }
 
     function toggleSelect(id) { if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id); document.getElementById(\`card-\${id}\`).classList.toggle('selected', selectedIds.has(id)); }
-    function updateStatus() { document.getElementById('status').textContent = \`\${cards.length} cards \xB7 \${selectedIds.size} selected\`; }
+    function updateStatus() { document.getElementById('status').textContent = \`\${cards.length} cards · \${selectedIds.size} selected\`; }
 
     let dragState = null; // { type: 'drag', el, dx, dy } | { type: 'resize', el, cardId, sx, sy, sw, sh }
 
@@ -1199,7 +1199,7 @@ var INDEX_HTML = `<!DOCTYPE html>
       const action = document.getElementById('actionSelect').value;
       const promptText = document.getElementById('manipulatePrompt').value;
       const btn = document.getElementById('runBtn');
-      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Processing\u2026';
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Processing…';
       try {
         const res = await fetch(API('/cards/manipulate'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, cardIds: [...selectedIds], promptText }) });
         const newCard = await res.json();
@@ -1210,7 +1210,7 @@ var INDEX_HTML = `<!DOCTYPE html>
 
     function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str || ''; return div.innerHTML; }
 
-    // \u2500\u2500 Markdown \u2192 HTML Renderer (for preview) \u2500\u2500
+    // ── Markdown → HTML Renderer (for preview) ──
     function renderMarkdown(md) {
       let html = escapeHtml(md);
       // Code blocks (must be first to protect content)
@@ -1269,7 +1269,7 @@ var INDEX_HTML = `<!DOCTYPE html>
       return html;
     }
 
-    // \u2500\u2500 Card Mode Toggle (Edit / Preview / Split) \u2500\u2500
+    // ── Card Mode Toggle (Edit / Preview / Split) ──
     function toggleCardMode(cardId, mode) {
       const el = document.getElementById(\`card-\${cardId}\`);
       if (!el) return;
@@ -1300,7 +1300,7 @@ var INDEX_HTML = `<!DOCTYPE html>
       }
     }
 
-    // \u2500\u2500 Format Toolbar Actions \u2500\u2500
+    // ── Format Toolbar Actions ──
     function getCardTextarea(cardId) {
       const el = document.getElementById(\`card-\${cardId}\`);
       return el ? el.querySelector(\`[data-content="\${cardId}"]\`) : null;
@@ -1346,7 +1346,7 @@ var INDEX_HTML = `<!DOCTYPE html>
       fmtInsert(cardId, '\\n' + prefix, '\\n', 'heading');
     }
 
-    // \u2500\u2500 Browser Navigation \u2500\u2500
+    // ── Browser Navigation ──
     function browserNavigate(cardId) {
       const el = document.getElementById(\`card-\${cardId}\`);
       if (!el) return;
@@ -1430,20 +1430,20 @@ var INDEX_HTML = `<!DOCTYPE html>
       });
     }
 
-    // \u2500\u2500 Toast Notifications \u2500\u2500
+    // ── Toast Notifications ──
     function showToast(message, type = 'info') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
       toast.className = \`toast toast-\${type}\`;
-      const icons = { success: '\u2713', error: '\u2715', info: '\u2139', processing: '\u27F3' };
-      toast.innerHTML = \`<span>\${icons[type] || '\u2139'}</span> \${escapeHtml(message)}\`;
+      const icons = { success: '✓', error: '✕', info: 'ℹ', processing: '⟳' };
+      toast.innerHTML = \`<span>\${icons[type] || 'ℹ'}</span> \${escapeHtml(message)}\`;
       container.appendChild(toast);
       setTimeout(() => toast.remove(), 3200);
     }
     function showSpinner(msg) { showToast(msg || 'Working...', 'processing'); }
     function hideSpinner() {}
 
-    // \u2500\u2500 HTML \u2192 Markdown Converter \u2500\u2500
+    // ── HTML → Markdown Converter ──
     function htmlToMarkdown(html) {
       const doc = new DOMParser().parseFromString(html, 'text/html');
       function convertNode(node) {
@@ -1503,7 +1503,7 @@ var INDEX_HTML = `<!DOCTYPE html>
       return md;
     }
 
-    // \u2500\u2500 Image Compression \u2500\u2500
+    // ── Image Compression ──
     function compressImage(file, maxWidth = 1200, quality = 0.85) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -1527,14 +1527,14 @@ var INDEX_HTML = `<!DOCTYPE html>
       });
     }
 
-    // \u2500\u2500 File Processing (frontend) \u2500\u2500
+    // ── File Processing (frontend) ──
     async function processFile(file) {
       const name = file.name || 'Pasted file';
       const type = file.type || '';
       const ext = name.split('.').pop().toLowerCase();
 
       if (type.startsWith('image/') || ['png','jpg','jpeg','gif','webp','bmp','svg'].includes(ext)) {
-        showToast('Processing image\u2026', 'processing');
+        showToast('Processing image…', 'processing');
         const dataUrl = await compressImage(file);
         const base64 = dataUrl.split(',')[1];
         await createCard('Document', name, \`![\${name}](\${dataUrl})\`);
@@ -1566,7 +1566,7 @@ var INDEX_HTML = `<!DOCTYPE html>
 
       if (type === 'application/pdf' || ext === 'pdf' ||
           type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || ext === 'docx') {
-        showToast(\`Processing \${ext.toUpperCase()} \u2014 this may take a moment\u2026\`, 'processing');
+        showToast(\`Processing \${ext.toUpperCase()} — this may take a moment…\`, 'processing');
         try {
           const base64 = await new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -1594,14 +1594,14 @@ var INDEX_HTML = `<!DOCTYPE html>
       showToast(\`Unsupported file type: \${type || ext}\`, 'error');
     }
 
-    // \u2500\u2500 Paste Handler \u2500\u2500
+    // ── Paste Handler ──
     document.addEventListener('paste', async (e) => {
       const active = document.activeElement;
       const isEditing = active && (active.tagName === 'TEXTAREA' || active.tagName === 'INPUT');
       const clipboardData = e.clipboardData;
       if (!clipboardData) return;
 
-      // Files on clipboard (images, documents) \u2014 FileList is always truthy, must check length
+      // Files on clipboard (images, documents) — FileList is always truthy, must check length
       const files = clipboardData.files;
       if (files && files.length > 0) {
         e.preventDefault();
@@ -1611,7 +1611,7 @@ var INDEX_HTML = `<!DOCTYPE html>
         return;
       }
 
-      // Rich HTML paste INTO a textarea \u2014 convert to markdown and insert
+      // Rich HTML paste INTO a textarea — convert to markdown and insert
       if (isEditing && active.tagName === 'TEXTAREA') {
         const html = clipboardData.getData('text/html');
         if (html && html.trim().length > 10) {
@@ -1628,11 +1628,11 @@ var INDEX_HTML = `<!DOCTYPE html>
           }
           return;
         }
-        // Plain text paste into textarea \u2014 let browser handle it normally
+        // Plain text paste into textarea — let browser handle it normally
         return;
       }
 
-      // HTML content outside textarea \u2014 create a new card
+      // HTML content outside textarea — create a new card
       const html = clipboardData.getData('text/html');
       if (html && html.trim().length > 10 && !isEditing) {
         e.preventDefault();
@@ -1645,7 +1645,7 @@ var INDEX_HTML = `<!DOCTYPE html>
         return;
       }
 
-      // Plain text outside textarea \u2014 create a new card
+      // Plain text outside textarea — create a new card
       if (!isEditing) {
         const text = clipboardData.getData('text/plain');
         if (text && text.trim().length > 0) {
@@ -1752,8 +1752,8 @@ var INDEX_HTML = `<!DOCTYPE html>
       const autoCount = applicable.filter(p => p.ratificationStatus === 'auto').length;
       const expertCount = applicable.filter(p => p.ratificationStatus === 'expert').length;
       let html = '';
-      if (autoCount) html += \`<span class="principle-badge principle-auto">\u2713 \${autoCount}</span>\`;
-      if (expertCount) html += \`<span class="principle-badge principle-expert">\u2605 \${expertCount}</span>\`;
+      if (autoCount) html += \`<span class="principle-badge principle-auto">✓ \${autoCount}</span>\`;
+      if (expertCount) html += \`<span class="principle-badge principle-expert">★ \${expertCount}</span>\`;
       return html;
     }
     function renderPrincipleBadges() {
@@ -1776,7 +1776,7 @@ var INDEX_HTML = `<!DOCTYPE html>
         const data = await res.json();
         const el = document.querySelector(\`[data-import-classification="\${cardId}"]\`);
         if (el && data.classification) {
-          el.innerHTML = \`<div class="text-xs text-cyan-300">\u{1F527} Domain: \${data.classification.domain} | Principles: \${data.classification.principles.length} proposed</div>\`;
+          el.innerHTML = \`<div class="text-xs text-cyan-300">🔧 Domain: \${data.classification.domain} | Principles: \${data.classification.principles.length} proposed</div>\`;
           if (data.classification.principles.length > 0) {
             data.classification.principles.forEach(p => showPrincipleProposal(p));
           }
@@ -1834,15 +1834,15 @@ var INDEX_HTML = `<!DOCTYPE html>
         let html = '';
         if (violations.length > 0) {
           html += '<div style="margin-bottom:6px;"><span class="text-xs font-bold text-red-400">Violations:</span>';
-          violations.forEach(v => { html += \`<div class="text-xs text-red-300 ml-2">\u26A0 \${v}</div>\`; });
+          violations.forEach(v => { html += \`<div class="text-xs text-red-300 ml-2">⚠ \${v}</div>\`; });
           html += '</div>';
         }
         if (suggestions.length > 0) {
           html += '<div><span class="text-xs font-bold text-yellow-400">Suggestions:</span>';
-          suggestions.forEach(s => { html += \`<div class="text-xs text-yellow-300 ml-2">\u2139 \${s}</div>\`; });
+          suggestions.forEach(s => { html += \`<div class="text-xs text-yellow-300 ml-2">ℹ \${s}</div>\`; });
           html += '</div>';
         }
-        if (!html) html = '<div class="text-xs text-green-400">\u2713 Content complies with all active principles.</div>';
+        if (!html) html = '<div class="text-xs text-green-400">✓ Content complies with all active principles.</div>';
         output.innerHTML = html;
       } catch(e) { output.innerHTML = \`<div class="text-xs text-red-400">Failed: \${e.message}</div>\`; }
     }
@@ -1944,7 +1944,7 @@ var INDEX_HTML = `<!DOCTYPE html>
       } catch { return html; }
     }
 
-    // \u2500\u2500 Drag & Drop \u2500\u2500
+    // ── Drag & Drop ──
     let dragCounter = 0;
     document.addEventListener('dragenter', (e) => {
       e.preventDefault();
@@ -1970,7 +1970,7 @@ var INDEX_HTML = `<!DOCTYPE html>
       }
     });
 
-    // \u2500\u2500 File Upload Button \u2500\u2500
+    // ── File Upload Button ──
     document.getElementById('fileUpload').addEventListener('change', async (e) => {
       const files = e.target.files;
       if (!files) return;
@@ -1980,14 +1980,14 @@ var INDEX_HTML = `<!DOCTYPE html>
       e.target.value = '';
     });
 
-    // \u2500\u2500 Paste Hint \u2500\u2500
+    // ── Paste Hint ──
     setTimeout(() => {
       const hint = document.getElementById('pasteHint');
       hint.classList.add('visible');
       setTimeout(() => hint.classList.remove('visible'), 4000);
     }, 1500);
 
-    // \u2500\u2500 Truth-Engine Query \u2500\u2500
+    // ── Truth-Engine Query ──
     function promptQuery() {
       const query = prompt('Enter truth-engine query:');
       if (query) runQuery(query, ['general']);
@@ -2035,7 +2035,7 @@ var INDEX_HTML = `<!DOCTYPE html>
       await runQuery(card.queryText || card.content, card.domains);
     }
 
-    // \u2500\u2500 Truth-Audit \u2500\u2500
+    // ── Truth-Audit ──
     function promptAudit() {
       const selected = [...selectedIds];
       if (selected.length === 0) {
@@ -2100,7 +2100,7 @@ var INDEX_HTML = `<!DOCTYPE html>
         ? cards.filter(c => c.eitlStatus)
         : cards.filter(c => c.type === filterType);
       const typeLabel = filterType === 'eitl' ? 'EITL Review' : filterType + 's';
-      const icon = filterType === 'Query' ? '\u{1F50E}' : filterType === 'Audit' ? '\u{1F50D}' : '\u2699';
+      const icon = filterType === 'Query' ? '🔎' : filterType === 'Audit' ? '🔍' : '⚙';
       let listHtml = '';
       if (filtered.length === 0) {
         listHtml = '<div style="color:#666;font-size:12px;padding:16px;text-align:center;">No ' + typeLabel + ' found. Run a ' + (filterType === 'eitl' ? 'review' : filterType.toLowerCase()) + ' to populate this list.</div>';
@@ -2339,7 +2339,7 @@ var INDEX_HTML = `<!DOCTYPE html>
       input.click();
     }
 
-    // \u2500\u2500 Domain Stack Panel \u2500\u2500
+    // ── Domain Stack Panel ──
     async function loadDomains() {
       try {
         const res = await fetch('/api/domains');
@@ -2349,10 +2349,10 @@ var INDEX_HTML = `<!DOCTYPE html>
     }
 
     init();
-  <\/script>
+  </script>
 </body>
 </html>
-`;
+`
 var server_default = {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);

@@ -626,7 +626,7 @@ var INDEX_HTML = `<!DOCTYPE html>
       await loadCards();
       await loadPrinciples();
       if (cards.length === 0) {
-        await createCard('Instruct', 'Welcome', 'Truth Engine workspace initialized.\\n\\nFeatures:\\n• Browser cards — fetch & parse live web pages\\n• Document / Instruct / Import / Search cards\\n• Snap-based docking & fused card clusters\\n• Merge / Distill / Combine / Rewrite with AI\\n• Principle engine with EITL ratification\\n• Real-time multi-user sync via WebSocket\\n\\nShare this URL with ?ws=<name> to collaborate.');
+        await createCard('Instruct', 'Welcome', 'Truth Engine workspace initialized.\n\nFeatures:\n• Browser cards — fetch & parse live web pages\n• Document / Instruct / Import / Search cards\n• Snap-based docking & fused card clusters\n• Merge / Distill / Combine / Rewrite with AI\n• Principle engine with EITL ratification\n• Real-time multi-user sync via WebSocket\n\nShare this URL with ?ws=<name> to collaborate.');
       }
       autoNumberDocuments();
       setInterval(() => sendWS({ type: 'ping' }), 30000);
@@ -755,13 +755,13 @@ var INDEX_HTML = `<!DOCTYPE html>
           if (p.domainTag === 'universal' || p.domainTag === 'ethical') return true;
           return card.domains && card.domains.includes(p.domainTag);
         });
-        const principleContext = activePrinciples.map(p => '• [' + p.domainTag + '] ' + p.text).join('\\n');
+        const principleContext = activePrinciples.map(p => '• [' + p.domainTag + '] ' + p.text).join('\n');
         contentHtml = \`
           <div style="padding:4px 0;">
             <div style="margin-bottom:6px;padding:6px 8px;background:#111122;border:1px solid #2a2a4a;border-radius:4px;font-size:10px;color:#888;">
               <span style="color:#ff8a4a;font-weight:600;">Principle Stack Active:</span> \${activePrinciples.length} principles bound
             </div>
-            <textarea data-content="\${card.id}" placeholder="Enter instruction...\\n\\nThe ambient LLM will route this through the active principle stack. Output is domain-bound before it exists." style="width:100%;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'SF Mono','Fira Code',monospace;resize:vertical;min-height:80px;line-height:1.6;tab-size:2;"></textarea>
+            <textarea data-content="\${card.id}" placeholder="Enter instruction...\n\nThe ambient LLM will route this through the active principle stack. Output is domain-bound before it exists." style="width:100%;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'SF Mono','Fira Code',monospace;resize:vertical;min-height:80px;line-height:1.6;tab-size:2;"></textarea>
             <div style="display:flex;gap:6px;margin-top:6px;">
               <button onclick="runInstruct('\${card.id}')" class="action-btn" style="flex:1;">Generate</button>
               <button onclick="checkPrincipleCompliance('\${card.id}')" class="ctrl-btn" style="flex:1;font-size:11px;padding:4px 8px;">Check Compliance</button>
@@ -1214,7 +1214,7 @@ var INDEX_HTML = `<!DOCTYPE html>
     function renderMarkdown(md) {
       let html = escapeHtml(md);
       // Code blocks (must be first to protect content)
-      html = html.replace(/\`\`\`(\\w*)\\n([\\s\\S]*?)\`\`\`/g, '<pre><code>$2</code></pre>');
+      html = html.replace(/\`\`\`(\w*)\n([\s\S]*?)\`\`\`/g, '<pre><code>$2</code></pre>');
       // Inline code
       html = html.replace(/\`([^\`]+)\`/g, '<code>$1</code>');
       // Headings
@@ -1225,47 +1225,47 @@ var INDEX_HTML = `<!DOCTYPE html>
       html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
       html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
       // Bold and italic
-      html = html.replace(/\\*\\*\\*(.+?)\\*\\*\\*/g, '<strong><em>$1</em></strong>');
-      html = html.replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>');
-      html = html.replace(/\\*(.+?)\\*/g, '<em>$1</em>');
+      html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
       // Links and images
-      html = html.replace(/!\\[([^\\]]*)\\]\\(([^)]+)\\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:4px;">');
-      html = html.replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '<a href="$2" target="_blank">$1</a>');
+      html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:4px;">');
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
       // Blockquotes
       html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
       // Horizontal rules
       html = html.replace(/^---$/gm, '<hr>');
       // Unordered lists
       html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
-      html = html.replace(/(<li>.*<\\/li>\\n?)+/g, '<ul>$&</ul>');
+      html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
       // Ordered lists
-      html = html.replace(/^\\d+\\. (.+)$/gm, '<li>$1</li>');
+      html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
       // Tables
-      html = html.replace(/^\\|(.+)\\|$/gm, (match, content) => {
+      html = html.replace(/^\|(.+)\|$/gm, (match, content) => {
         const cells = content.split('|').map(c => c.trim());
         if (cells.every(c => c.match(/^[-:]+$/))) return '';
         const tag = 'td';
         return '<tr>' + cells.map(c => \`<\${tag}>\${c}</\${tag}>\`).join('') + '</tr>';
       });
-      html = html.replace(/(<tr>.*<\\/tr>\\n?)+/g, '<table>$&</table>');
+      html = html.replace(/(<tr>.*<\/tr>\n?)+/g, '<table>$&</table>');
       // Paragraphs (double newline)
-      html = html.replace(/\\n\\n/g, '</p><p>');
+      html = html.replace(/\n\n/g, '</p><p>');
       html = '<p>' + html + '</p>';
       // Single newlines to <br>
-      html = html.replace(/\\n/g, '<br>');
+      html = html.replace(/\n/g, '<br>');
       // Clean up empty paragraphs and nested tags
-      html = html.replace(/<p><\\/p>/g, '');
+      html = html.replace(/<p><\/p>/g, '');
       html = html.replace(/<p>(<h[1-6]>)/g, '$1');
-      html = html.replace(/(<\\/h[1-6]>)<\\/p>/g, '$1');
+      html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1');
       html = html.replace(/<p>(<pre>)/g, '$1');
-      html = html.replace(/(<\\/pre>)<\\/p>/g, '$1');
+      html = html.replace(/(<\/pre>)<\/p>/g, '$1');
       html = html.replace(/<p>(<ul>)/g, '$1');
-      html = html.replace(/(<\\/ul>)<\\/p>/g, '$1');
+      html = html.replace(/(<\/ul>)<\/p>/g, '$1');
       html = html.replace(/<p>(<table>)/g, '$1');
-      html = html.replace(/(<\\/table>)<\\/p>/g, '$1');
-      html = html.replace(/<p>(<hr>)<\\/p>/g, '$1');
+      html = html.replace(/(<\/table>)<\/p>/g, '$1');
+      html = html.replace(/<p>(<hr>)<\/p>/g, '$1');
       html = html.replace(/<p>(<blockquote>)/g, '$1');
-      html = html.replace(/(<\\/blockquote>)<\\/p>/g, '$1');
+      html = html.replace(/(<\/blockquote>)<\/p>/g, '$1');
       return html;
     }
 
@@ -1336,14 +1336,14 @@ var INDEX_HTML = `<!DOCTYPE html>
     function fmtCode(cardId) { fmtInsert(cardId, '\`', '\`', 'code'); }
     function fmtLink(cardId) { fmtInsert(cardId, '[', '](https://)', 'link text'); }
     function fmtImage(cardId) { fmtInsert(cardId, '![', '](https://)', 'alt text'); }
-    function fmtHr(cardId) { fmtInsert(cardId, '\\n\\n---\\n\\n', '', ''); }
-    function fmtQuote(cardId) { fmtInsert(cardId, '\\n> ', '\\n', 'quote'); }
-    function fmtCodeBlock(cardId) { fmtInsert(cardId, '\\n\`\`\`\\n', '\\n\`\`\`\\n', 'code block'); }
-    function fmtList(cardId) { fmtInsert(cardId, '\\n- ', '\\n', 'list item'); }
-    function fmtOList(cardId) { fmtInsert(cardId, '\\n1. ', '\\n', 'list item'); }
+    function fmtHr(cardId) { fmtInsert(cardId, '\n\n---\n\n', '', ''); }
+    function fmtQuote(cardId) { fmtInsert(cardId, '\n> ', '\n', 'quote'); }
+    function fmtCodeBlock(cardId) { fmtInsert(cardId, '\n\`\`\`\n', '\n\`\`\`\n', 'code block'); }
+    function fmtList(cardId) { fmtInsert(cardId, '\n- ', '\n', 'list item'); }
+    function fmtOList(cardId) { fmtInsert(cardId, '\n1. ', '\n', 'list item'); }
     function fmtHeading(cardId, level) {
       const prefix = '#'.repeat(level) + ' ';
-      fmtInsert(cardId, '\\n' + prefix, '\\n', 'heading');
+      fmtInsert(cardId, '\n' + prefix, '\n', 'heading');
     }
 
     // ── Browser Navigation ──
@@ -1354,7 +1354,7 @@ var INDEX_HTML = `<!DOCTYPE html>
       if (!urlInput) return;
       let url = urlInput.value.trim();
       if (!url) return;
-      if (!url.match(/^https?:\\/\\//)) url = 'https://' + url;
+      if (!url.match(/^https?:\/\//)) url = 'https://' + url;
       urlInput.value = url;
       // Update the iframe
       const frame = el.querySelector(\`[data-browser-frame="\${cardId}"]\`);
@@ -1448,48 +1448,48 @@ var INDEX_HTML = `<!DOCTYPE html>
       const doc = new DOMParser().parseFromString(html, 'text/html');
       function convertNode(node) {
         if (node.nodeType === 3) {
-          return node.textContent.replace(/\\s+/g, ' ');
+          return node.textContent.replace(/\s+/g, ' ');
         }
         if (node.nodeType !== 1) return '';
         const tag = node.tagName.toLowerCase();
         const inner = Array.from(node.childNodes).map(convertNode).join('');
         switch (tag) {
-          case 'h1': return \`\\n# \${inner.trim()}\\n\`;
-          case 'h2': return \`\\n## \${inner.trim()}\\n\`;
-          case 'h3': return \`\\n### \${inner.trim()}\\n\`;
-          case 'h4': return \`\\n#### \${inner.trim()}\\n\`;
-          case 'h5': return \`\\n##### \${inner.trim()}\\n\`;
-          case 'h6': return \`\\n###### \${inner.trim()}\\n\`;
-          case 'p': return \`\\n\${inner.trim()}\\n\`;
-          case 'br': return '\\n';
+          case 'h1': return \`\n# \${inner.trim()}\n\`;
+          case 'h2': return \`\n## \${inner.trim()}\n\`;
+          case 'h3': return \`\n### \${inner.trim()}\n\`;
+          case 'h4': return \`\n#### \${inner.trim()}\n\`;
+          case 'h5': return \`\n##### \${inner.trim()}\n\`;
+          case 'h6': return \`\n###### \${inner.trim()}\n\`;
+          case 'p': return \`\n\${inner.trim()}\n\`;
+          case 'br': return '\n';
           case 'strong': case 'b': return \`**\${inner.trim()}**\`;
           case 'em': case 'i': return \`*\${inner.trim()}*\`;
-          case 'code': return \`\\\`\${inner}\\\`\`;
-          case 'pre': return \`\\n\\\`\\\`\\\`\\n\${inner.trim()}\\n\\\`\\\`\\\`\\n\`;
+          case 'code': return \`\\`\${inner}\\`\`;
+          case 'pre': return \`\n\\`\\`\\`\n\${inner.trim()}\n\\`\\`\\`\n\`;
           case 'a': { const href = node.getAttribute('href'); return href ? \`[\${inner.trim()}](\${href})\` : inner; }
           case 'img': { const alt = node.getAttribute('alt') || 'image'; const src = node.getAttribute('src') || ''; return \`![\${alt}](\${src})\`; }
-          case 'ul': return '\\n' + inner + '\\n';
-          case 'ol': return '\\n' + inner + '\\n';
+          case 'ul': return '\n' + inner + '\n';
+          case 'ol': return '\n' + inner + '\n';
           case 'li': {
             const parent = node.parentElement;
             if (parent && parent.tagName.toLowerCase() === 'ol') {
               const idx = Array.from(parent.children).indexOf(node) + 1;
-              return \`\${idx}. \${inner.trim()}\\n\`;
+              return \`\${idx}. \${inner.trim()}\n\`;
             }
-            return \`- \${inner.trim()}\\n\`;
+            return \`- \${inner.trim()}\n\`;
           }
-          case 'blockquote': return '\\n> ' + inner.trim().replace(/\\n/g, '\\n> ') + '\\n';
-          case 'hr': return '\\n---\\n';
+          case 'blockquote': return '\n> ' + inner.trim().replace(/\n/g, '\n> ') + '\n';
+          case 'hr': return '\n---\n';
           case 'table': {
             const rows = Array.from(node.querySelectorAll('tr'));
             if (rows.length === 0) return inner;
-            let md = '\\n';
+            let md = '\n';
             rows.forEach((row, ri) => {
               const cells = Array.from(row.querySelectorAll('th, td')).map(c => c.textContent.trim());
-              md += '| ' + cells.join(' | ') + ' |\\n';
-              if (ri === 0) md += '| ' + cells.map(() => '---').join(' | ') + ' |\\n';
+              md += '| ' + cells.join(' | ') + ' |\n';
+              if (ri === 0) md += '| ' + cells.map(() => '---').join(' | ') + ' |\n';
             });
-            return md + '\\n';
+            return md + '\n';
           }
           case 'div': case 'section': case 'article': case 'main': case 'span': case 'mark': case 'del': case 's': case 'u': case 'sub': case 'sup': case 'small': case 'strong': case 'em':
             return inner;
@@ -1499,7 +1499,7 @@ var INDEX_HTML = `<!DOCTYPE html>
         }
       }
       let md = Array.from(doc.body.childNodes).map(convertNode).join('');
-      md = md.replace(/\\n{3,}/g, '\\n\\n').replace(/[ \\t]+/g, ' ').trim();
+      md = md.replace(/\n{3,}/g, '\n\n').replace(/[ \t]+/g, ' ').trim();
       return md;
     }
 
@@ -1650,7 +1650,7 @@ var INDEX_HTML = `<!DOCTYPE html>
         const text = clipboardData.getData('text/plain');
         if (text && text.trim().length > 0) {
           e.preventDefault();
-          const title = text.split('\\n')[0].slice(0, 60).trim() || 'Pasted Text';
+          const title = text.split('\n')[0].slice(0, 60).trim() || 'Pasted Text';
           await createCard('Document', title, text);
           showToast('Text imported', 'success');
         }
@@ -1663,7 +1663,7 @@ var INDEX_HTML = `<!DOCTYPE html>
       if (h1) return h1.textContent.trim().slice(0, 60);
       const b = doc.querySelector('b, strong');
       if (b && b.textContent.trim().length > 3) return b.textContent.trim().slice(0, 60);
-      const first = doc.body.textContent.trim().split('\\n')[0];
+      const first = doc.body.textContent.trim().split('\n')[0];
       return first ? first.slice(0, 60).trim() : null;
     }
 
@@ -2115,8 +2115,8 @@ var INDEX_HTML = `<!DOCTYPE html>
             + '<span class="picker-badge" style="background:' + badge + '22;color:' + badge + ';">' + c.type + '</span>'
             + '<span class="picker-title">' + (c.title || 'Untitled') + statusBadge + statusDot + '</span>'
             + '<span class="picker-meta">' + (conf ? conf + ' ' : '') + date + '</span>'
-            + '<button class="flip-btn" onclick="flipCardEdit(\\'' + c.id + '\\')" title="Flip to edit">Edit</button>'
-            + '<button class="flip-btn" onclick="elevateFromPicker(\\'' + c.id + '\\')" title="Elevate to knowledge" style="color:#4aff8a;border-color:#2a6a3a;">Elevate</button>'
+            + '<button class="flip-btn" onclick="flipCardEdit(\'' + c.id + '\')" title="Flip to edit">Edit</button>'
+            + '<button class="flip-btn" onclick="elevateFromPicker(\'' + c.id + '\')" title="Elevate to knowledge" style="color:#4aff8a;border-color:#2a6a3a;">Elevate</button>'
             + '</div>';
         }).join('');
       }
@@ -2160,8 +2160,8 @@ var INDEX_HTML = `<!DOCTYPE html>
         + '<div style="font-size:11px;color:#ff6b1a;margin-bottom:6px;">Edit & Elevate</div>'
         + '<textarea id="flip-edit-' + cardId + '" style="width:100%;min-height:150px;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:6px;padding:8px;font-size:12px;font-family:monospace;resize:vertical;">' + content.replace(/</g, '&lt;') + '</textarea>'
         + '<div style="display:flex;gap:8px;margin-top:8px;">'
-        + '<button class="elevate-btn" onclick="elevateCardContent(\\'' + cardId + '\\')">Save as Elevated Knowledge</button>'
-        + '<button class="flip-btn" onclick="unflipCard(\\'' + cardId + '\\')">Cancel</button>'
+        + '<button class="elevate-btn" onclick="elevateCardContent(\'' + cardId + '\')">Save as Elevated Knowledge</button>'
+        + '<button class="flip-btn" onclick="unflipCard(\'' + cardId + '\')">Cancel</button>'
         + '</div></div></div></div>';
       const saved = contentArea.innerHTML;
       contentArea.dataset.savedHtml = saved;
