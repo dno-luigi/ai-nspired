@@ -166,17 +166,6 @@
     .split-view .split-left, .split-view .split-right { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     .split-view .split-divider { width: 1px; background: #2a2a4a; cursor: col-resize; flex-shrink: 0; }
     .split-view .split-right { border-left: 1px solid #2a2a4a; overflow-y: auto; }
-    /* Card Flip */
-    .card-flip-container { perspective: 1000px; width: 100%; min-height: 200px; }
-    .card-flip-inner { position: relative; width: 100%; transition: transform 0.5s; transform-style: preserve-3d; }
-    .card-flip-inner.flipped { transform: rotateY(180deg); }
-    .card-flip-front, .card-flip-back { backface-visibility: hidden; -webkit-backface-visibility: hidden; width: 100%; }
-    .card-flip-back { position: absolute; top: 0; left: 0; transform: rotateY(180deg); min-height: 200px; }
-    .flip-btn { padding: 4px 10px; background: #2a2a4a; border: 1px solid #4a4a6a; border-radius: 4px; color: #e0e0e0; font-size: 10px; cursor: pointer; transition: all 0.15s; }
-    .flip-btn:hover { border-color: #ff6b1a; color: #ff6b1a; }
-    .elevate-btn { padding: 6px 14px; background: #1a4a2a; border: 1px solid #2a6a3a; border-radius: 6px; color: #4aff8a; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
-    .elevate-btn:hover { background: #2a6a3a; border-color: #4aff8a; }
-    /* Card Picker Modal */
     .picker-list { max-height: 350px; overflow-y: auto; }
     .picker-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #2a2a4a; border-radius: 6px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s; }
     .picker-item:hover { border-color: #ff6b1a; background: #22223a; }
@@ -185,6 +174,15 @@
     .picker-item .picker-meta { font-size: 10px; color: #888; flex-shrink: 0; }
     .picker-item .picker-badge { font-size: 9px; padding: 1px 6px; border-radius: 3px; font-weight: 600; text-transform: uppercase; }
     .picker-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+    .card-flip-container { perspective: 1000px; }
+    .card-flip-inner { position: relative; width: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+    .card-flip-inner.flipped { transform: rotateY(180deg); }
+    .card-flip-front, .card-flip-back { backface-visibility: hidden; }
+    .card-flip-back { position: absolute; top: 0; left: 0; width: 100%; transform: rotateY(180deg); }
+    .flip-btn { font-size: 10px; padding: 3px 8px; background: #2a2a4a; color: #ff6b1a; border: 1px solid #4a4a6a; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
+    .flip-btn:hover { background: #3a3a5a; }
+    .elevate-btn { font-size: 10px; padding: 3px 8px; background: #2a4a2a; color: #4aff8a; border: 1px solid #4a6a4a; border-radius: 4px; cursor: pointer; flex-shrink: 0; }
+    .elevate-btn:hover { background: #3a5a3a; }
   </style>
 </head>
 <body>
@@ -304,7 +302,7 @@
     let clusters = {}; // { clusterId: [cardId, ...] }
     let principles = []; // Principle engine store
     let wsParam = new URLSearchParams(location.search).get('ws') || 'default';
-    const API = (path) => `/api${path}?ws=${wsParam}`;
+    const API = (path) => \`/api\${path}?ws=\${wsParam}\`;
     let ws = null;
     let wsReconnectTimer = null;
     let remoteCursors = {};
@@ -313,7 +311,7 @@
     function connectWS() {
       setWsStatus('connecting');
       const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-      ws = new WebSocket(`${protocol}//${location.host}/api/ws?ws=${wsParam}`);
+      ws = new WebSocket(\`\${protocol}//\${location.host}/api/ws?ws=\${wsParam}\`);
       ws.onopen = () => { setWsStatus('connected'); if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; } };
       ws.onmessage = (event) => { handleMessage(JSON.parse(event.data)); };
       ws.onclose = () => { setWsStatus('disconnected'); wsReconnectTimer = setTimeout(connectWS, 3000); };
@@ -322,7 +320,7 @@
 
     function setWsStatus(state) {
       const el = document.getElementById('wsStatus');
-      el.className = `ws-status ws-${state}`;
+      el.className = \`ws-status ws-\${state}\`;
       el.textContent = state;
     }
 
@@ -336,8 +334,8 @@
             cards.push(msg.card); renderCard(msg.card, cardCounter * 30 + 40, cardCounter * 30 + 40); cardCounter++; updateStatus();
           } break;
         case 'card_updated': { const idx = cards.findIndex(c => c.id === msg.card.id); if (idx !== -1) { cards[idx] = msg.card; updateCardDOM(msg.card); } break; }
-        case 'card_deleted': cards = cards.filter(c => c.id !== msg.id); selectedIds.delete(msg.id); const el = document.getElementById(`card-${msg.id}`); if (el) el.remove(); updateStatus(); break;
-        case 'presence': document.getElementById('presence').innerHTML = msg.count > 0 ? `<span class="presence-dot"></span>${msg.count} live` : ''; break;
+        case 'card_deleted': cards = cards.filter(c => c.id !== msg.id); selectedIds.delete(msg.id); const el = document.getElementById(\`card-\${msg.id}\`); if (el) el.remove(); updateStatus(); break;
+        case 'presence': document.getElementById('presence').innerHTML = msg.count > 0 ? \`<span class="presence-dot"></span>\${msg.count} live\` : ''; break;
         case 'cursor': updateRemoteCursor(msg.clientId, msg.x, msg.y); break;
         case 'principle_proposed': showPrincipleProposal(msg.principle); break;
       }
@@ -351,7 +349,7 @@
         remoteCursors[clientId] = { el, x, y };
       }
       const rc = remoteCursors[clientId];
-      rc.el.style.left = `${x}px`; rc.el.style.top = `${y}px`;
+      rc.el.style.left = \`\${x}px\`; rc.el.style.top = \`\${y}px\`;
       clearTimeout(rc.timeout); rc.timeout = setTimeout(() => { rc.el.remove(); delete remoteCursors[clientId]; }, 3000);
     }
 
@@ -373,7 +371,7 @@
       await loadCards();
       await loadPrinciples();
       if (cards.length === 0) {
-        await createCard('Instruct', 'Welcome', 'Truth Engine workspace initialized.\n\nFeatures:\n• Browser cards — fetch & parse live web pages\n• Document / Instruct / Import / Search cards\n• Snap-based docking & fused card clusters\n• Merge / Distill / Combine / Rewrite with AI\n• Principle engine with EITL ratification\n• Real-time multi-user sync via WebSocket\n\nShare this URL with ?ws=<name> to collaborate.');
+        await createCard('Instruct', 'Welcome', 'Truth Engine workspace initialized.\\n\\nFeatures:\\n• Browser cards — fetch & parse live web pages\\n• Document / Instruct / Import / Search cards\\n• Snap-based docking & fused card clusters\\n• Merge / Distill / Combine / Rewrite with AI\\n• Principle engine with EITL ratification\\n• Real-time multi-user sync via WebSocket\\n\\nShare this URL with ?ws=<name> to collaborate.');
       }
       autoNumberDocuments();
       setInterval(() => sendWS({ type: 'ping' }), 30000);
@@ -394,15 +392,15 @@
       if (type === 'Browser' && !title) { openFetch(); return; }
       if (type === 'Search' && !title) { openSearch(); return; }
       if (type === 'Import' && !title) { document.getElementById('fileUpload').click(); return; }
-      const res = await fetch(API('/cards'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, title: title || `${type} Card`, content: content || '' }) });
+      const res = await fetch(API('/cards'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, title: title || \`\${type} Card\`, content: content || '' }) });
       const card = await res.json();
       if (!cards.find(c => c.id === card.id)) { cards.push(card); renderCard(card, cardCounter * 30 + 40, cardCounter * 30 + 40); cardCounter++; updateStatus(); }
       if (type === 'Import' && content) { classifyImportContent(card.id, content); }
       return card;
     }
 
-    async function updateCard(id, patch) { await fetch(API(`/cards/${id}`), { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) }); }
-    async function deleteCard(id) { await fetch(API(`/cards/${id}`), { method: 'DELETE' }); }
+    async function updateCard(id, patch) { await fetch(API(\`/cards/\${id}\`), { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) }); }
+    async function deleteCard(id) { await fetch(API(\`/cards/\${id}\`), { method: 'DELETE' }); }
 
     function openFetch() { document.getElementById('fetchModal').style.display = 'flex'; document.getElementById('fetchUrl').focus(); }
     function closeFetch() { document.getElementById('fetchModal').style.display = 'none'; }
@@ -426,7 +424,7 @@
       document.querySelectorAll('.card-window').forEach(el => { positions[el.dataset.id] = { left: el.style.left, top: el.style.top }; });
       canvas.innerHTML = ''; cardCounter = 0;
       cards.forEach((card) => {
-        const pos = positions[card.id] || { left: `${cardCounter * 30 + 40}px`, top: `${cardCounter * 30 + 40}px` };
+        const pos = positions[card.id] || { left: \`\${cardCounter * 30 + 40}px\`, top: \`\${cardCounter * 30 + 40}px\` };
         renderCard(card, parseFloat(pos.left) || cardCounter * 30 + 40, parseFloat(pos.top) || cardCounter * 30 + 40); cardCounter++;
       });
       updateStatus();
@@ -435,288 +433,277 @@
     function renderCard(card, x, y) {
       const canvas = document.getElementById('canvas');
       const el = document.createElement('div');
-      el.id = `card-${card.id}`;
-      el.style.left = `${x}px`; el.style.top = `${y}px`; el.dataset.id = card.id;
+      el.id = \`card-\${card.id}\`;
+      el.style.left = \`\${x}px\`; el.style.top = \`\${y}px\`; el.dataset.id = card.id;
       el.dataset.rawHtml = card.rawHtml ? '1' : '0';
-      const badgeClass = `badge-${card.type.toLowerCase()}`;
+      const badgeClass = \`badge-\${card.type.toLowerCase()}\`;
       const isBrowser = card.type === 'Browser';
       const isSearch = card.type === 'Search';
       const isImport = card.type === 'Import';
-      el.className = `card-window${isBrowser ? ' browser-card' : ''}`;
-      if (card.width) el.style.width = `${card.width}px`;
-      if (card.height) el.style.minHeight = `${card.height}px`;
+      el.className = \`card-window\${isBrowser ? ' browser-card' : ''}\`;
+      if (card.width) el.style.width = \`\${card.width}px\`;
+      if (card.height) el.style.minHeight = \`\${card.height}px\`;
 
       // Docking zones
-      el.innerHTML = `
+      el.innerHTML = \`
         <div class="dock-zone dock-zone-left" data-dock="left"></div>
         <div class="dock-zone dock-zone-right" data-dock="right"></div>
         <div class="dock-zone dock-zone-top" data-dock="top"></div>
         <div class="dock-zone dock-zone-bottom" data-dock="bottom"></div>
-      `;
+      \`;
 
-      const fmtBar = `
-        <div class="card-toolbar fmt-bar" data-fmtbar="${card.id}">
-          <button onclick="fmtBold('${card.id}')" title="B"><b>B</b></button>
-          <button onclick="fmtItalic('${card.id}')" title="I"><i>I</i></button>
-          <button onclick="fmtStrike('${card.id}')" title="S"><s>S</s></button>
+      const fmtBar = \`
+        <div class="card-toolbar fmt-bar" data-fmtbar="\${card.id}">
+          <button onclick="fmtBold('\${card.id}')" title="B"><b>B</b></button>
+          <button onclick="fmtItalic('\${card.id}')" title="I"><i>I</i></button>
+          <button onclick="fmtStrike('\${card.id}')" title="S"><s>S</s></button>
           <span class="sep"></span>
-          <button onclick="fmtHeading('${card.id}',1)" title="H1">H1</button>
-          <button onclick="fmtHeading('${card.id}',2)" title="H2">H2</button>
-          <button onclick="fmtHeading('${card.id}',3)" title="H3">H3</button>
+          <button onclick="fmtHeading('\${card.id}',1)" title="H1">H1</button>
+          <button onclick="fmtHeading('\${card.id}',2)" title="H2">H2</button>
+          <button onclick="fmtHeading('\${card.id}',3)" title="H3">H3</button>
           <span class="sep"></span>
-          <button onclick="fmtList('${card.id}')" title="UL">• List</button>
-          <button onclick="fmtOList('${card.id}')" title="OL">1. List</button>
-          <button onclick="fmtQuote('${card.id}')" title="Quote">&gt;</button>
+          <button onclick="fmtList('\${card.id}')" title="UL">• List</button>
+          <button onclick="fmtOList('\${card.id}')" title="OL">1. List</button>
+          <button onclick="fmtQuote('\${card.id}')" title="Quote">&gt;</button>
           <span class="sep"></span>
-          <button onclick="fmtCode('${card.id}')" title="Code">&lt;/&gt;</button>
-          <button onclick="fmtCodeBlock('${card.id}')" title="Block">{ }</button>
+          <button onclick="fmtCode('\${card.id}')" title="Code">&lt;/&gt;</button>
+          <button onclick="fmtCodeBlock('\${card.id}')" title="Block">{ }</button>
           <span class="sep"></span>
-          <button onclick="fmtLink('${card.id}')" title="Link">🔗</button>
-          <button onclick="fmtImage('${card.id}')" title="Image">🖼</button>
-          <button onclick="fmtHr('${card.id}')" title="HR">―</button>
+          <button onclick="fmtLink('\${card.id}')" title="Link">🔗</button>
+          <button onclick="fmtImage('\${card.id}')" title="Image">🖼</button>
+          <button onclick="fmtHr('\${card.id}')" title="HR">―</button>
         </div>
-      `;
+      \`;
 
       let contentHtml;
       if (isSearch) {
-        contentHtml = `
+        contentHtml = \`
           <div style="padding:4px 0;">
             <div style="display:flex;gap:6px;margin-bottom:6px;">
-              <input type="text" data-search-input="${card.id}" placeholder="Search query..." style="flex:1;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:4px;padding:4px 8px;font-size:12px;" />
-              <button onclick="runCardSearch('${card.id}')" style="padding:4px 10px;background:#ff6b1a;color:#0d0d1a;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">Go</button>
+              <input type="text" data-search-input="\${card.id}" placeholder="Search query..." style="flex:1;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:4px;padding:4px 8px;font-size:12px;" />
+              <button onclick="runCardSearch('\${card.id}')" style="padding:4px 10px;background:#ff6b1a;color:#0d0d1a;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">Go</button>
             </div>
-            <div class="search-results" data-search-results="${card.id}"></div>
+            <div class="search-results" data-search-results="\${card.id}"></div>
           </div>
-        `;
+        \`;
       } else if (isImport) {
-        contentHtml = `
+        contentHtml = \`
           <div class="border-2 border-dashed border-slate-700 p-6 text-center">
             <div class="text-sm text-slate-400 mb-2">Drop files here or paste content</div>
             <div class="text-xs text-slate-500">Classifies incoming content and proposes principle activations</div>
             <button onclick="document.getElementById('fileUpload').click()" style="margin-top:8px;padding:4px 12px;background:#2a2a4a;border:1px solid #4a4a6a;border-radius:4px;color:#e0e0e0;font-size:11px;cursor:pointer;">Browse Files</button>
           </div>
-          <div data-import-classification="${card.id}" style="margin-top:8px;"></div>
-        `;
+          <div data-import-classification="\${card.id}" style="margin-top:8px;"></div>
+        \`;
       } else if (card.type === 'Instruct') {
         const activePrinciples = principles.filter(p => {
           if (p.domainTag === 'universal' || p.domainTag === 'ethical') return true;
           return card.domains && card.domains.includes(p.domainTag);
         });
-        const principleContext = activePrinciples.map(p => '• [' + p.domainTag + '] ' + p.text).join('\n');
-        contentHtml = `
+        const principleContext = activePrinciples.map(p => '• [' + p.domainTag + '] ' + p.text).join('\\n');
+        contentHtml = \`
           <div style="padding:4px 0;">
             <div style="margin-bottom:6px;padding:6px 8px;background:#111122;border:1px solid #2a2a4a;border-radius:4px;font-size:10px;color:#888;">
-              <span style="color:#ff8a4a;font-weight:600;">Principle Stack Active:</span> ${activePrinciples.length} principles bound
+              <span style="color:#ff8a4a;font-weight:600;">Principle Stack Active:</span> \${activePrinciples.length} principles bound
             </div>
-            <textarea data-content="${card.id}" placeholder="Enter instruction...\n\nThe ambient LLM will route this through the active principle stack. Output is domain-bound before it exists." style="width:100%;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'SF Mono','Fira Code',monospace;resize:vertical;min-height:80px;line-height:1.6;tab-size:2;"></textarea>
+            <textarea data-content="\${card.id}" placeholder="Enter instruction...\\n\\nThe ambient LLM will route this through the active principle stack. Output is domain-bound before it exists." style="width:100%;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'SF Mono','Fira Code',monospace;resize:vertical;min-height:80px;line-height:1.6;tab-size:2;"></textarea>
             <div style="display:flex;gap:6px;margin-top:6px;">
-              <button onclick="runInstruct('${card.id}')" class="action-btn" style="flex:1;">Generate</button>
-              <button onclick="checkPrincipleCompliance('${card.id}')" class="ctrl-btn" style="flex:1;font-size:11px;padding:4px 8px;">Check Compliance</button>
+              <button onclick="runInstruct('\${card.id}')" class="action-btn" style="flex:1;">Generate</button>
+              <button onclick="checkPrincipleCompliance('\${card.id}')" class="ctrl-btn" style="flex:1;font-size:11px;padding:4px 8px;">Check Compliance</button>
             </div>
-            <div data-instruct-output="${card.id}" style="margin-top:8px;"></div>
+            <div data-instruct-output="\${card.id}" style="margin-top:8px;"></div>
           </div>
-        `;
+        \`;
       } else if (card.type === 'Document' && card.splitView) {
-        contentHtml = `
-          <div class="split-view" data-splitview="${card.id}">
+        contentHtml = \`
+          <div class="split-view" data-splitview="\${card.id}">
             <div class="split-left" style="padding-right:4px;">
               <div class="card-toolbar" style="margin-bottom:0;">
-                <button class="active" data-mode="split" onclick="toggleCardMode('${card.id}','split')">Split</button>
-                <button data-mode="edit" onclick="toggleCardMode('${card.id}','edit')">Edit</button>
-                <button data-mode="preview" onclick="toggleCardMode('${card.id}','preview')">Preview</button>
+                <button class="active" data-mode="split" onclick="toggleCardMode('\${card.id}','split')">Split</button>
+                <button data-mode="edit" onclick="toggleCardMode('\${card.id}','edit')">Edit</button>
+                <button data-mode="preview" onclick="toggleCardMode('\${card.id}','preview')">Preview</button>
               </div>
-              ${fmtBar}
-              <textarea data-content="${card.id}" placeholder="Drafting surface...—left pane: write. Right pane: live render." style="width:100%;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'SF Mono','Fira Code',monospace;min-height:200px;line-height:1.6;tab-size:2;resize:vertical;"></textarea>
+              \${fmtBar}
+              <textarea data-content="\${card.id}" placeholder="Drafting surface...—left pane: write. Right pane: live render." style="width:100%;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:6px;padding:8px 10px;font-size:13px;font-family:'SF Mono','Fira Code',monospace;min-height:200px;line-height:1.6;tab-size:2;resize:vertical;"></textarea>
             </div>
             <div class="split-divider"></div>
-            <div class="split-right md-preview" data-preview="${card.id}" style="padding:10px 12px;min-height:200px;"></div>
+            <div class="split-right md-preview" data-preview="\${card.id}" style="padding:10px 12px;min-height:200px;"></div>
           </div>
-        `;
+        \`;
       } else if (isBrowser) {
-        const proxyUrl = card.url ? `/api/proxy?url=${encodeURIComponent(card.url)}` : '';
-        contentHtml = `
+        const proxyUrl = card.url ? \`/api/proxy?url=\${encodeURIComponent(card.url)}\` : '';
+        contentHtml = \`
           <div class="browser-bar" style="margin-bottom:6px;">
-            <input type="text" class="url-input" data-url-input="${card.id}" value="${escapeHtml(card.url || '')}" placeholder="Enter URL and press Enter…" style="flex:1;background:#0d0d1a;color:#4ab8ff;border:1px solid #2a2a4a;border-radius:4px;padding:3px 8px;font-size:11px;font-family:monospace;" />
-            <button onclick="browserNavigate('${card.id}')" style="padding:3px 8px;background:#ff6b1a;color:#0d0d1a;border:none;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;">Go</button>
-            <button onclick="openBrowserFullscreen('${card.id}')" title="Open full screen" style="padding:3px 8px;background:#22223a;color:#4ab8ff;border:1px solid #2a2a4a;border-radius:4px;font-size:10px;cursor:pointer;">⛶</button>
+            <input type="text" class="url-input" data-url-input="\${card.id}" value="\${escapeHtml(card.url || '')}" placeholder="Enter URL and press Enter…" style="flex:1;background:#0d0d1a;color:#4ab8ff;border:1px solid #2a2a4a;border-radius:4px;padding:3px 8px;font-size:11px;font-family:monospace;" />
+            <button onclick="browserNavigate('\${card.id}')" style="padding:3px 8px;background:#ff6b1a;color:#0d0d1a;border:none;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;">Go</button>
+            <button onclick="openBrowserFullscreen('\${card.id}')" title="Open full screen" style="padding:3px 8px;background:#22223a;color:#4ab8ff;border:1px solid #2a2a4a;border-radius:4px;font-size:10px;cursor:pointer;">⛶</button>
           </div>
-          ${proxyUrl ? `<div class="browser-viewer"><iframe data-browser-frame="${card.id}" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="${proxyUrl}" style="width:100%;height:100%;border:none;"></iframe></div>` : `<div style="padding:20px;text-align:center;color:#666;font-size:12px;">Enter a URL above and press Go</div>`}
+          \${proxyUrl ? \`<div class="browser-viewer"><iframe data-browser-frame="\${card.id}" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="\${proxyUrl}" style="width:100%;height:100%;border:none;"></iframe></div>\` : \`<div style="padding:20px;text-align:center;color:#666;font-size:12px;">Enter a URL above and press Go</div>\`}
           <details style="margin-top:6px;">
             <summary style="cursor:pointer;color:#888;font-size:11px;">Extracted content</summary>
             <div class="card-toolbar" style="margin-top:4px;margin-bottom:0;">
-              <button class="active" data-mode="edit" onclick="toggleCardMode('${card.id}','edit')">Edit</button>
-              <button data-mode="preview" onclick="toggleCardMode('${card.id}','preview')">Preview</button>
+              <button class="active" data-mode="edit" onclick="toggleCardMode('\${card.id}','edit')">Edit</button>
+              <button data-mode="preview" onclick="toggleCardMode('\${card.id}','preview')">Preview</button>
             </div>
-            ${fmtBar}
-            <textarea data-content="${card.id}" style="display:none;" placeholder="Extracted content…">${escapeHtml(card.content)}</textarea>
-            <div class="md-preview" data-preview="${card.id}" style="display:none;"></div>
+            \${fmtBar}
+            <textarea data-content="\${card.id}" style="display:none;" placeholder="Extracted content…">\${escapeHtml(card.content)}</textarea>
+            <div class="md-preview" data-preview="\${card.id}" style="display:none;"></div>
           </details>
-        `;
+        \`;
       } else if (card.type === 'Query') {
         const results = card.results || [];
         const domainLabel = card.domainStack?.primary || card.domains?.[0] || 'general';
-        contentHtml = `
+        contentHtml = \`
           <div style="padding:4px 0;">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
               <span style="font-size:10px;color:#888;">Domain:</span>
-              <span class="domain-chip primary" style="font-size:9px;">${domainLabel}</span>
+              <span class="domain-chip primary" style="font-size:9px;">\${domainLabel}</span>
               <span style="font-size:10px;color:#888;margin-left:auto;">Coverage:</span>
-              <span style="font-size:11px;color:#4aff8a;font-weight:600;">${Math.round((card.coverageScore || 0) * 100)}%</span>
+              <span style="font-size:11px;color:#4aff8a;font-weight:600;">\${Math.round((card.coverageScore || 0) * 100)}%</span>
             </div>
-            <div style="font-size:10px;color:#888;margin-bottom:4px;">${results.length} result(s) · ${(card.principlesApplied || []).length} principles applied</div>
-            <div class="query-results" data-query-results="${card.id}">
-              ${results.map((r, i) => `
-                <div class="query-result" onclick="materializeQueryResult('${card.id}', ${i})">
+            <div style="font-size:10px;color:#888;margin-bottom:4px;">\${results.length} result(s) · \${(card.principlesApplied || []).length} principles applied</div>
+            <div class="query-results" data-query-results="\${card.id}">
+              \${results.map((r, i) => \`
+                <div class="query-result" onclick="materializeQueryResult('\${card.id}', \${i})">
                   <div style="display:flex;justify-content:space-between;">
-                    <span class="result-type">${r.sourceType}</span>
-                    <span class="result-relevance">${Math.round((r.relevance || 0) * 100)}%</span>
+                    <span class="result-type">\${r.sourceType}</span>
+                    <span class="result-relevance">\${Math.round((r.relevance || 0) * 100)}%</span>
                   </div>
-                  <div class="result-snippet">${escapeHtml((r.snippet || '').slice(0, 120))}${(r.snippet || '').length > 120 ? '...' : ''}</div>
+                  <div class="result-snippet">\${escapeHtml((r.snippet || '').slice(0, 120))}\${(r.snippet || '').length > 120 ? '...' : ''}</div>
                 </div>
-              `).join('')}
+              \`).join('')}
             </div>
             <div style="margin-top:6px;display:flex;gap:6px;">
-              <button onclick="rerunQuery('${card.id}')" class="ctrl-btn" style="flex:1;font-size:11px;padding:4px 8px;">Re-run</button>
+              <button onclick="rerunQuery('\${card.id}')" class="ctrl-btn" style="flex:1;font-size:11px;padding:4px 8px;">Re-run</button>
             </div>
           </div>
-        `;
+        \`;
       } else if (card.type === 'Audit') {
         const findings = card.findings || [];
         const cov = card.principleCoverage || { total: 0, satisfied: 0, violated: 0, unaddressed: 0 };
         const statusColor = card.status === 'pass' ? '#4aff8a' : card.status === 'conditional' ? '#ffaa4a' : '#ff4a4a';
-        contentHtml = `
-          <div style="padding:4px 0;" class="audit-${card.status || 'fail'}">
+        contentHtml = \`
+          <div style="padding:4px 0;" class="audit-\${card.status || 'fail'}">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-              <span style="font-size:12px;font-weight:700;color:${statusColor};text-transform:uppercase;">${card.status || 'fail'}</span>
+              <span style="font-size:12px;font-weight:700;color:\${statusColor};text-transform:uppercase;">\${card.status || 'fail'}</span>
               <span style="font-size:11px;color:#888;">Confidence:</span>
-              <span style="font-size:11px;color:${statusColor};font-weight:600;">${Math.round((card.overallConfidence || 0) * 100)}%</span>
-              <span style="font-size:10px;color:#888;margin-left:auto;">Scope: ${card.auditScope || 'compliance'}</span>
+              <span style="font-size:11px;color:\${statusColor};font-weight:600;">\${Math.round((card.overallConfidence || 0) * 100)}%</span>
+              <span style="font-size:10px;color:#888;margin-left:auto;">Scope: \${card.auditScope || 'compliance'}</span>
             </div>
             <div class="audit-coverage">
-              <div class="cov-item"><div class="cov-dot" style="background:#4aff8a;"></div> ${cov.satisfied} satisfied</div>
-              <div class="cov-item"><div class="cov-dot" style="background:#ffaa4a;"></div> ${cov.violated} partial</div>
-              <div class="cov-item"><div class="cov-dot" style="background:#ff4a4a;"></div> ${cov.unaddressed} unaddressed</div>
+              <div class="cov-item"><div class="cov-dot" style="background:#4aff8a;"></div> \${cov.satisfied} satisfied</div>
+              <div class="cov-item"><div class="cov-dot" style="background:#ffaa4a;"></div> \${cov.violated} partial</div>
+              <div class="cov-item"><div class="cov-dot" style="background:#ff4a4a;"></div> \${cov.unaddressed} unaddressed</div>
             </div>
-            <div style="font-size:10px;color:#888;margin:4px 0;">${findings.length} finding(s)</div>
-            <div class="audit-findings" data-audit-findings="${card.id}" style="max-height:200px;overflow-y:auto;">
-              ${findings.slice(0, 20).map(f => `
-                <div class="audit-finding ${f.severity}">
+            <div style="font-size:10px;color:#888;margin:4px 0;">\${findings.length} finding(s)</div>
+            <div class="audit-findings" data-audit-findings="\${card.id}" style="max-height:200px;overflow-y:auto;">
+              \${findings.slice(0, 20).map(f => \`
+                <div class="audit-finding \${f.severity}">
                   <div style="display:flex;justify-content:space-between;">
-                    <span style="font-weight:600;color:${f.severity === 'violation' ? '#ff4a4a' : f.severity === 'warning' ? '#ffaa4a' : '#4a9fff'};">${f.severity.toUpperCase()}</span>
-                    <span style="color:#888;font-size:10px;">${Math.round((f.confidence || 0) * 100)}%</span>
+                    <span style="font-weight:600;color:\${f.severity === 'violation' ? '#ff4a4a' : f.severity === 'warning' ? '#ffaa4a' : '#4a9fff'};">\${f.severity.toUpperCase()}</span>
+                    <span style="color:#888;font-size:10px;">\${Math.round((f.confidence || 0) * 100)}%</span>
                   </div>
-                  <div style="color:#ccc;margin:2px 0;">${escapeHtml(f.description)}</div>
-                  ${f.suggestion ? `<div style="color:#888;font-size:10px;">Suggestion: ${escapeHtml(f.suggestion)}</div>` : ''}
+                  <div style="color:#ccc;margin:2px 0;">\${escapeHtml(f.description)}</div>
+                  \${f.suggestion ? \`<div style="color:#888;font-size:10px;">Suggestion: \${escapeHtml(f.suggestion)}</div>\` : ''}
                 </div>
-              `).join('')}
-              ${findings.length > 20 ? `<div style="text-align:center;color:#888;font-size:10px;padding:4px;">+${findings.length - 20} more findings</div>` : ''}
+              \`).join('')}
+              \${findings.length > 20 ? \`<div style="text-align:center;color:#888;font-size:10px;padding:4px;">+\${findings.length - 20} more findings</div>\` : ''}
             </div>
             <div style="margin-top:6px;display:flex;gap:6px;">
-              <button onclick="reAudit('${card.id}')" class="ctrl-btn" style="flex:1;font-size:11px;padding:4px 8px;">Re-audit</button>
-              <button onclick="exportAudit('${card.id}')" class="ctrl-btn" style="flex:1;font-size:11px;padding:4px 8px;">Export</button>
+              <button onclick="reAudit('\${card.id}')" class="ctrl-btn" style="flex:1;font-size:11px;padding:4px 8px;">Re-audit</button>
+              <button onclick="exportAudit('\${card.id}')" class="ctrl-btn" style="flex:1;font-size:11px;padding:4px 8px;">Export</button>
             </div>
           </div>
-        `;
+        \`;
       } else if (card.type === 'DomainBrowser') {
         const assets = card.assets || [];
         const dMeta = { general: {color:'#888'}, legal: {color:'#4ab8ff'}, educational: {color:'#8aff4a'}, medical: {color:'#ff4a8a'}, technical: {color:'#c14aff'} };
         const dColor = dMeta[card.domain]?.color || '#888';
-        contentHtml = `
+        contentHtml = \`
           <div style="padding:4px 0;">
             <div style="display:flex;gap:6px;margin-bottom:6px;">
-              <button onclick="switchDomainView('${card.id}','assets')" class="ctrl-btn" style="font-size:10px;padding:3px 8px;${card.view === 'assets' ? 'border-color:#ff6b1a;color:#ff6b1a;' : ''}">Assets</button>
-              <button onclick="switchDomainView('${card.id}','principles')" class="ctrl-btn" style="font-size:10px;padding:3px 8px;${card.view === 'principles' ? 'border-color:#ff6b1a;color:#ff6b1a;' : ''}">Principles</button>
-              <button onclick="switchDomainView('${card.id}','stack')" class="ctrl-btn" style="font-size:10px;padding:3px 8px;${card.view === 'stack' ? 'border-color:#ff6b1a;color:#ff6b1a;' : ''}">Stack</button>
+              <button onclick="switchDomainView('\${card.id}','assets')" class="ctrl-btn" style="font-size:10px;padding:3px 8px;\${card.view === 'assets' ? 'border-color:#ff6b1a;color:#ff6b1a;' : ''}">Assets</button>
+              <button onclick="switchDomainView('\${card.id}','principles')" class="ctrl-btn" style="font-size:10px;padding:3px 8px;\${card.view === 'principles' ? 'border-color:#ff6b1a;color:#ff6b1a;' : ''}">Principles</button>
+              <button onclick="switchDomainView('\${card.id}','stack')" class="ctrl-btn" style="font-size:10px;padding:3px 8px;\${card.view === 'stack' ? 'border-color:#ff6b1a;color:#ff6b1a;' : ''}">Stack</button>
             </div>
-            <div data-domain-view="${card.id}">
-              ${card.view === 'assets' ? `
-                <div style="font-size:10px;color:#888;margin-bottom:4px;">${assets.length} asset(s) in ${card.domain}</div>
-                ${assets.map(a => `
+            <div data-domain-view="\${card.id}">
+              \${card.view === 'assets' ? \`
+                <div style="font-size:10px;color:#888;margin-bottom:4px;">\${assets.length} asset(s) in \${card.domain}</div>
+                \${assets.map(a => \`
                   <div class="domain-asset-item">
-                    <span class="asset-name">${a.key.split('/').pop()}</span>
-                    <span class="asset-size">${a.size ? Math.round(a.size / 1024) + 'KB' : ''}</span>
+                    <span class="asset-name">\${a.key.split('/').pop()}</span>
+                    <span class="asset-size">\${a.size ? Math.round(a.size / 1024) + 'KB' : ''}</span>
                   </div>
-                `).join('')}
-                ${assets.length === 0 ? '<div style="color:#666;font-size:11px;text-align:center;padding:8px;">No assets</div>' : ''}
-              ` : card.view === 'principles' ? `
-                <div style="font-size:10px;color:#888;margin-bottom:4px;">${card.principleCount || 0} principle(s) for ${card.domain}</div>
-                <button onclick="syncDomainPrinciples('${card.domain}')" class="ctrl-btn" style="font-size:10px;padding:3px 8px;margin-bottom:6px;">Sync to KV</button>
-              ` : `
+                \`).join('')}
+                \${assets.length === 0 ? '<div style="color:#666;font-size:11px;text-align:center;padding:8px;">No assets</div>' : ''}
+              \` : card.view === 'principles' ? \`
+                <div style="font-size:10px;color:#888;margin-bottom:4px;">\${card.principleCount || 0} principle(s) for \${card.domain}</div>
+                <button onclick="syncDomainPrinciples('\${card.domain}')" class="ctrl-btn" style="font-size:10px;padding:3px 8px;margin-bottom:6px;">Sync to KV</button>
+              \` : \`
                 <div style="font-size:11px;color:#ccc;">
-                  <div>Primary: <span class="domain-chip primary">${card.activeStack?.primary || card.domain}</span></div>
-                  ${card.activeStack?.secondary?.length ? `<div style="margin-top:4px;">Secondary: ${card.activeStack.secondary.map(s => `<span class="domain-chip secondary">${s}</span>`).join(' ')}</div>` : ''}
+                  <div>Primary: <span class="domain-chip primary">\${card.activeStack?.primary || card.domain}</span></div>
+                  \${card.activeStack?.secondary?.length ? \`<div style="margin-top:4px;">Secondary: \${card.activeStack.secondary.map(s => \`<span class="domain-chip secondary">\${s}</span>\`).join(' ')}</div>\` : ''}
                 </div>
-              `}
+              \`}
             </div>
             <div style="margin-top:6px;">
-              <button onclick="uploadToDomain('${card.id}', '${card.domain}')" class="ctrl-btn" style="font-size:10px;padding:3px 8px;width:100%;">Upload Asset</button>
+              <button onclick="uploadToDomain('\${card.id}', '\${card.domain}')" class="ctrl-btn" style="font-size:10px;padding:3px 8px;width:100%;">Upload Asset</button>
             </div>
           </div>
-        `;
-      } else if (card.rawHtml) {
-        contentHtml = `
-          <div class="card-toolbar" style="margin-bottom:0;">
-            <button class="active" data-mode="edit" onclick="toggleCardMode('${card.id}','edit')">Edit</button>
-            <button data-mode="preview" onclick="toggleCardMode('${card.id}','preview')">Preview</button>
-          </div>
-          ${fmtBar}
-          <div data-rawcontent="${card.id}" style="padding:8px;">${card.content}</div>
-          <textarea data-content="${card.id}" style="display:none;">${escapeHtml(card.content)}</textarea>
-          <div class="md-preview" data-preview="${card.id}" style="display:none;"></div>
-        `;
+        \`;
       } else {
-        contentHtml = `
+        contentHtml = \`
           <div class="card-toolbar" style="margin-bottom:0;">
-            <button class="active" data-mode="edit" onclick="toggleCardMode('${card.id}','edit')">Edit</button>
-            <button data-mode="preview" onclick="toggleCardMode('${card.id}','preview')">Preview</button>
+            <button class="active" data-mode="edit" onclick="toggleCardMode('\${card.id}','edit')">Edit</button>
+            <button data-mode="preview" onclick="toggleCardMode('\${card.id}','preview')">Preview</button>
           </div>
-          ${fmtBar}
-          <textarea data-content="${card.id}" placeholder="Enter content…">${escapeHtml(card.content)}</textarea>
-          <div class="md-preview" data-preview="${card.id}" style="display:none;"></div>
-        `;
+          \${fmtBar}
+          <textarea data-content="\${card.id}" placeholder="Enter content…">\${escapeHtml(card.content)}</textarea>
+          <div class="md-preview" data-preview="\${card.id}" style="display:none;"></div>
+        \`;
       }
 
       // Principle badges for active card
       const principleHtml = getCardPrincipleBadges(card);
-      const domainSelector = (card.type === 'Document' || card.type === 'Instruct') ? `
-        <select data-domain-select="${card.id}" style="font-size:9px;padding:1px 4px;background:#0d0d1a;color:#888;border:1px solid #2a2a4a;border-radius:3px;cursor:pointer;" onchange="setDomain('${card.id}', this.value)">
-          <option value="general" ${(!card.domains || card.domains[0] === 'general') ? 'selected' : ''}>General</option>
-          <option value="legal" ${card.domains && card.domains[0] === 'legal' ? 'selected' : ''}>Legal</option>
-          <option value="educational" ${card.domains && card.domains[0] === 'educational' ? 'selected' : ''}>Edu</option>
-          <option value="medical" ${card.domains && card.domains[0] === 'medical' ? 'selected' : ''}>Med</option>
-          <option value="technical" ${card.domains && card.domains[0] === 'technical' ? 'selected' : ''}>Tech</option>
+      const domainSelector = (card.type === 'Document' || card.type === 'Instruct') ? \`
+        <select data-domain-select="\${card.id}" style="font-size:9px;padding:1px 4px;background:#0d0d1a;color:#888;border:1px solid #2a2a4a;border-radius:3px;cursor:pointer;" onchange="setDomain('\${card.id}', this.value)">
+          <option value="general" \${(!card.domains || card.domains[0] === 'general') ? 'selected' : ''}>General</option>
+          <option value="legal" \${card.domains && card.domains[0] === 'legal' ? 'selected' : ''}>Legal</option>
+          <option value="educational" \${card.domains && card.domains[0] === 'educational' ? 'selected' : ''}>Edu</option>
+          <option value="medical" \${card.domains && card.domains[0] === 'medical' ? 'selected' : ''}>Med</option>
+          <option value="technical" \${card.domains && card.domains[0] === 'technical' ? 'selected' : ''}>Tech</option>
         </select>
-      ` : '';
-      const eitlBtn = (card.type === 'Document' || card.type === 'Instruct') ? `<button onclick="openExpertReview('${card.id}')" style="font-size:9px;padding:1px 4px;background:#4a3a1a;border:1px solid #6a5a2a;border-radius:3px;color:#ffaa4a;cursor:pointer;">EITL</button>` : '';
+      \` : '';
+      const eitlBtn = (card.type === 'Document' || card.type === 'Instruct') ? \`<button onclick="openExpertReview('\${card.id}')" style="font-size:9px;padding:1px 4px;background:#4a3a1a;border:1px solid #6a5a2a;border-radius:3px;color:#ffaa4a;cursor:pointer;">EITL</button>\` : '';
 
-      el.innerHTML += `
+      el.innerHTML += \`
         <div class="card-header">
           <div class="flex items-center gap-2 flex-1">
-            <span class="card-type-badge ${badgeClass}">${card.type}</span>
-            <input class="card-title bg-transparent text-sm font-semibold text-white outline-none w-full" value="${escapeHtml(card.title)}" data-title="${card.id}" />
-            ${domainSelector}
-            ${eitlBtn}
-            ${principleHtml}
+            <span class="card-type-badge \${badgeClass}">\${card.type}</span>
+            <input class="card-title bg-transparent text-sm font-semibold text-white outline-none w-full" value="\${escapeHtml(card.title)}" data-title="\${card.id}" />
+            \${domainSelector}
+            \${eitlBtn}
+            \${principleHtml}
           </div>
-          <button class="text-gray-500 hover:text-blue-400 text-sm ml-1" title="Fullscreen" onclick="openCardFullscreen('${card.id}')">⛶</button>
-          <button class="text-gray-500 hover:text-red-400 text-sm ml-2" onclick="deleteCard('${card.id}')">✕</button>
+          <button class="text-gray-500 hover:text-blue-400 text-sm ml-1" title="Fullscreen" onclick="openCardFullscreen('\${card.id}')">⛶</button>
+          <button class="text-gray-500 hover:text-red-400 text-sm ml-2" onclick="deleteCard('\${card.id}')">✕</button>
         </div>
         <div class="card-content">
-          ${contentHtml}
-          ${card.relationships.length ? `<div class="mt-2 rel-link">↳ derived from: ${card.relationships.length} card(s)</div>` : ''}
+          \${contentHtml}
+          \${card.relationships.length ? \`<div class="mt-2 rel-link">↳ derived from: \${card.relationships.length} card(s)</div>\` : ''}
         </div>
-        <div class="resize-handle" data-resize="${card.id}"></div>
-      `;
+        <div class="resize-handle" data-resize="\${card.id}"></div>
+      \`;
       canvas.appendChild(el);
 
       // Attach event listeners
       el.addEventListener('click', (e) => { if (['TEXTAREA','INPUT','BUTTON','A','IFRAME','DETAILS','SUMMARY','SELECT'].includes(e.target.tagName)) return; toggleSelect(card.id); });
-      const titleInput = el.querySelector(`[data-title="${card.id}"]`);
+      const titleInput = el.querySelector(\`[data-title="\${card.id}"]\`);
       titleInput.addEventListener('change', () => updateCard(card.id, { title: titleInput.value }));
 
       // Search card enter key
       if (isSearch) {
-        const searchInput = el.querySelector(`[data-search-input="${card.id}"]`);
+        const searchInput = el.querySelector(\`[data-search-input="\${card.id}"]\`);
         if (searchInput) {
           searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') runCardSearch(card.id); });
         }
@@ -724,20 +711,20 @@
 
       // Browser URL bar enter key
       if (isBrowser) {
-        const urlInput = el.querySelector(`[data-url-input="${card.id}"]`);
+        const urlInput = el.querySelector(\`[data-url-input="\${card.id}"]\`);
         if (urlInput) {
           urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') browserNavigate(card.id); });
         }
       }
 
-      const contentArea = el.querySelector(`[data-content="${card.id}"]`);
+      const contentArea = el.querySelector(\`[data-content="\${card.id}"]\`);
       if (contentArea) {
         let debounce;
         contentArea.addEventListener('input', () => {
           clearTimeout(debounce);
           debounce = setTimeout(() => updateCard(card.id, { content: contentArea.value }), 600);
           // Live split view rendering
-          const preview = el.querySelector(`[data-preview="${card.id}"]`);
+          const preview = el.querySelector(\`[data-preview="\${card.id}"]\`);
           if (preview && card.splitView) { preview.innerHTML = renderMarkdown(contentArea.value); }
           // Live instruct principle check
           if (card.type === 'Instruct') { /* content typed, no auto-action */ }
@@ -763,11 +750,11 @@
     }
 
     function updateCardDOM(card) {
-      const el = document.getElementById(`card-${card.id}`);
+      const el = document.getElementById(\`card-\${card.id}\`);
       if (!el) { renderCard(card, cardCounter * 30 + 40, cardCounter * 30 + 40); cardCounter++; return; }
-      const titleInput = el.querySelector(`[data-title="${card.id}"]`);
-      const contentArea = el.querySelector(`[data-content="${card.id}"]`);
-      const preview = el.querySelector(`[data-preview="${card.id}"]`);
+      const titleInput = el.querySelector(\`[data-title="\${card.id}"]\`);
+      const contentArea = el.querySelector(\`[data-content="\${card.id}"]\`);
+      const preview = el.querySelector(\`[data-preview="\${card.id}"]\`);
       if (titleInput && document.activeElement !== titleInput) titleInput.value = card.title;
       if (contentArea && document.activeElement !== contentArea) {
         contentArea.value = card.content || '';
@@ -777,8 +764,8 @@
       }
     }
 
-    function toggleSelect(id) { if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id); document.getElementById(`card-${id}`).classList.toggle('selected', selectedIds.has(id)); }
-    function updateStatus() { document.getElementById('status').textContent = `${cards.length} cards · ${selectedIds.size} selected`; }
+    function toggleSelect(id) { if (selectedIds.has(id)) selectedIds.delete(id); else selectedIds.add(id); document.getElementById(\`card-\${id}\`).classList.toggle('selected', selectedIds.has(id)); }
+    function updateStatus() { document.getElementById('status').textContent = \`\${cards.length} cards · \${selectedIds.size} selected\`; }
 
     let dragState = null; // { type: 'drag', el, dx, dy } | { type: 'resize', el, cardId, sx, sy, sw, sh }
 
@@ -795,8 +782,8 @@
       header.addEventListener('touchmove', (e) => {
         if (!dragState || dragState.type !== 'drag' || dragState.el !== el) return;
         const t = e.touches[0];
-        dragState.el.style.left = `${t.clientX - dragState.dx}px`;
-        dragState.el.style.top = `${t.clientY - dragState.dy}px`;
+        dragState.el.style.left = \`\${t.clientX - dragState.dx}px\`;
+        dragState.el.style.top = \`\${t.clientY - dragState.dy}px\`;
         highlightNearestDock(dragState.el.dataset.id, t.clientX, t.clientY);
         e.preventDefault();
       }, { passive: false });
@@ -817,8 +804,8 @@
       });
       header.addEventListener('mousemove', (e) => {
         if (!dragState || dragState.type !== 'drag' || dragState.el !== el) return;
-        dragState.el.style.left = `${e.clientX - dragState.dx}px`;
-        dragState.el.style.top = `${e.clientY - dragState.dy}px`;
+        dragState.el.style.left = \`\${e.clientX - dragState.dx}px\`;
+        dragState.el.style.top = \`\${e.clientY - dragState.dy}px\`;
         highlightNearestDock(dragState.el.dataset.id, e.clientX, e.clientY);
       });
       header.addEventListener('mouseup', (e) => {
@@ -830,7 +817,7 @@
     }
 
     function makeResizable(el, cardId) {
-      const handle = el.querySelector(`[data-resize="${cardId}"]`);
+      const handle = el.querySelector(\`[data-resize="\${cardId}"]\`);
       if (!handle) return;
       handle.addEventListener('touchstart', (e) => {
         const t = e.touches[0]; if (!t) return;
@@ -862,8 +849,8 @@
       const newW = Math.max(280, dragState.sw + (cx - dragState.sx));
       const newH = Math.max(200, dragState.sh + (cy - dragState.sy));
       dragState.el.style.maxWidth = 'none';
-      dragState.el.style.width = `${newW}px`;
-      dragState.el.style.minHeight = `${newH}px`;
+      dragState.el.style.width = \`\${newW}px\`;
+      dragState.el.style.minHeight = \`\${newH}px\`;
     }
     function finishResize(cardId) {
       if (!dragState || dragState.type !== 'resize' || dragState.cardId !== cardId) return;
@@ -919,8 +906,8 @@
         const source = cards.find(c => c.id === dragId);
         const target = cards.find(c => c.id === bestTarget);
         if (source && target) {
-          const tRect = document.getElementById(`card-${bestTarget}`)?.getBoundingClientRect();
-          const dragEl = document.getElementById(`card-${dragId}`);
+          const tRect = document.getElementById(\`card-\${bestTarget}\`)?.getBoundingClientRect();
+          const dragEl = document.getElementById(\`card-\${dragId}\`);
           if (tRect && dragEl) {
             let newX, newY;
             switch(bestEdge) {
@@ -929,7 +916,7 @@
               case 'top': newX = tRect.left; newY = tRect.top - dragEl.offsetHeight - 8; break;
               case 'bottom': newX = tRect.left; newY = tRect.bottom + 8; break;
             }
-            dragEl.style.left = `${newX}px`; dragEl.style.top = `${newY}px`;
+            dragEl.style.left = \`\${newX}px\`; dragEl.style.top = \`\${newY}px\`;
             updateCard(dragId, { x: newX, y: newY, dockedTo: bestTarget, dockEdge: bestEdge });
           }
         }
@@ -943,14 +930,14 @@
         return ay - by;
       });
       sorted.forEach((card, idx) => {
-        const el = document.getElementById(`card-${card.id}`);
+        const el = document.getElementById(\`card-\${card.id}\`);
         if (!el) return;
         const badge = el.querySelector('.card-type-badge');
-        if (badge) badge.textContent = `Doc ${idx + 1}`;
+        if (badge) badge.textContent = \`Doc \${idx + 1}\`;
       });
     }
 
-    function openManipulate() { if (selectedIds.size === 0) { alert('Select at least one card on the canvas first.'); return; } document.getElementById('selectedCount').textContent = `${selectedIds.size} card(s) selected.`; document.getElementById('manipulateModal').style.display = 'flex'; }
+    function openManipulate() { if (selectedIds.size === 0) { alert('Select at least one card on the canvas first.'); return; } document.getElementById('selectedCount').textContent = \`\${selectedIds.size} card(s) selected.\`; document.getElementById('manipulateModal').style.display = 'flex'; }
     function closeManipulate() { document.getElementById('manipulateModal').style.display = 'none'; }
 
     async function runManipulate() {
@@ -972,9 +959,9 @@
     function renderMarkdown(md) {
       let html = escapeHtml(md);
       // Code blocks (must be first to protect content)
-      html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+      html = html.replace(/\`\`\`(\\w*)\\n([\\s\\S]*?)\`\`\`/g, '<pre><code>$2</code></pre>');
       // Inline code
-      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      html = html.replace(/\`([^\`]+)\`/g, '<code>$1</code>');
       // Headings
       html = html.replace(/^###### (.+)$/gm, '<h6>$1</h6>');
       html = html.replace(/^##### (.+)$/gm, '<h5>$1</h5>');
@@ -983,76 +970,61 @@
       html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
       html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
       // Bold and italic
-      html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      html = html.replace(/\\*\\*\\*(.+?)\\*\\*\\*/g, '<strong><em>$1</em></strong>');
+      html = html.replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>');
+      html = html.replace(/\\*(.+?)\\*/g, '<em>$1</em>');
       // Links and images
-      html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:4px;">');
-      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+      html = html.replace(/!\\[([^\\]]*)\\]\\(([^)]+)\\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:4px;">');
+      html = html.replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '<a href="$2" target="_blank">$1</a>');
       // Blockquotes
       html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
       // Horizontal rules
       html = html.replace(/^---$/gm, '<hr>');
       // Unordered lists
       html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
-      html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+      html = html.replace(/(<li>.*<\\/li>\\n?)+/g, '<ul>$&</ul>');
       // Ordered lists
-      html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+      html = html.replace(/^\\d+\\. (.+)$/gm, '<li>$1</li>');
       // Tables
-      html = html.replace(/^\|(.+)\|$/gm, (match, content) => {
+      html = html.replace(/^\\|(.+)\\|$/gm, (match, content) => {
         const cells = content.split('|').map(c => c.trim());
         if (cells.every(c => c.match(/^[-:]+$/))) return '';
         const tag = 'td';
-        return '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+        return '<tr>' + cells.map(c => \`<\${tag}>\${c}</\${tag}>\`).join('') + '</tr>';
       });
-      html = html.replace(/(<tr>.*<\/tr>\n?)+/g, '<table>$&</table>');
+      html = html.replace(/(<tr>.*<\\/tr>\\n?)+/g, '<table>$&</table>');
       // Paragraphs (double newline)
-      html = html.replace(/\n\n/g, '</p><p>');
+      html = html.replace(/\\n\\n/g, '</p><p>');
       html = '<p>' + html + '</p>';
       // Single newlines to <br>
-      html = html.replace(/\n/g, '<br>');
+      html = html.replace(/\\n/g, '<br>');
       // Clean up empty paragraphs and nested tags
-      html = html.replace(/<p><\/p>/g, '');
+      html = html.replace(/<p><\\/p>/g, '');
       html = html.replace(/<p>(<h[1-6]>)/g, '$1');
-      html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1');
+      html = html.replace(/(<\\/h[1-6]>)<\\/p>/g, '$1');
       html = html.replace(/<p>(<pre>)/g, '$1');
-      html = html.replace(/(<\/pre>)<\/p>/g, '$1');
+      html = html.replace(/(<\\/pre>)<\\/p>/g, '$1');
       html = html.replace(/<p>(<ul>)/g, '$1');
-      html = html.replace(/(<\/ul>)<\/p>/g, '$1');
+      html = html.replace(/(<\\/ul>)<\\/p>/g, '$1');
       html = html.replace(/<p>(<table>)/g, '$1');
-      html = html.replace(/(<\/table>)<\/p>/g, '$1');
-      html = html.replace(/<p>(<hr>)<\/p>/g, '$1');
+      html = html.replace(/(<\\/table>)<\\/p>/g, '$1');
+      html = html.replace(/<p>(<hr>)<\\/p>/g, '$1');
       html = html.replace(/<p>(<blockquote>)/g, '$1');
-      html = html.replace(/(<\/blockquote>)<\/p>/g, '$1');
+      html = html.replace(/(<\\/blockquote>)<\\/p>/g, '$1');
       return html;
     }
 
     // ── Card Mode Toggle (Edit / Preview / Split) ──
     function toggleCardMode(cardId, mode) {
-      const el = document.getElementById(`card-${cardId}`);
+      const el = document.getElementById(\`card-\${cardId}\`);
       if (!el) return;
-      const textarea = el.querySelector(`[data-content="${cardId}"]`);
-      const preview = el.querySelector(`[data-preview="${cardId}"]`);
-      const rawContent = el.querySelector(`[data-rawcontent="${cardId}"]`);
-      const fmtBar = el.querySelector(`[data-fmtbar="${cardId}"]`);
+      const textarea = el.querySelector(\`[data-content="\${cardId}"]\`);
+      const preview = el.querySelector(\`[data-preview="\${cardId}"]\`);
+      const fmtBar = el.querySelector(\`[data-fmtbar="\${cardId}"]\`);
       if (!textarea || !preview) return;
       const buttons = el.querySelectorAll('.card-toolbar button');
       buttons.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-      if (rawContent) {
-        if (mode === 'edit') {
-          rawContent.style.display = 'none';
-          textarea.style.display = 'block';
-          preview.style.display = 'none';
-          if (fmtBar) fmtBar.style.display = 'flex';
-          textarea.focus();
-        } else {
-          rawContent.style.display = 'block';
-          textarea.style.display = 'none';
-          preview.style.display = 'none';
-          if (fmtBar) fmtBar.style.display = 'none';
-        }
-        updateCard(cardId, { splitView: false });
-      } else if (mode === 'split') {
+      if (mode === 'split') {
         textarea.style.display = 'block';
         preview.style.display = 'block';
         if (fmtBar) fmtBar.style.display = 'flex';
@@ -1075,15 +1047,15 @@
 
     // ── Format Toolbar Actions ──
     function getCardTextarea(cardId) {
-      const el = document.getElementById(`card-${cardId}`);
-      return el ? el.querySelector(`[data-content="${cardId}"]`) : null;
+      const el = document.getElementById(\`card-\${cardId}\`);
+      return el ? el.querySelector(\`[data-content="\${cardId}"]\`) : null;
     }
 
     function fmtInsert(cardId, before, after, placeholder) {
       const ta = getCardTextarea(cardId);
       if (!ta) return;
       // Switch to edit mode first
-      const el = document.getElementById(`card-${cardId}`);
+      const el = document.getElementById(\`card-\${cardId}\`);
       const editBtn = el?.querySelector('[data-mode="edit"]');
       if (editBtn && !editBtn.classList.contains('active')) editBtn.click();
       ta.focus();
@@ -1106,38 +1078,38 @@
     function fmtBold(cardId) { fmtInsert(cardId, '**', '**', 'bold text'); }
     function fmtItalic(cardId) { fmtInsert(cardId, '*', '*', 'italic text'); }
     function fmtStrike(cardId) { fmtInsert(cardId, '~~', '~~', 'strikethrough'); }
-    function fmtCode(cardId) { fmtInsert(cardId, '`', '`', 'code'); }
+    function fmtCode(cardId) { fmtInsert(cardId, '\`', '\`', 'code'); }
     function fmtLink(cardId) { fmtInsert(cardId, '[', '](https://)', 'link text'); }
     function fmtImage(cardId) { fmtInsert(cardId, '![', '](https://)', 'alt text'); }
-    function fmtHr(cardId) { fmtInsert(cardId, '\n\n---\n\n', '', ''); }
-    function fmtQuote(cardId) { fmtInsert(cardId, '\n> ', '\n', 'quote'); }
-    function fmtCodeBlock(cardId) { fmtInsert(cardId, '\n```\n', '\n```\n', 'code block'); }
-    function fmtList(cardId) { fmtInsert(cardId, '\n- ', '\n', 'list item'); }
-    function fmtOList(cardId) { fmtInsert(cardId, '\n1. ', '\n', 'list item'); }
+    function fmtHr(cardId) { fmtInsert(cardId, '\\n\\n---\\n\\n', '', ''); }
+    function fmtQuote(cardId) { fmtInsert(cardId, '\\n> ', '\\n', 'quote'); }
+    function fmtCodeBlock(cardId) { fmtInsert(cardId, '\\n\`\`\`\\n', '\\n\`\`\`\\n', 'code block'); }
+    function fmtList(cardId) { fmtInsert(cardId, '\\n- ', '\\n', 'list item'); }
+    function fmtOList(cardId) { fmtInsert(cardId, '\\n1. ', '\\n', 'list item'); }
     function fmtHeading(cardId, level) {
       const prefix = '#'.repeat(level) + ' ';
-      fmtInsert(cardId, '\n' + prefix, '\n', 'heading');
+      fmtInsert(cardId, '\\n' + prefix, '\\n', 'heading');
     }
 
     // ── Browser Navigation ──
     function browserNavigate(cardId) {
-      const el = document.getElementById(`card-${cardId}`);
+      const el = document.getElementById(\`card-\${cardId}\`);
       if (!el) return;
-      const urlInput = el.querySelector(`[data-url-input="${cardId}"]`);
+      const urlInput = el.querySelector(\`[data-url-input="\${cardId}"]\`);
       if (!urlInput) return;
       let url = urlInput.value.trim();
       if (!url) return;
-      if (!url.match(/^https?:\/\//)) url = 'https://' + url;
+      if (!url.match(/^https?:\\/\\//)) url = 'https://' + url;
       urlInput.value = url;
       // Update the iframe
-      const frame = el.querySelector(`[data-browser-frame="${cardId}"]`);
+      const frame = el.querySelector(\`[data-browser-frame="\${cardId}"]\`);
       if (frame) {
-        frame.src = `/api/proxy?url=${encodeURIComponent(url)}`;
+        frame.src = \`/api/proxy?url=\${encodeURIComponent(url)}\`;
       } else {
         // Create iframe if it doesn't exist
         const viewer = el.querySelector('.browser-viewer');
         if (viewer) {
-          viewer.innerHTML = `<iframe data-browser-frame="${cardId}" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="/api/proxy?url=${encodeURIComponent(url)}" style="width:100%;height:100%;border:none;"></iframe>`;
+          viewer.innerHTML = \`<iframe data-browser-frame="\${cardId}" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="/api/proxy?url=\${encodeURIComponent(url)}" style="width:100%;height:100%;border:none;"></iframe>\`;
         }
       }
       // Save URL to card
@@ -1147,16 +1119,16 @@
     function openBrowserFullscreen(cardId) {
       const card = cards.find(c => c.id === cardId);
       if (!card || !card.url) { showToast('No URL to open', 'warning'); return; }
-      const proxyUrl = `/api/proxy?url=${encodeURIComponent(card.url)}&ws=${wsParam}`;
+      const proxyUrl = \`/api/proxy?url=\${encodeURIComponent(card.url)}&ws=\${wsParam}\`;
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;inset:0;background:#0d0d1a;z-index:200;display:flex;flex-direction:column;';
-      overlay.innerHTML = `
+      overlay.innerHTML = \`
         <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#1a1a2e;border-bottom:1px solid #2a2a4a;">
-          <span style="color:#4ab8ff;font-size:12px;font-family:monospace;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(card.url)}</span>
+          <span style="color:#4ab8ff;font-size:12px;font-family:monospace;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">\${escapeHtml(card.url)}</span>
           <button onclick="this.closest('[style*=fixed]').remove()" style="padding:4px 12px;background:#4a1a1a;color:#ff4a4a;border:1px solid #6a2a2a;border-radius:4px;font-size:12px;cursor:pointer;">Close</button>
         </div>
-        <iframe src="${proxyUrl}" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" style="flex:1;width:100%;border:none;background:#fff;"></iframe>
-      `;
+        <iframe src="\${proxyUrl}" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" style="flex:1;width:100%;border:none;background:#fff;"></iframe>
+      \`;
       document.body.appendChild(overlay);
     }
 
@@ -1167,17 +1139,17 @@
       overlay.style.cssText = 'position:fixed;inset:0;background:#0d0d1a;z-index:200;display:flex;flex-direction:column;';
       const isMarkdown = card.type === 'Document' || card.type === 'Import' || card.type === 'Search';
       const bodyHtml = isMarkdown
-        ? `<div class="md-preview" style="flex:1;overflow:auto;padding:24px 32px;">${renderMarkdown(card.content || '')}</div>`
-        : `<pre style="flex:1;overflow:auto;padding:24px 32px;color:#e0e0e0;font-family:monospace;font-size:13px;white-space:pre-wrap;word-wrap:break-word;">${escapeHtml(card.content || '')}</pre>`;
-      overlay.innerHTML = `
+        ? \`<div class="md-preview" style="flex:1;overflow:auto;padding:24px 32px;">\${renderMarkdown(card.content || '')}</div>\`
+        : \`<pre style="flex:1;overflow:auto;padding:24px 32px;color:#e0e0e0;font-family:monospace;font-size:13px;white-space:pre-wrap;word-wrap:break-word;">\${escapeHtml(card.content || '')}</pre>\`;
+      overlay.innerHTML = \`
         <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#1a1a2e;border-bottom:1px solid #2a2a4a;">
-          <span class="card-type-badge badge-${card.type.toLowerCase()}">${card.type}</span>
-          <span style="color:#ccc;font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(card.title)}</span>
-          <button onclick="openCardFullscreenEdit('${card.id}')" style="padding:4px 12px;background:#22223a;color:#4ab8ff;border:1px solid #2a2a4a;border-radius:4px;font-size:12px;cursor:pointer;">Edit</button>
+          <span class="card-type-badge badge-\${card.type.toLowerCase()}">\${card.type}</span>
+          <span style="color:#ccc;font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">\${escapeHtml(card.title)}</span>
+          <button onclick="openCardFullscreenEdit('\${card.id}')" style="padding:4px 12px;background:#22223a;color:#4ab8ff;border:1px solid #2a2a4a;border-radius:4px;font-size:12px;cursor:pointer;">Edit</button>
           <button onclick="this.closest('[style*=fixed]').remove()" style="padding:4px 12px;background:#4a1a1a;color:#ff4a4a;border:1px solid #6a2a2a;border-radius:4px;font-size:12px;cursor:pointer;">Close</button>
         </div>
-        ${bodyHtml}
-      `;
+        \${bodyHtml}
+      \`;
       document.body.appendChild(overlay);
     }
 
@@ -1186,15 +1158,15 @@
       if (!card) return;
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;inset:0;background:#0d0d1a;z-index:200;display:flex;flex-direction:column;';
-      overlay.innerHTML = `
+      overlay.innerHTML = \`
         <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#1a1a2e;border-bottom:1px solid #2a2a4a;">
-          <span style="color:#ccc;font-size:13px;font-weight:600;flex:1;">Edit ${escapeHtml(card.title)}</span>
+          <span style="color:#ccc;font-size:13px;font-weight:600;flex:1;">Edit \${escapeHtml(card.title)}</span>
           <button onclick="this.closest('[style*=fixed]').remove()" style="padding:4px 12px;background:#4a1a1a;color:#ff4a4a;border:1px solid #6a2a2a;border-radius:4px;font-size:12px;cursor:pointer;">Close</button>
         </div>
-        <textarea data-fullscreen-edit="${card.id}" style="flex:1;width:100%;background:#0d0d1a;color:#e0e0e0;border:none;padding:16px 20px;font-size:14px;font-family:'SF Mono','Fira Code',monospace;line-height:1.7;resize:none;outline:none;">${escapeHtml(card.content || '')}</textarea>
-      `;
+        <textarea data-fullscreen-edit="\${card.id}" style="flex:1;width:100%;background:#0d0d1a;color:#e0e0e0;border:none;padding:16px 20px;font-size:14px;font-family:'SF Mono','Fira Code',monospace;line-height:1.7;resize:none;outline:none;">\${escapeHtml(card.content || '')}</textarea>
+      \`;
       document.body.appendChild(overlay);
-      const ta = overlay.querySelector(`[data-fullscreen-edit="${card.id}"]`);
+      const ta = overlay.querySelector(\`[data-fullscreen-edit="\${card.id}"]\`);
       ta.focus();
       let debounce;
       ta.addEventListener('input', () => {
@@ -1207,9 +1179,9 @@
     function showToast(message, type = 'info') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
-      toast.className = `toast toast-${type}`;
+      toast.className = \`toast toast-\${type}\`;
       const icons = { success: '✓', error: '✕', info: 'ℹ', processing: '⟳' };
-      toast.innerHTML = `<span>${icons[type] || 'ℹ'}</span> ${escapeHtml(message)}`;
+      toast.innerHTML = \`<span>\${icons[type] || 'ℹ'}</span> \${escapeHtml(message)}\`;
       container.appendChild(toast);
       setTimeout(() => toast.remove(), 3200);
     }
@@ -1221,48 +1193,48 @@
       const doc = new DOMParser().parseFromString(html, 'text/html');
       function convertNode(node) {
         if (node.nodeType === 3) {
-          return node.textContent.replace(/\s+/g, ' ');
+          return node.textContent.replace(/\\s+/g, ' ');
         }
         if (node.nodeType !== 1) return '';
         const tag = node.tagName.toLowerCase();
         const inner = Array.from(node.childNodes).map(convertNode).join('');
         switch (tag) {
-          case 'h1': return `\n# ${inner.trim()}\n`;
-          case 'h2': return `\n## ${inner.trim()}\n`;
-          case 'h3': return `\n### ${inner.trim()}\n`;
-          case 'h4': return `\n#### ${inner.trim()}\n`;
-          case 'h5': return `\n##### ${inner.trim()}\n`;
-          case 'h6': return `\n###### ${inner.trim()}\n`;
-          case 'p': return `\n${inner.trim()}\n`;
-          case 'br': return '\n';
-          case 'strong': case 'b': return `**${inner.trim()}**`;
-          case 'em': case 'i': return `*${inner.trim()}*`;
-          case 'code': return `\`${inner}\``;
-          case 'pre': return `\n\`\`\`\n${inner.trim()}\n\`\`\`\n`;
-          case 'a': { const href = node.getAttribute('href'); return href ? `[${inner.trim()}](${href})` : inner; }
-          case 'img': { const alt = node.getAttribute('alt') || 'image'; const src = node.getAttribute('src') || ''; return `![${alt}](${src})`; }
-          case 'ul': return '\n' + inner + '\n';
-          case 'ol': return '\n' + inner + '\n';
+          case 'h1': return \`\\n# \${inner.trim()}\\n\`;
+          case 'h2': return \`\\n## \${inner.trim()}\\n\`;
+          case 'h3': return \`\\n### \${inner.trim()}\\n\`;
+          case 'h4': return \`\\n#### \${inner.trim()}\\n\`;
+          case 'h5': return \`\\n##### \${inner.trim()}\\n\`;
+          case 'h6': return \`\\n###### \${inner.trim()}\\n\`;
+          case 'p': return \`\\n\${inner.trim()}\\n\`;
+          case 'br': return '\\n';
+          case 'strong': case 'b': return \`**\${inner.trim()}**\`;
+          case 'em': case 'i': return \`*\${inner.trim()}*\`;
+          case 'code': return \`\\\`\${inner}\\\`\`;
+          case 'pre': return \`\\n\\\`\\\`\\\`\\n\${inner.trim()}\\n\\\`\\\`\\\`\\n\`;
+          case 'a': { const href = node.getAttribute('href'); return href ? \`[\${inner.trim()}](\${href})\` : inner; }
+          case 'img': { const alt = node.getAttribute('alt') || 'image'; const src = node.getAttribute('src') || ''; return \`![\${alt}](\${src})\`; }
+          case 'ul': return '\\n' + inner + '\\n';
+          case 'ol': return '\\n' + inner + '\\n';
           case 'li': {
             const parent = node.parentElement;
             if (parent && parent.tagName.toLowerCase() === 'ol') {
               const idx = Array.from(parent.children).indexOf(node) + 1;
-              return `${idx}. ${inner.trim()}\n`;
+              return \`\${idx}. \${inner.trim()}\\n\`;
             }
-            return `- ${inner.trim()}\n`;
+            return \`- \${inner.trim()}\\n\`;
           }
-          case 'blockquote': return '\n> ' + inner.trim().replace(/\n/g, '\n> ') + '\n';
-          case 'hr': return '\n---\n';
+          case 'blockquote': return '\\n> ' + inner.trim().replace(/\\n/g, '\\n> ') + '\\n';
+          case 'hr': return '\\n---\\n';
           case 'table': {
             const rows = Array.from(node.querySelectorAll('tr'));
             if (rows.length === 0) return inner;
-            let md = '\n';
+            let md = '\\n';
             rows.forEach((row, ri) => {
               const cells = Array.from(row.querySelectorAll('th, td')).map(c => c.textContent.trim());
-              md += '| ' + cells.join(' | ') + ' |\n';
-              if (ri === 0) md += '| ' + cells.map(() => '---').join(' | ') + ' |\n';
+              md += '| ' + cells.join(' | ') + ' |\\n';
+              if (ri === 0) md += '| ' + cells.map(() => '---').join(' | ') + ' |\\n';
             });
-            return md + '\n';
+            return md + '\\n';
           }
           case 'div': case 'section': case 'article': case 'main': case 'span': case 'mark': case 'del': case 's': case 'u': case 'sub': case 'sup': case 'small': case 'strong': case 'em':
             return inner;
@@ -1272,7 +1244,7 @@
         }
       }
       let md = Array.from(doc.body.childNodes).map(convertNode).join('');
-      md = md.replace(/\n{3,}/g, '\n\n').replace(/[ \t]+/g, ' ').trim();
+      md = md.replace(/\\n{3,}/g, '\\n\\n').replace(/[ \\t]+/g, ' ').trim();
       return md;
     }
 
@@ -1310,7 +1282,7 @@
         showToast('Processing image…', 'processing');
         const dataUrl = await compressImage(file);
         const base64 = dataUrl.split(',')[1];
-        await createCard('Document', name, `![${name}](${dataUrl})`);
+        await createCard('Document', name, \`![\${name}](\${dataUrl})\`);
         showToast('Image imported', 'success');
         return;
       }
@@ -1339,7 +1311,7 @@
 
       if (type === 'application/pdf' || ext === 'pdf' ||
           type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || ext === 'docx') {
-        showToast(`Processing ${ext.toUpperCase()} — this may take a moment…`, 'processing');
+        showToast(\`Processing \${ext.toUpperCase()} — this may take a moment…\`, 'processing');
         try {
           const base64 = await new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -1354,17 +1326,17 @@
           });
           const card = await res.json();
           if (res.ok) {
-            showToast(`${ext.toUpperCase()} imported successfully`, 'success');
+            showToast(\`\${ext.toUpperCase()} imported successfully\`, 'success');
           } else {
-            showToast(`Import failed: ${card.error}`, 'error');
+            showToast(\`Import failed: \${card.error}\`, 'error');
           }
         } catch (err) {
-          showToast(`Import failed: ${err.message}`, 'error');
+          showToast(\`Import failed: \${err.message}\`, 'error');
         }
         return;
       }
 
-      showToast(`Unsupported file type: ${type || ext}`, 'error');
+      showToast(\`Unsupported file type: \${type || ext}\`, 'error');
     }
 
     // ── Paste Handler ──
@@ -1423,7 +1395,7 @@
         const text = clipboardData.getData('text/plain');
         if (text && text.trim().length > 0) {
           e.preventDefault();
-          const title = text.split('\n')[0].slice(0, 60).trim() || 'Pasted Text';
+          const title = text.split('\\n')[0].slice(0, 60).trim() || 'Pasted Text';
           await createCard('Document', title, text);
           showToast('Text imported', 'success');
         }
@@ -1436,7 +1408,7 @@
       if (h1) return h1.textContent.trim().slice(0, 60);
       const b = doc.querySelector('b, strong');
       if (b && b.textContent.trim().length > 3) return b.textContent.trim().slice(0, 60);
-      const first = doc.body.textContent.trim().split('\n')[0];
+      const first = doc.body.textContent.trim().split('\\n')[0];
       return first ? first.slice(0, 60).trim() : null;
     }
 
@@ -1450,12 +1422,12 @@
         const res = await fetch(API('/search'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q }) });
         const results = await res.json();
         const container = document.getElementById('searchResults'); container.style.display = 'block';
-        container.innerHTML = (results.hits || []).map(r => `
-          <div class="search-result-item" onclick="materializeSearchResult('${escapeHtml(r.title)}', '${escapeHtml(r.snippet || '')}')">
-            <div class="result-title">${escapeHtml(r.title)}</div>
-            <div class="result-snippet">${escapeHtml((r.snippet || '').slice(0, 120))}</div>
+        container.innerHTML = (results.hits || []).map(r => \`
+          <div class="search-result-item" onclick="materializeSearchResult('\${escapeHtml(r.title)}', '\${escapeHtml(r.snippet || '')}')">
+            <div class="result-title">\${escapeHtml(r.title)}</div>
+            <div class="result-snippet">\${escapeHtml((r.snippet || '').slice(0, 120))}</div>
           </div>
-        `).join('') || '<div class="text-xs text-gray-500 p-2">No results</div>';
+        \`).join('') || '<div class="text-xs text-gray-500 p-2">No results</div>';
       } catch(e) { showToast('Search failed: ' + e.message, 'error'); }
       finally { btn.disabled = false; btn.textContent = 'Search'; }
     }
@@ -1464,20 +1436,20 @@
       createCard('Document', title, snippet);
     }
     async function runCardSearch(cardId) {
-      const el = document.getElementById(`card-${cardId}`);
-      const input = el?.querySelector(`[data-search-input="${cardId}"]`);
-      const results = el?.querySelector(`[data-search-results="${cardId}"]`);
+      const el = document.getElementById(\`card-\${cardId}\`);
+      const input = el?.querySelector(\`[data-search-input="\${cardId}"]\`);
+      const results = el?.querySelector(\`[data-search-results="\${cardId}"]\`);
       if (!input || !results) return;
       const q = input.value.trim(); if (!q) return;
       try {
         const res = await fetch(API('/search'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q }) });
         const data = await res.json();
-        results.innerHTML = (data.hits || []).map(r => `
-          <div class="search-result-item" onclick="materializeSearchResult('${escapeHtml(r.title)}', '${escapeHtml(r.snippet || '')}')">
-            <div class="result-title">${escapeHtml(r.title)}</div>
-            <div class="result-snippet">${escapeHtml((r.snippet || '').slice(0, 120))}</div>
+        results.innerHTML = (data.hits || []).map(r => \`
+          <div class="search-result-item" onclick="materializeSearchResult('\${escapeHtml(r.title)}', '\${escapeHtml(r.snippet || '')}')">
+            <div class="result-title">\${escapeHtml(r.title)}</div>
+            <div class="result-snippet">\${escapeHtml((r.snippet || '').slice(0, 120))}</div>
           </div>
-        `).join('') || '<div class="text-xs text-gray-500 p-2">No results</div>';
+        \`).join('') || '<div class="text-xs text-gray-500 p-2">No results</div>';
       } catch(e) { results.innerHTML = '<div class="text-xs text-red-400 p-2">Search failed</div>'; }
     }
 
@@ -1525,8 +1497,8 @@
       const autoCount = applicable.filter(p => p.ratificationStatus === 'auto').length;
       const expertCount = applicable.filter(p => p.ratificationStatus === 'expert').length;
       let html = '';
-      if (autoCount) html += `<span class="principle-badge principle-auto">✓ ${autoCount}</span>`;
-      if (expertCount) html += `<span class="principle-badge principle-expert">★ ${expertCount}</span>`;
+      if (autoCount) html += \`<span class="principle-badge principle-auto">✓ \${autoCount}</span>\`;
+      if (expertCount) html += \`<span class="principle-badge principle-expert">★ \${expertCount}</span>\`;
       return html;
     }
     function renderPrincipleBadges() {
@@ -1547,9 +1519,9 @@
       try {
         const res = await fetch(API('/classify'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cardId, content: content.slice(0, 2000) }) });
         const data = await res.json();
-        const el = document.querySelector(`[data-import-classification="${cardId}"]`);
+        const el = document.querySelector(\`[data-import-classification="\${cardId}"]\`);
         if (el && data.classification) {
-          el.innerHTML = `<div class="text-xs text-cyan-300">🔧 Domain: ${data.classification.domain} | Principles: ${data.classification.principles.length} proposed</div>`;
+          el.innerHTML = \`<div class="text-xs text-cyan-300">🔧 Domain: \${data.classification.domain} | Principles: \${data.classification.principles.length} proposed</div>\`;
           if (data.classification.principles.length > 0) {
             data.classification.principles.forEach(p => showPrincipleProposal(p));
           }
@@ -1560,10 +1532,10 @@
     // --- Phase 2: Instruct Card Routing ---
     async function runInstruct(cardId) {
       const card = cards.find(c => c.id === cardId);
-      const el = document.getElementById(`card-${cardId}`);
+      const el = document.getElementById(\`card-\${cardId}\`);
       if (!card || !el) return;
-      const textarea = el.querySelector(`[data-content="${cardId}"]`);
-      const output = el.querySelector(`[data-instruct-output="${cardId}"]`);
+      const textarea = el.querySelector(\`[data-content="\${cardId}"]\`);
+      const output = el.querySelector(\`[data-instruct-output="\${cardId}"]\`);
       if (!textarea || !output) return;
       const instruction = textarea.value.trim();
       if (!instruction) { output.innerHTML = '<div class="text-xs text-red-400">Enter an instruction first.</div>'; return; }
@@ -1571,30 +1543,30 @@
       try {
         const res = await fetch(API('/instruct'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cardId, instruction, domains: card.domains || [] }) });
         const data = await res.json();
-        if (data.error) { output.innerHTML = `<div class="text-xs text-red-400">${data.error}</div>`; return; }
-        output.innerHTML = `
-          <div class="md-preview" style="max-height:250px;overflow-y:auto;">${renderMarkdown(data.result || '')}</div>
+        if (data.error) { output.innerHTML = \`<div class="text-xs text-red-400">\${data.error}</div>\`; return; }
+        output.innerHTML = \`
+          <div class="md-preview" style="max-height:250px;overflow-y:auto;">\${renderMarkdown(data.result || '')}</div>
           <div style="margin-top:6px;display:flex;gap:6px;">
-            <button onclick="adoptInstructResult('${cardId}', this.parentElement.previousElementSibling)" class="action-btn" style="font-size:10px;padding:3px 8px;">Adopt as Content</button>
-            <span class="text-xs text-gray-500">Confidence: ${data.confidence || 'N/A'}</span>
+            <button onclick="adoptInstructResult('\${cardId}', this.parentElement.previousElementSibling)" class="action-btn" style="font-size:10px;padding:3px 8px;">Adopt as Content</button>
+            <span class="text-xs text-gray-500">Confidence: \${data.confidence || 'N/A'}</span>
           </div>
-        `;
-      } catch(e) { output.innerHTML = `<div class="text-xs text-red-400">Failed: ${e.message}</div>`; }
+        \`;
+      } catch(e) { output.innerHTML = \`<div class="text-xs text-red-400">Failed: \${e.message}</div>\`; }
     }
     function adoptInstructResult(cardId, previewEl) {
       const text = previewEl?.textContent || '';
       const card = cards.find(c => c.id === cardId);
-      const el = document.getElementById(`card-${cardId}`);
+      const el = document.getElementById(\`card-\${cardId}\`);
       if (!card || !el) return;
-      const textarea = el.querySelector(`[data-content="${cardId}"]`);
+      const textarea = el.querySelector(\`[data-content="\${cardId}"]\`);
       if (textarea) { textarea.value = text; updateCard(cardId, { content: text }); }
     }
     async function checkPrincipleCompliance(cardId) {
       const card = cards.find(c => c.id === cardId);
-      const el = document.getElementById(`card-${cardId}`);
+      const el = document.getElementById(\`card-\${cardId}\`);
       if (!card || !el) return;
-      const textarea = el.querySelector(`[data-content="${cardId}"]`);
-      const output = el.querySelector(`[data-instruct-output="${cardId}"]`);
+      const textarea = el.querySelector(\`[data-content="\${cardId}"]\`);
+      const output = el.querySelector(\`[data-instruct-output="\${cardId}"]\`);
       if (!textarea || !output) return;
       const content = textarea.value.trim();
       if (!content) return;
@@ -1607,17 +1579,17 @@
         let html = '';
         if (violations.length > 0) {
           html += '<div style="margin-bottom:6px;"><span class="text-xs font-bold text-red-400">Violations:</span>';
-          violations.forEach(v => { html += `<div class="text-xs text-red-300 ml-2">⚠ ${v}</div>`; });
+          violations.forEach(v => { html += \`<div class="text-xs text-red-300 ml-2">⚠ \${v}</div>\`; });
           html += '</div>';
         }
         if (suggestions.length > 0) {
           html += '<div><span class="text-xs font-bold text-yellow-400">Suggestions:</span>';
-          suggestions.forEach(s => { html += `<div class="text-xs text-yellow-300 ml-2">ℹ ${s}</div>`; });
+          suggestions.forEach(s => { html += \`<div class="text-xs text-yellow-300 ml-2">ℹ \${s}</div>\`; });
           html += '</div>';
         }
         if (!html) html = '<div class="text-xs text-green-400">✓ Content complies with all active principles.</div>';
         output.innerHTML = html;
-      } catch(e) { output.innerHTML = `<div class="text-xs text-red-400">Failed: ${e.message}</div>`; }
+      } catch(e) { output.innerHTML = \`<div class="text-xs text-red-400">Failed: \${e.message}</div>\`; }
     }
 
     // --- Phase 3: Domain Awareness ---
@@ -1629,17 +1601,17 @@
       if (card.domains && card.domains.length > 1) domains.push(card.domains[1]);
       updateCard(cardId, { domains });
       activeDomainStack.primary = domain;
-      showToast(`Domain set to ${domain}`, 'info');
+      showToast(\`Domain set to \${domain}\`, 'info');
       renderPrincipleBadges();
     }
     function getActiveDomainStack() { return activeDomainStack; }
 
     // --- Phase 3: Split View Live Rendering ---
     function setupSplitViewLiveRendering(cardId) {
-      const el = document.getElementById(`card-${cardId}`);
+      const el = document.getElementById(\`card-\${cardId}\`);
       if (!el) return;
-      const textarea = el.querySelector(`[data-content="${cardId}"]`);
-      const preview = el.querySelector(`[data-preview="${cardId}"]`);
+      const textarea = el.querySelector(\`[data-content="\${cardId}"]\`);
+      const preview = el.querySelector(\`[data-preview="\${cardId}"]\`);
       if (!textarea || !preview) return;
       textarea.addEventListener('input', () => {
         preview.innerHTML = renderMarkdown(textarea.value);
@@ -1659,7 +1631,7 @@
       } catch { return null; }
     }
     function updateConfidenceDisplay(cardId, score) {
-      const el = document.getElementById(`card-${cardId}`);
+      const el = document.getElementById(\`card-\${cardId}\`);
       if (!el || !score) return;
       let badge = el.querySelector('[data-confidence]');
       if (!badge) {
@@ -1673,8 +1645,8 @@
       const color = total >= 0.8 ? '#4aff8a' : total >= 0.5 ? '#ffaa4a' : '#ff4a4a';
       badge.style.background = isEitl ? '#1a4a2a44' : '#1a1a2e';
       badge.style.color = color;
-      badge.style.border = `1px solid ${color}44`;
-      badge.textContent = `${(total * 100).toFixed(0)}%${isEitl ? ' EITL' : ''}`;
+      badge.style.border = \`1px solid \${color}44\`;
+      badge.textContent = \`\${(total * 100).toFixed(0)}%\${isEitl ? ' EITL' : ''}\`;
     }
 
     // --- Phase 4: EITL Expert Review ---
@@ -1691,7 +1663,7 @@
       if (!pendingReview) return;
       const comment = document.getElementById('eitlReviewComment').value;
       const res = await fetch(API('/eitl/review'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cardId: pendingReview, action, comment }) });
-      if (res.ok) { showToast(`Output ${action}`, 'success'); closeExpertReview(); computeConfidence(pendingReview); }
+      if (res.ok) { showToast(\`Output \${action}\`, 'success'); closeExpertReview(); computeConfidence(pendingReview); }
     }
 
     function rewriteUrls(html, baseUrl) {
@@ -1779,7 +1751,7 @@
           if (data.card && !cards.find(c => c.id === data.card.id)) {
             cards.push(data.card); renderCard(data.card, cardCounter * 30 + 40, cardCounter * 30 + 40); cardCounter++; updateStatus();
           }
-          showToast(`Query complete: ${data.results?.length || 0} results, ${Math.round((data.coverageScore || 0) * 100)}% coverage`, 'success');
+          showToast(\`Query complete: \${data.results?.length || 0} results, \${Math.round((data.coverageScore || 0) * 100)}% coverage\`, 'success');
         } else {
           showToast('Query failed: ' + (data.error || 'Unknown error'), 'error');
         }
@@ -1834,7 +1806,7 @@
           if (data.card && !cards.find(c => c.id === data.card.id)) {
             cards.push(data.card); renderCard(data.card, cardCounter * 30 + 40, cardCounter * 30 + 40); cardCounter++; updateStatus();
           }
-          showToast(`Audit complete: ${data.status} (${Math.round((data.overallConfidence || 0) * 100)}%)`, data.status === 'pass' ? 'success' : data.status === 'conditional' ? 'warning' : 'error');
+          showToast(\`Audit complete: \${data.status} (\${Math.round((data.overallConfidence || 0) * 100)}%)\`, data.status === 'pass' ? 'success' : data.status === 'conditional' ? 'warning' : 'error');
         } else {
           showToast('Audit failed: ' + (data.error || 'Unknown error'), 'error');
         }
@@ -1862,141 +1834,146 @@
       const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = `audit-${card.auditId}.json`; a.click();
+      a.href = url; a.download = \`audit-\${card.auditId}.json\`; a.click();
       URL.revokeObjectURL(url);
       showToast('Audit exported', 'success');
     }
 
-    // ── Tab List / Card Picker ──
+    // ── Tab List (Queries / Audits / EITL) ──
     function openTabList(filterType) {
-      const filtered = filterType === "eitl"
+      const filtered = filterType === 'eitl'
         ? cards.filter(c => c.eitlStatus)
         : cards.filter(c => c.type === filterType);
-      const typeLabel = filterType === "eitl" ? "EITL Review" : filterType + "s";
-      const icon = filterType === "Query" ? "🔎" : filterType === "Audit" ? "🔍" : "⚙";
+      const typeLabel = filterType === 'eitl' ? 'EITL Review' : filterType + 's';
+      const icon = filterType === 'Query' ? '🔎' : filterType === 'Audit' ? '🔍' : '⚙';
+      let listHtml = '';
       if (filtered.length === 0) {
-        createCard({ type: "Document", title: icon + " " + typeLabel, content: "<div style=\"color:#666;font-size:12px;padding:16px;text-align:center;\">No " + typeLabel + " found. Run a " + (filterType === "eitl" ? "review" : filterType.toLowerCase()) + " to populate this list.</div>", rawHtml: true, domains: ["general"] });
-        return;
+        listHtml = '<div style="color:#666;font-size:12px;padding:16px;text-align:center;">No ' + typeLabel + ' found. Run a ' + (filterType === 'eitl' ? 'review' : filterType.toLowerCase()) + ' to populate this list.</div>';
+      } else {
+        listHtml = filtered.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')).map(c => {
+          const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '';
+          const conf = c.confidence?.total ? Math.round(c.confidence.total * 100) + '%' : c.overallConfidence ? Math.round(c.overallConfidence * 100) + '%' : '';
+          const statusBadge = c.eitlStatus ? '<span style="color:' + (c.eitlStatus === 'elevated' ? '#4aff8a' : c.eitlStatus === 'remanded' ? '#ff4a4a' : '#ffaa4a') + ';font-size:10px;margin-left:6px;">' + c.eitlStatus.toUpperCase() + '</span>' : '';
+          const statusDot = c.status ? '<span style="color:' + (c.status === 'pass' ? '#4aff8a' : c.status === 'conditional' ? '#ffaa4a' : '#ff4a4a') + ';font-size:10px;margin-left:6px;">' + c.status.toUpperCase() + '</span>' : '';
+          const badge = c.type === 'Query' ? '#4a9fff' : c.type === 'Audit' ? '#ff4a6a' : '#888';
+          return '<div class="picker-item" data-card-id="' + c.id + '">'
+            + '<span class="picker-badge" style="background:' + badge + '22;color:' + badge + ';">' + c.type + '</span>'
+            + '<span class="picker-title">' + (c.title || 'Untitled') + statusBadge + statusDot + '</span>'
+            + '<span class="picker-meta">' + (conf ? conf + ' ' : '') + date + '</span>'
+            + '<button class="flip-btn" onclick="flipCardEdit(\\'' + c.id + '\\')" title="Flip to edit">Edit</button>'
+            + '<button class="flip-btn" onclick="elevateFromPicker(\\'' + c.id + '\\')" title="Elevate to knowledge" style="color:#4aff8a;border-color:#2a6a3a;">Elevate</button>'
+            + '</div>';
+        }).join('');
       }
-      const sorted = filtered.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-      const listHtml = "<div class=\"picker-list\">" + sorted.map(c => {
-        const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : "";
-        const conf = c.confidence?.total ? Math.round(c.confidence.total * 100) + "%" : c.overallConfidence ? Math.round(c.overallConfidence * 100) + "%" : "";
-        const badge = c.type === "Query" ? "#4a9fff" : c.type === "Audit" ? "#ff4a6a" : "#888";
-        const eitlBadge = c.eitlStatus ? "<span style=\"color:" + (c.eitlStatus === "elevated" ? "#4aff8a" : c.eitlStatus === "remanded" ? "#ff4a4a" : "#ffaa4a") + ";font-size:9px;margin-left:4px;\">" + c.eitlStatus.toUpperCase() + "</span>" : "";
-        return "<div class=\"picker-item\" data-card-id=\"" + c.id + "\">"
-          + "<span class=\"picker-badge\" style=\"background:" + badge + "22;color:" + badge + ";\">" + c.type + "</span>"
-          + "<span class=\"picker-title\">" + (c.title || "Untitled") + eitlBadge + "</span>"
-          + "<span class=\"picker-meta\">" + (conf ? conf + " " : "") + date + "</span>"
-          + "<button class=\"flip-btn\" onclick=\"flipCardEdit('" + c.id + "')\" title=\"Flip to edit\">Edit</button>"
-          + "<button class=\"flip-btn\" onclick=\"elevateFromPicker('" + c.id + "')\" title=\"Elevate to knowledge\" style=\"color:#4aff8a;border-color:#2a6a3a;\">Elevate</button>"
-          + "</div>";
-      }).join("") + "</div>";
-      const cardHtml = "<div style=\"padding:12px;\">"
-        + "<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;\">"
-        + "<span style=\"font-size:11px;color:#888;\">" + filtered.length + " items — click to open, edit to flip, elevate to save to knowledge</span>"
-        + "<button onclick=\"syncFromKV()\" class=\"ctrl-btn\" style=\"font-size:10px;padding:2px 8px;\">Sync</button>"
-        + "</div>" + listHtml + "</div>";
-      createCard({ type: "Document", title: icon + " " + typeLabel, content: cardHtml, rawHtml: true, splitView: false, domains: ["general"] });
+      const cardHtml = '<div style="padding:12px;max-height:400px;overflow-y:auto;">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+        + '<span style="font-size:11px;color:#888;">' + filtered.length + ' items</span>'
+        + '<button onclick="syncFromKV()" class="ctrl-btn" style="font-size:10px;padding:2px 8px;">Sync</button>'
+        + '</div>'
+        + listHtml + '</div>';
+      const card = {
+        type: 'Document',
+        title: icon + ' ' + typeLabel,
+        content: cardHtml,
+        splitView: false,
+        domains: ['general'],
+      };
+      createCard(card);
+    }
+
+    function openCardById(cardId) {
+      const el = document.querySelector('[data-id="' + cardId + '"]');
+      if (el) {
+        el.style.boxShadow = '0 0 0 2px #ff6b1a, 0 8 32px rgba(0,0,0,0.5)';
+        setTimeout(() => el.style.boxShadow = '', 800);
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
 
     function flipCardEdit(cardId) {
       const card = cards.find(c => c.id === cardId);
       if (!card) return;
-      const el = document.getElementById("card-" + cardId);
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-      const content = card.content || "";
-      const flipHtml = "<div class=\"card-flip-container\">"
-        + "<div class=\"card-flip-inner\" id=\"flip-inner-" + cardId + "\">"
-        + "<div class=\"card-flip-front\"></div>"
-        + "<div class=\"card-flip-back\" style=\"padding:12px;\">"
-        + "<div style=\"font-size:11px;color:#ff6b1a;margin-bottom:6px;\">Edit & Elevate</div>"
-        + "<textarea id=\"flip-edit-" + cardId + "\" style=\"width:100%;min-height:150px;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:6px;padding:8px;font-size:12px;font-family:monospace;resize:vertical;\">" + content.replace(/</g, "&lt;") + "</textarea>"
-        + "<div style=\"display:flex;gap:8px;margin-top:8px;\">"
-        + "<button class=\"elevate-btn\" onclick=\"elevateCardContent('" + cardId + "')\">Save as Elevated Knowledge</button>"
-        + "<button class=\"flip-btn\" onclick=\"unflipCard('" + cardId + "')\">Cancel</button>"
-        + "</div></div></div></div>";
-      if (el) {
-        const contentArea = el.querySelector(".card-content");
-        if (contentArea) contentArea.innerHTML = flipHtml;
-      }
+      const el = document.querySelector('[data-id="' + cardId + '"]');
+      if (!el) return;
+      const contentArea = el.querySelector('.card-content');
+      if (!contentArea) return;
+      const content = card.content || '';
+      const flipHtml = '<div class="card-flip-container">'
+        + '<div class="card-flip-inner" id="flip-inner-' + cardId + '">'
+        + '<div class="card-flip-front"></div>'
+        + '<div class="card-flip-back" style="padding:12px;">'
+        + '<div style="font-size:11px;color:#ff6b1a;margin-bottom:6px;">Edit & Elevate</div>'
+        + '<textarea id="flip-edit-' + cardId + '" style="width:100%;min-height:150px;background:#0d0d1a;color:#e0e0e0;border:1px solid #2a2a4a;border-radius:6px;padding:8px;font-size:12px;font-family:monospace;resize:vertical;">' + content.replace(/</g, '&lt;') + '</textarea>'
+        + '<div style="display:flex;gap:8px;margin-top:8px;">'
+        + '<button class="elevate-btn" onclick="elevateCardContent(\\'' + cardId + '\\')">Save as Elevated Knowledge</button>'
+        + '<button class="flip-btn" onclick="unflipCard(\\'' + cardId + '\\')">Cancel</button>'
+        + '</div></div></div></div>';
+      const saved = contentArea.innerHTML;
+      contentArea.dataset.savedHtml = saved;
+      contentArea.innerHTML = flipHtml;
+      const inner = document.getElementById('flip-inner-' + cardId);
+      if (inner) setTimeout(() => inner.classList.add('flipped'), 10);
     }
 
     function unflipCard(cardId) {
-      const card = cards.find(c => c.id === cardId);
-      if (!card) return;
-      updateCardDOM(card);
+      const el = document.querySelector('[data-id="' + cardId + '"]');
+      if (!el) return;
+      const contentArea = el.querySelector('.card-content');
+      if (!contentArea) return;
+      const inner = document.getElementById('flip-inner-' + cardId);
+      if (inner) inner.classList.remove('flipped');
+      setTimeout(() => {
+        if (contentArea.dataset.savedHtml) {
+          contentArea.innerHTML = contentArea.dataset.savedHtml;
+          delete contentArea.dataset.savedHtml;
+        }
+      }, 300);
     }
 
     async function elevateCardContent(cardId) {
-      const textarea = document.getElementById("flip-edit-" + cardId);
+      const textarea = document.getElementById('flip-edit-' + cardId);
       if (!textarea) return;
+      const content = textarea.value.trim();
+      if (!content) { alert('Content is empty'); return; }
       const card = cards.find(c => c.id === cardId);
-      const content = textarea.value;
-      const title = card?.title || "Elevated knowledge";
-      showToast("Elevating knowledge...", "processing");
+      const title = card ? card.title : 'Untitled';
       try {
-        const res = await fetch("/api/elevate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cardId, revisedContent: content, title, confidence: 0.7 })
+        const res = await fetch(API('/elevate'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: cardId, title, content, domains: card?.domains || ['general'] })
         });
         const data = await res.json();
-        if (data.ok) {
-          showToast("Knowledge elevated to KV", "success");
-          card.content = content;
-          card.eitlStatus = "elevated";
-          updateCardDOM(card);
+        if (data.success) {
+          showToast('Elevated to knowledge base', 'success');
+          unflipCard(cardId);
         } else {
-          showToast("Elevate failed: " + (data.error || "unknown"), "error");
+          alert('Elevate failed: ' + (data.error || 'Unknown'));
         }
       } catch (e) {
-        showToast("Elevate error: " + e.message, "error");
+        alert('Elevate failed: ' + e.message);
       }
     }
 
     async function elevateFromPicker(cardId) {
       const card = cards.find(c => c.id === cardId);
       if (!card) return;
-      showToast("Elevating knowledge...", "processing");
       try {
-        const res = await fetch("/api/elevate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cardId, revisedContent: card.content, title: card.title, confidence: 0.7 })
+        const res = await fetch(API('/elevate'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: card.id, title: card.title, content: card.content || '', domains: card.domains || ['general'] })
         });
         const data = await res.json();
-        if (data.ok) {
-          showToast("Knowledge elevated", "success");
-          card.eitlStatus = "elevated";
-          updateCardDOM(card);
+        if (data.success) {
+          showToast('Elevated to knowledge base', 'success');
         } else {
-          showToast("Elevate failed: " + (data.error || "unknown"), "error");
+          alert('Elevate failed: ' + (data.error || 'Unknown'));
         }
       } catch (e) {
-        showToast("Elevate error: " + e.message, "error");
+        alert('Elevate failed: ' + e.message);
       }
     }
-
-    function openCardById(cardId) {
-      const el = document.getElementById('card-' + cardId);
-      if (el) {
-        el.style.boxShadow = '0 0 0 2px #ff6b1a, 0 8px 32px rgba(0,0,0,0.5)';
-        setTimeout(() => el.style.boxShadow = '', 800);
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        el.click();
-      } else {
-        const allCards = document.querySelectorAll('.card-window');
-        for (const c of allCards) {
-          if (c.dataset.id === cardId) {
-            c.style.boxShadow = '0 0 0 2px #ff6b1a, 0 8px 32px rgba(0,0,0,0.5)';
-            setTimeout(() => c.style.boxShadow = '', 800);
-            c.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            c.click();
-            break;
-          }
-        }
-      }
     }
 
     async function syncFromKV() {
@@ -2034,11 +2011,11 @@
     }
     async function createDomainBrowser(domain) {
       try {
-        const res = await fetch(`/api/domains/${domain}/assets`);
+        const res = await fetch(\`/api/domains/\${domain}/assets\`);
         const data = await res.json();
         const card = {
           type: 'DomainBrowser',
-          title: `${domain.charAt(0).toUpperCase() + domain.slice(1)} Domain`,
+          title: \`\${domain.charAt(0).toUpperCase() + domain.slice(1)} Domain\`,
           content: '',
           domain,
           view: 'assets',
@@ -2071,7 +2048,7 @@
         });
         const data = await res.json();
         hideSpinner();
-        if (data.ok) showToast(`Synced ${data.synced} principles to ${domain} KV`, 'success');
+        if (data.ok) showToast(\`Synced \${data.synced} principles to \${domain} KV\`, 'success');
         else showToast('Sync failed', 'error');
       } catch (e) { hideSpinner(); showToast('Sync error: ' + e.message, 'error'); }
     }
@@ -2086,17 +2063,17 @@
         formData.append('file', file);
         showSpinner('Uploading...');
         try {
-          const res = await fetch(`/api/domains/${domain}/assets`, {
+          const res = await fetch(\`/api/domains/\${domain}/assets\`, {
             method: 'POST',
             body: formData,
           });
           const data = await res.json();
           hideSpinner();
           if (data.ok) {
-            showToast(`Uploaded ${file.name} to ${domain}`, 'success');
+            showToast(\`Uploaded \${file.name} to \${domain}\`, 'success');
             const card = cards.find(c => c.id === cardId);
             if (card && card.type === 'DomainBrowser') {
-              const assetsRes = await fetch(`/api/domains/${domain}/assets`);
+              const assetsRes = await fetch(\`/api/domains/\${domain}/assets\`);
               const assetsData = await assetsRes.json();
               card.assets = assetsData.assets || [];
               updateCardDOM(card);

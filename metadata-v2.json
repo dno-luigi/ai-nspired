@@ -1,5 +1,0 @@
-{
-  "main_module": "worker.js",
-  "compatibility_date": "2026-08-30",
-  "compatibility_flags": ["nodejs_compat"]
-}
