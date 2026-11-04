@@ -1,0 +1,15 @@
+# Copy to .dev.vars for local development. Never commit .dev.vars.
+# In production set these with: npx wrangler secret put NAME
+
+# Only needed while MODEL_BACKEND=openrouter.
+OPENROUTER_API_KEY=
+
+# Cloudflare Turnstile. Fail-closed: requests 500 if this is unset.
+TURNSTILE_SECRET=
+
+# Shared secret for /admin/* routes. Prefer Cloudflare Access in production
+# and treat this as the fallback.
+ADMIN_SECRET=
+
+# Optional. Bearer token for the workspace card API, if you keep that push.
+WORKSPACE_TOKEN=

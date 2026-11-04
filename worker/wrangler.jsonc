@@ -1,0 +1,78 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "truth-engine",
+  "main": "src/index.js",
+  // Set to today's date on first deploy, then leave it alone.
+  "compatibility_date": "2026-10-27",
+  "upload_source_maps": true,
+  "observability": {
+    "enabled": true
+  },
+
+  // Workers AI. Powers clef-flash triage and env.AI.websearch().
+  "ai": {
+    "binding": "AI"
+  },
+
+  // Browser Run. Used only to expand a source URL into markdown when a
+  // snippet is not enough. Not on the hot path for every request.
+  "browser": {
+    "binding": "BROWSER"
+  },
+
+  "kv_namespaces": [
+    // Audit records, 30 day TTL.
+    { "binding": "AUDITS", "id": "REPLACE_WITH_KV_ID" },
+    // Conversation memory for follow-up turns.
+    { "binding": "CONTEXT_STORE", "id": "REPLACE_WITH_KV_ID" },
+    // Candidate + approved knowledge indexes. Small, read often.
+    { "binding": "KNOWLEDGE_INDEX", "id": "REPLACE_WITH_KV_ID" },
+    // Daily rate-limit counters. Backstop only; AI Gateway rate limits
+    // are the primary guard.
+    { "binding": "RATE_LIMIT", "id": "REPLACE_WITH_KV_ID" },
+    // Runtime switches: search on/off, drafting on/off, daily cap. Optional —
+    // with this binding absent the code falls back to DEFAULTS in
+    // src/lib/switches.js, so the Worker degrades instead of failing.
+    { "binding": "SETTINGS", "id": "REPLACE_WITH_KV_ID" }
+  ],
+
+  "r2_buckets": [
+    // Candidate and approved knowledge records. Grows without bound.
+    { "binding": "ORP", "bucket_name": "truth-engine-knowledge" }
+  ],
+
+  "vars": {
+    "SITE_URL": "https://ai-n.org",
+
+    // Comma separated. Requests from any other Origin are rejected.
+    "ALLOWED_ORIGINS": "https://ai-n.org,https://www.ai-n.org,http://localhost:8080",
+
+    // Cloudflare account ID, used to build the AI Gateway URL. Not a secret,
+    // but it is account specific, so set it per environment.
+    "CF_ACCOUNT_ID": "REPLACE_WITH_ACCOUNT_ID",
+    "AI_GATEWAY_ID": "truth",
+
+    // "ceramic" is $0.00025/request and supports zero data retention.
+    // Do not change this to "exa" without reading the README cost table.
+    "SEARCH_PROVIDER": "ceramic",
+    // Two sources per query per audit. Changing this changes what every
+    // audit is grounded in, so treat it as a product decision, not a knob.
+    "SEARCH_LIMIT": "2",
+
+    // "openrouter" or "workersai". The seam for swapping authors later.
+    "MODEL_BACKEND": "openrouter",
+    "OPENROUTER_MODEL": "anthropic/claude-sonnet-4.6",
+    "WORKERS_AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+
+    // Hard cost dial. A Ceramic description can be 8000 chars; two of those
+    // is ~4k input tokens. Trim hard.
+    "MAX_SOURCE_CHARS": "1200",
+    "MAX_PAGE_CHARS": "6000",
+
+    // Browser Run is billed in minutes. Two URLs is the whole extraction budget.
+    "MAX_BROWSER_URLS": "2",
+
+    // Per-IP daily request cap.
+    "DAILY_REQUEST_LIMIT": "60"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "truth-engine-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Truth Engine backend: clef-flash triage, Cloudflare web search, grounded generation.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "test": "node --test test/",
+    "check": "wrangler deploy --dry-run --outdir=.wrangler/dry-run"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
