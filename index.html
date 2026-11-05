@@ -169,6 +169,9 @@
 
   <script>
     var API = window.TRUTH_ENGINE_API;
+    // The pipeline stops mid-sentence on its default budget. A full audit needs
+    // 4000 tokens; asking for them is what produced complete answers in testing.
+    var MAX_TOKENS = 4000;
     var chatMessages = [];
     var currentAuditId = '';
     var fullReport = '';
@@ -226,6 +229,37 @@
       return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
+    // The stream can stop mid-sentence, or close having forwarded nothing at
+    // all. Neither shows up as an error, so judge the answer by its shape
+    // instead of trusting the close: an unfinished sentence means ask once more
+    // without streaming, and keep whichever answer came back longer.
+    function looksUnfinished(text) {
+      var trimmed = (text || '').trim();
+      if (!trimmed) return true;
+      return !/[.!?)`"*\]]$/.test(trimmed);
+    }
+
+    async function fetchWhole(body) {
+      // /api/generate accepts the same body and the same choices shape, and it
+      // returned whole answers where the audit route closed with a fragment.
+      var payload = Object.assign({ max_tokens: MAX_TOKENS }, body, { stream: false });
+      var res = await fetch(API + '/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) return '';
+      var text = await res.text();
+      try {
+        var json = JSON.parse(text);
+        var choice = json.choices && json.choices[0];
+        var msg = choice && (choice.message || choice.delta);
+        return (msg && msg.content) || '';
+      } catch (e) {
+        return '';
+      }
+    }
+
     async function streamAudit(body, onComplete) {
       var conv = document.getElementById('conversation');
       conv.style.display = 'block';
@@ -240,7 +274,7 @@
         var res = await fetch(API + '/v1/audit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
+          body: JSON.stringify(Object.assign({ max_tokens: MAX_TOKENS }, body))
         });
 
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -272,6 +306,14 @@
               }
             } catch (e) {}
           }
+        }
+
+        if (looksUnfinished(responseText)) {
+          var whole = await fetchWhole(body);
+          if (whole.length > responseText.length) responseText = whole;
+          reportDiv.innerHTML = marked.parse(
+            responseText || '_The engine returned an empty answer. Tap Audit to run it again._'
+          );
         }
 
         block.scrollIntoView({ behavior: 'smooth', block: 'start' });
