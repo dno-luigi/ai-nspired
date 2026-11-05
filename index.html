@@ -229,26 +229,18 @@
       return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // The stream can stop mid-sentence, or close having forwarded nothing at
-    // all. Neither shows up as an error, so judge the answer by its shape
-    // instead of trusting the close: an unfinished sentence means ask once more
-    // without streaming, and keep whichever answer came back longer.
-    function looksUnfinished(text) {
-      var trimmed = (text || '').trim();
-      if (!trimmed) return true;
-      return !/[.!?)`"*\]]$/.test(trimmed);
-    }
-
+    // The audit route closes its stream after a few hundred characters, mid
+    // sentence: 581 and 615 characters on a prompt that came back at
+    // 5,264-5,673 through /api/generate. That route accepts the same body and
+    // returns the same choices shape, so the report is read whole, not streamed.
     async function fetchWhole(body) {
-      // /api/generate accepts the same body and the same choices shape, and it
-      // returned whole answers where the audit route closed with a fragment.
       var payload = Object.assign({ max_tokens: MAX_TOKENS }, body, { stream: false });
       var res = await fetch(API + '/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) return '';
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       var text = await res.text();
       try {
         var json = JSON.parse(text);
@@ -260,7 +252,7 @@
       }
     }
 
-    async function streamAudit(body, onComplete) {
+    async function fetchReport(body, onComplete) {
       var conv = document.getElementById('conversation');
       conv.style.display = 'block';
 
@@ -270,56 +262,25 @@
       conv.appendChild(block);
       var reportDiv = block.querySelector('.report-body');
 
+      // A full report takes a minute or so to come back whole, so count the
+      // seconds out loud rather than leaving the panel sitting on a dead line.
+      var started = Date.now();
+      var ticker = setInterval(function() {
+        var line = reportDiv.querySelector('.thinking-line');
+        if (line) line.textContent = 'CRUNCHING_DATA... ' + Math.round((Date.now() - started) / 1000) + 's';
+      }, 1000);
+
       try {
-        var res = await fetch(API + '/v1/audit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(Object.assign({ max_tokens: MAX_TOKENS }, body))
-        });
-
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-
-        var reader = res.body.getReader();
-        var decoder = new TextDecoder();
-        var buffer = '';
-        var responseText = '';
-
-        reportDiv.innerHTML = '';
-
-        while (true) {
-          var result = await reader.read();
-          if (result.done) break;
-          buffer += decoder.decode(result.value, { stream: true });
-          var lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-          for (var i = 0; i < lines.length; i++) {
-            var cleaned = lines[i].trim();
-            if (!cleaned.startsWith('data: ')) continue;
-            var data = cleaned.slice(6).trim();
-            if (data === '[DONE]') continue;
-            try {
-              var json = JSON.parse(data);
-              var delta = json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content || '';
-              if (delta) {
-                responseText += delta;
-                reportDiv.innerHTML = marked.parse(responseText);
-              }
-            } catch (e) {}
-          }
-        }
-
-        if (looksUnfinished(responseText)) {
-          var whole = await fetchWhole(body);
-          if (whole.length > responseText.length) responseText = whole;
-          reportDiv.innerHTML = marked.parse(
-            responseText || '_The engine returned an empty answer. Tap Audit to run it again._'
-          );
-        }
-
+        var responseText = await fetchWhole(body);
+        reportDiv.innerHTML = marked.parse(
+          responseText || '_The engine returned an empty answer. Tap Audit to run it again._'
+        );
         block.scrollIntoView({ behavior: 'smooth', block: 'start' });
         if (onComplete) onComplete(responseText);
       } catch (err) {
         reportDiv.innerHTML = '<span style="color:#ef4444">Error: ' + err.message + '</span>';
+      } finally {
+        clearInterval(ticker);
       }
     }
 
@@ -341,7 +302,7 @@
       fullReport = '';
       currentAuditId = '';
 
-      await streamAudit({
+      await fetchReport({
         messages: chatMessages.slice(),
         type: 'docket',
         stream: true
@@ -385,7 +346,7 @@
       btn.textContent = 'Auditing...';
       btn.style.opacity = '0.5';
 
-      await streamAudit({
+      await fetchReport({
         messages: chatMessages.slice(),
         audit_id: currentAuditId,
         type: 'docket',
